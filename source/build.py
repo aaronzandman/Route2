@@ -1,6 +1,7 @@
 import json,re,subprocess
-VER="4.3"; OUT="planners/"
+OUT="planners/"
 src=open('source/route-planner-source.html').read()
+VER=re.search(r'const APP_VERSION = "([0-9.]+)"',src).group(1)   # always matches the app itself
 stores=json.load(open('source/stores.json'))
 i=src.index('// ===EDITION-START==='); j=src.index('// ===EDITION-END===')
 MARK='/*@@EDITION@@*/'; template=(src[:i]+MARK+src[j:]).replace('@@FEEDBACK_TO@@',open('source/feedback_to.txt').read().strip()).replace('@@GC_CODE@@',(open('source/analytics.txt').read().strip() if __import__('os').path.exists('source/analytics.txt') else '')); va_block=src[i:j]

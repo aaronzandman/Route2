@@ -417,7 +417,7 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
     </fieldset>
     <fieldset id="usageSet">
       <legend>Usage data</legend>
-      <p class="hint" style="margin:0 0 6px">To see how many people use the planner, on what devices and in which areas, the planner sends a small anonymous count when you open it (once a day) and when you use certain features. It's always on, and everything it sends is listed here.</p>
+      <p class="hint" style="margin:0 0 6px">To see how many people use the planner, on what devices and in which areas, the planner sends a small anonymous count when you open it on a <b>phone or tablet</b> (once a day) and when you use certain features there. Nothing is sent when you use it on a computer. It's always on, and everything it sends is listed here.</p>
       <details><summary>What's sent</summary><ul class="ul">
         <li>Which planner and version (on this device: <i id="usageEd"></i>)</li>
         <li>What you used, by name only: opened, loaded calls, opened a route, sent to phone, sent feedback, took the tour</li>
@@ -702,12 +702,13 @@ const ERRLOG=[];
   window.addEventListener("unhandledrejection",e=>add("Promise: "+((e.reason&&e.reason.message)||e.reason)));
 })();
 // ---------- version ----------
-const APP_VERSION = "4.4";
+const APP_VERSION = "4.5";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const GC_CODE = "";   // GoatCounter site code for anonymous usage counts (blank = nothing is sent)
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["4.5", "Usage data is only sent from phones and tablets. Nothing is sent when you use the planner on a computer."],
   ["4.4", "Anonymous user ID: a random code (shown in Settings → Usage data) so one person is counted once across days and devices. It travels with Send to phone, calls from Companion, and backup files (never with a hand-off to a teammate), and can be typed in on another device. It is never linked to your name, P number, or email."],
   ["4.3", "Usage data and Your stats: ☰ Menu → Settings shows fun facts from your own data (calls completed, stores and cities served, routes opened, busiest day) and explains exactly what anonymous usage data is sent: app version, what you used (by name only), device type, screen size, and general area (country and state). Your calls, store numbers, addresses, GPS location, and names are never sent."],
   ["4.2", "Feedback can include device details (browser, screen, planner version, counts of loaded calls and stores, recent errors) to help fix problems. You see exactly what is added before sending and can uncheck it. Your calls, locations and addresses are never included."],
@@ -2077,9 +2078,11 @@ function adoptUid(u,manual){
   if(manual || a<mine.a){ shared.set("uid",{i:u.i,a:Math.min(a,mine.a)}); shared.set("uidDay",""); return true; }
   return false;
 }
+// Usage data is only sent from phones and tablets (iPadOS reports itself as a Mac, so touch is checked too).
+const IS_MOBILE=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints>1);
 function track(ev){
   const name=ev.startsWith("user/")?`users/${ev.slice(5)}`:`planner/${EDITION_CODE}/${ev}`, log=shared.get("sentLog",[]);
-  const send=!!GC_CODE && navigator.onLine;
+  const send=!!GC_CODE && navigator.onLine && IS_MOBILE;
   if(send){ try{ const img=new Image(); img.referrerPolicy="no-referrer";
     img.src=`https://${GC_CODE}.goatcounter.com/count?p=${encodeURIComponent(name)}&t=${encodeURIComponent(EDITION_CODE+" v"+APP_VERSION)}&e=1&s=${screen.width},${screen.height},${devicePixelRatio}&rnd=${Math.random().toString(36).slice(2)}`; }catch(e){} }
   log.push({t:Date.now(),e:name,v:APP_VERSION,s:send?1:0}); while(log.length>20) log.shift(); shared.set("sentLog",log);
@@ -2096,7 +2099,7 @@ function renderUsage(){
   $("usageEd").textContent=`${EDITION.name.replace(/^Service Route Planner\s*[–-]\s*/,"")} v${APP_VERSION}`;
   const log=shared.get("sentLog",[]).slice().reverse();
   $("uidShow").textContent=getUid().i;
-  $("sentLog").innerHTML = log.length ? log.map(x=>`${esc(new Date(x.t).toLocaleString())} – <b>${esc(x.e.startsWith("users/")?"daily user count, ID "+x.e.slice(6):x.e.split("/").pop())}</b> (${esc(x.e.startsWith("users/")?"":x.e.split("/")[1]+" ")}v${esc(x.v)}, screen ${screen.width}×${screen.height})${x.s?"":" – not sent: offline or counting not set up yet"}`).join("<br>") : "Nothing yet.";
+  $("sentLog").innerHTML = log.length ? log.map(x=>`${esc(new Date(x.t).toLocaleString())} – <b>${esc(x.e.startsWith("users/")?"daily user count, ID "+x.e.slice(6):x.e.split("/").pop())}</b> (${esc(x.e.startsWith("users/")?"":x.e.split("/")[1]+" ")}v${esc(x.v)}, screen ${screen.width}×${screen.height})${x.s?"":IS_MOBILE?" – not sent: offline or counting not set up yet":" – not sent: computers never send usage data"}`).join("<br>") : "Nothing yet.";
   // Completed calls from every version used on this device (each keeps its own list).
   const all={}; try{ for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(/^(rp|rpc|rp-[A-Z]{2})\.history$/.test(k)) Object.assign(all,JSON.parse(localStorage.getItem(k)||"{}")); } }catch(e){}
   Object.assign(all,S.history||{});
