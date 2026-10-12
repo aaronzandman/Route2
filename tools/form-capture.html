@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Form Capture</title>
+<style>
+:root{--bg:#E9EDF0;--panel:#fff;--ink:#1C2430;--muted:#5D6875;--line:#CDD4DA;--road:#1F6B4F;--soft:#F2F5F7;--warn:#FFF3C4;--warnink:#3A2E00}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161B21;--panel:#1F262E;--ink:#E6EAEE;--muted:#9AA5B1;--line:#343E49;--road:#2E8A66;--soft:#252D36;--warn:#3A3317;--warnink:#F3E2A8}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:16px}
+main{max-width:760px;margin:0 auto}
+h1{font:700 26px/1.2 "Bahnschrift","Arial Narrow",system-ui,sans-serif;margin:4px 0 6px}
+h2{font:700 19px/1.25 "Bahnschrift","Arial Narrow",system-ui,sans-serif;margin:0 0 8px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin:12px 0}
+.hint{color:var(--muted);font-size:14px}
+ol,ul{padding-left:22px;margin:6px 0}li{margin:5px 0}
+.bm{display:inline-block;background:var(--road);color:#fff;font-weight:700;padding:10px 16px;border-radius:999px;text-decoration:none;cursor:grab;margin:6px 0}
+button{font:inherit;font-weight:700;border:0;border-radius:8px;padding:10px 14px;background:var(--road);color:#fff;cursor:pointer}
+button.sec{background:transparent;color:var(--road);border:1.5px solid var(--road)}
+textarea{width:100%;min-height:160px;font:12px/1.45 ui-monospace,Consolas,monospace;border:1px solid var(--line);border-radius:8px;padding:8px;background:var(--panel);color:var(--ink)}
+.warn{background:var(--warn);color:var(--warnink);border-radius:8px;padding:10px 12px;font-size:14px}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:640px){.cols{grid-template-columns:1fr}}
+code{background:var(--soft);border:1px solid var(--line);border-radius:4px;padding:0 4px}
+table{border-collapse:collapse;width:100%;font-size:13px}td,th{border-bottom:1px solid var(--line);padding:5px 6px;text-align:left;vertical-align:top}
+.flag{color:#B8322A;font-weight:700}
+#msg{min-height:1.4em;font-size:14px;margin-top:6px}
+</style>
+</head>
+<body>
+<main>
+<h1>Form Capture</h1>
+<p class="hint" style="margin:0">A one-tap tool that lists the fields on your company's mileage page, so Companion can be set up to fill that form for you later.</p>
+
+<div class="card">
+  <h2>What it does, and doesn't do</h2>
+  <div class="cols">
+    <div><b>It lists</b><ul class="hint">
+      <li>Field labels, names and types (for example "Date", "Odometer start", number box)</li>
+      <li>Drop-down choices and button names (for example "Add trip", "Submit")</li>
+      <li>The page's site name and path</li></ul></div>
+    <div><b>It never</b><ul class="hint">
+      <li>Reads anything typed into the form, including your password</li>
+      <li>Sends anything anywhere. It only shows a report on your screen.</li>
+      <li>Clicks, changes or submits anything on the page</li></ul></div>
+  </div>
+  <p class="hint">Long numbers and email addresses in labels or lists are hidden with <code>#</code> and <code>[email]</code>. You see the whole report before copying it. Check with IT before using tools on company systems.</p>
+</div>
+
+<div class="card">
+  <h2>On a computer (Edge or Chrome)</h2>
+  <ol>
+    <li>Show the favorites bar: press <b>Ctrl + Shift + B</b>.</li>
+    <li>Drag this button onto the favorites bar: <a class="bm" id="bm" href="#">Capture form</a></li>
+    <li>Sign in to the mileage portal and open the page where you enter mileage.</li>
+    <li>Click <b>Capture form</b> on the favorites bar. A report appears on top of the page.</li>
+    <li>Tap <b>Copy report</b> and paste it to Claude.</li>
+  </ol>
+</div>
+
+<div class="card">
+  <h2>On an Android phone (Chrome)</h2>
+  <ol>
+    <li><button id="copyCode">Copy the tool</button> <span class="hint" id="copied"></span></li>
+    <li>Bookmark this page (⋮ → ☆). Then open ⋮ → <b>Bookmarks</b>, press and hold the new bookmark, and tap <b>Edit</b>.</li>
+    <li>Change the name to <b>Capture form</b>. Clear the URL box and paste. Save.</li>
+    <li>Sign in to the mileage portal and open the mileage entry page.</li>
+    <li>Tap the address bar, type <b>Capture form</b>, and tap the bookmark that appears (the one with the star, not a search).</li>
+    <li>Tap <b>Copy report</b> and paste it to Claude.</li>
+  </ol>
+  <p class="hint">If the report says a section is "blocked", that part of the page comes from another site. Open that part on its own (often a "pop out" or "open in new tab" option) and run Capture form again there.</p>
+</div>
+
+<div class="card">
+  <h2>Check a report before sharing</h2>
+  <p class="hint" style="margin-top:0">Paste a report here to see it as a table. Anything that looks personal is flagged in red so you can remove it. This page doesn't send anything either.</p>
+  <textarea id="rep" placeholder="Paste a ROUTE2-FORM-CAPTURE report"></textarea>
+  <div id="msg"></div>
+  <div id="view"></div>
+</div>
+</main>
+<script id="capture" type="text/plain">(function(){
+  /* Route2 Form Capture: lists the form's fields (labels, names, types, buttons). Never reads what's typed in. Sends nothing anywhere. */
+  var red=function(t){ return String(t||"").replace(/\s+/g," ").trim().slice(0,120).replace(/[^\s@]+@[^\s@]+\.[a-z]{2,}/gi,"[email]").replace(/\d{6,}/g,function(m){return "#".repeat(m.length);}); };
+  var vis=function(el){ var r=el.getBoundingClientRect(), cs=getComputedStyle(el); return r.width>0&&r.height>0&&cs.visibility!=="hidden"&&cs.display!=="none"; };
+  var labelOf=function(el,doc){
+    var t="";
+    if(el.id){ try{ var l=doc.querySelector('label[for="'+CSS.escape(el.id)+'"]'); if(l) t=l.textContent; }catch(e){} }
+    if(!t){ var p=el.closest("label"); if(p) t=p.textContent; }
+    if(!t&&el.getAttribute("aria-labelledby")){ t=el.getAttribute("aria-labelledby").split(/\s+/).map(function(i){ var x=doc.getElementById(i); return x?x.textContent:""; }).join(" "); }
+    if(!t) t=el.getAttribute("aria-label")||"";
+    if(!t){ var c=el.closest("td,th,div"); var prev=c&&c.previousElementSibling; if(prev&&prev.textContent.trim().length<80) t=prev.textContent; }
+    return red(t);
+  };
+  var sectionOf=function(el){ var n=el, i=0; while(n&&i<400){ var s=n.previousElementSibling; while(s){ var h=s.matches&&s.matches("h1,h2,h3,h4,legend")?s:(s.querySelector&&s.querySelector("h1,h2,h3,h4,legend")); if(h) return red(h.textContent); s=s.previousElementSibling; i++; } n=n.parentElement; } return ""; };
+  var scan=function(doc,where){
+    var out={where:where,fields:[],buttons:[]};
+    doc.querySelectorAll("input,select,textarea,[contenteditable=true],[role=combobox],[role=textbox],[role=checkbox],[role=radio]").forEach(function(el){
+      var type=(el.getAttribute("type")||el.tagName).toLowerCase();
+      if(type==="hidden"){ out.fields.push({kind:"hidden",name:red(el.name),id:red(el.id)}); return; }
+      var f={kind:el.tagName.toLowerCase(),type:type,name:red(el.name),id:red(el.id),label:labelOf(el,doc),section:sectionOf(el),
+        placeholder:red(el.getAttribute("placeholder")),required:!!(el.required||el.getAttribute("aria-required")==="true"),
+        visible:vis(el),maxlength:el.getAttribute("maxlength")||"",pattern:red(el.getAttribute("pattern")),readonly:!!el.readOnly,disabled:!!el.disabled,
+        classes:red((el.className&&el.className.baseVal===undefined?el.className:"").split(/\s+/).slice(0,4).join(" "))};
+      if(type==="password") f.note="password field (nothing read)";
+      if(el.tagName==="SELECT") f.options=Array.prototype.slice.call(el.options,0,60).map(function(o){ return red(o.textContent); });
+      out.fields.push(f);
+    });
+    doc.querySelectorAll("button,input[type=submit],input[type=button],a[role=button],[role=button]").forEach(function(b){
+      var t=red(b.textContent||b.value||b.getAttribute("aria-label")); if(t) out.buttons.push({text:t,type:(b.getAttribute("type")||b.tagName).toLowerCase(),id:red(b.id),visible:vis(b)});
+    });
+    out.forms=Array.prototype.map.call(doc.forms,function(f){ var a=f.getAttribute("action")||""; try{ a=new URL(a,location.href).pathname; }catch(e){} return {method:(f.method||"get").toLowerCase(),action:a,fields:f.elements.length}; });
+    return out;
+  };
+  var rep={tool:"route2-form-capture",v:1,captured:new Date().toISOString(),page:{site:location.hostname,path:location.pathname,title:red(document.title)},
+    tech:{angular:!!(window.ng||document.querySelector("[ng-version]")),react:!!document.querySelector("[data-reactroot],#root,#__next"),jquery:!!window.jQuery,sap:!!(window.sap&&window.sap.ui)},
+    frames:[]};
+  rep.main=scan(document,"page");
+  Array.prototype.forEach.call(document.querySelectorAll("iframe,frame"),function(fr,i){
+    try{ var d=fr.contentDocument; if(d&&d.body) rep.frames.push(scan(d,"frame "+(i+1))); else throw 0; }
+    catch(e){ var o=""; try{ o=new URL(fr.src,location.href).hostname; }catch(x){} rep.frames.push({where:"frame "+(i+1),blocked:true,site:o}); }
+  });
+  var txt="ROUTE2-FORM-CAPTURE\n"+JSON.stringify(rep,null,1);
+  var n=rep.main.fields.filter(function(f){return f.kind!=="hidden";}).length+rep.frames.reduce(function(s,f){return s+((f.fields||[]).filter(function(x){return x.kind!=="hidden";}).length);},0);
+  var old=document.getElementById("r2fc"); if(old) old.remove();
+  var box=document.createElement("div"); box.id="r2fc";
+  box.style.cssText="position:fixed;inset:0;z-index:2147483647;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:12px;font:15px/1.4 system-ui,Segoe UI,Roboto,sans-serif";
+  box.innerHTML='<div style="background:#fff;color:#1C2430;border-radius:12px;max-width:640px;width:100%;max-height:92vh;display:flex;flex-direction:column;padding:16px;box-sizing:border-box">'+
+    '<b style="font-size:19px">Form capture: '+n+' fields found<\/b>'+
+    '<div style="font-size:13px;color:#5D6875;margin:4px 0 8px">This lists field names, labels and buttons only. It did not read anything typed into the form, and nothing has been sent anywhere. Long numbers and emails are hidden with # and [email]. Check it below, then tap <b>Copy report<\/b> and paste it to Claude.<\/div>'+
+    '<textarea readonly style="flex:1;min-height:200px;width:100%;box-sizing:border-box;font:12px ui-monospace,Consolas,monospace;border:1px solid #CDD4DA;border-radius:8px;padding:8px"><\/textarea>'+
+    '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px"><button data-x style="font:inherit;padding:10px 14px;border-radius:8px;border:1px solid #CDD4DA;background:#fff">Close<\/button><button data-c style="font:inherit;font-weight:700;padding:10px 14px;border-radius:8px;border:0;background:#1F6B4F;color:#fff">Copy report<\/button><\/div><\/div>';
+  document.body.appendChild(box);
+  var ta=box.querySelector("textarea"); ta.value=txt;
+  box.querySelector("[data-x]").onclick=function(){ box.remove(); };
+  box.querySelector("[data-c]").onclick=function(){ var b=this; var ok=function(){ b.textContent="Copied ✓"; };
+    if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(ok,function(){ ta.focus(); ta.select(); try{document.execCommand("copy"); ok();}catch(e){ b.textContent="Select the text and copy it"; } });
+    else { ta.focus(); ta.select(); try{document.execCommand("copy"); ok();}catch(e){} } };
+})();
+</script>
+<script>
+const code=document.getElementById("capture").textContent;
+const href="javascript:"+encodeURIComponent(code);
+const bm=document.getElementById("bm"); bm.href=href;
+bm.addEventListener("click",e=>{ e.preventDefault(); document.getElementById("copied").textContent=""; alert("Drag this button to your favorites bar instead of clicking it here. Then use it on the mileage page."); });
+document.getElementById("copyCode").onclick=()=>{ const s=document.getElementById("copied");
+  (navigator.clipboard?navigator.clipboard.writeText(href):Promise.reject()).then(()=>s.textContent="Copied. Now do step 2.",()=>{ s.textContent="Copy blocked: select and copy the text below."; const t=document.createElement("textarea"); t.value=href; t.readOnly=true; s.after(t); t.select(); }); };
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const looksPersonal=s=>/\b\d{3}[-. ]?\d{3}[-. ]?\d{4}\b|\b\d{3}-\d{2}-\d{4}\b|@|\bP\d{4,}\b/i.test(String(s||""));
+document.getElementById("rep").oninput=e=>{
+  const t=e.target.value.trim(), m=document.getElementById("msg"), v=document.getElementById("view"); v.innerHTML=""; m.textContent="";
+  if(!t) return;
+  let r; try{ r=JSON.parse(t.replace(/^ROUTE2-FORM-CAPTURE\s*/,"")); }catch(x){ m.textContent="That isn't a complete report. Copy it again with Copy report."; return; }
+  const parts=[r.main,...(r.frames||[])]; let flagged=0;
+  const cell=s=>{ const p=looksPersonal(s); if(p) flagged++; return `<td${p?' class="flag"':""}>${esc(s)}</td>`; };
+  v.innerHTML=`<p class="hint">Page: <b>${esc(r.page&&r.page.site)}</b>${esc(r.page&&r.page.path)} · ${esc(r.page&&r.page.title)}</p>`+parts.map(p=>p.blocked?`<p class="warn">${esc(p.where)} is blocked (from ${esc(p.site)}). Open it on its own and capture again.</p>`:
+    `<h2 style="margin-top:12px">${esc(p.where)}: ${p.fields.filter(f=>f.kind!=="hidden").length} fields, ${p.buttons.length} buttons</h2><table><tr><th>Label</th><th>Type</th><th>Name / id</th><th>Choices</th></tr>`+
+    p.fields.filter(f=>f.kind!=="hidden").map(f=>`<tr>${cell(f.label||f.placeholder)}<td>${esc(f.type)}${f.required?" *":""}${f.visible?"":" (hidden)"}</td><td>${esc(f.name||f.id)}</td>${cell((f.options||[]).slice(0,8).join(", ")+((f.options||[]).length>8?" …":""))}</tr>`).join("")+
+    `</table><p class="hint">Buttons: ${p.buttons.map(b=>esc(b.text)).join(" · ")||"none"}</p>`).join("");
+  m.innerHTML=flagged?`<span class="flag">${flagged} item${flagged>1?"s":""} might be personal (in red).</span> Remove them from the report text before sharing, or blur them in a screenshot.`:"Nothing looks personal. It's ready to share.";
+};
+</script>
+</body>
+</html>
