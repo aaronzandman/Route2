@@ -2,7 +2,7 @@
 
 Plan a day of service calls: paste your calls, see them grouped by store, filter by how long they're past due, and get a driving order with Google Maps directions. Your calls and settings are saved in your own browser and never leave your device.
 
-**Current version: 2.3**
+**Current version: 2.4**
 
 ## Pick your planner
 
@@ -20,6 +20,7 @@ Plan a day of service calls: paste your calls, see them grouped by store, filter
 
 - **Open** runs the planner right in your browser, on a phone or computer. Nothing to save, and it's always the newest version. Bookmark it.
 - **Download** saves the planner file to your device so it works with no internet. Open the saved file in Edge or Chrome. Download again when a new version comes out.
+- The online version has a **Download offline copy** button in its banner. The offline version checks GitHub for new versions and shows a banner when one is ready.
 - Either way, your calls and settings are saved in your own browser and never leave your device.
 - Pick one way and stick with it, since each keeps its own saved data. To move data between them, use **Save backup file** and **Load backup file** in the planner.
 
@@ -52,6 +53,7 @@ If your columns are in a different order, change the layout in SAP (Ctrl+F8) and
 
 ## What's in this repository
 
-- `planners/` – every edition. `ALL.html` and `<STATE>.html` are always the newest; the versioned files (`route-planner-VA-v2.3.html`) are kept for reference.
+- `planners/` – every edition. `ALL.html` and `<STATE>.html` are always the newest; the versioned files (`route-planner-VA-v2.4.html`) are kept for reference.
+- `version.json` – newest version number, used by offline copies to check for updates
 - `index.html` – download page with every edition built in
 - `source/` – shared planner code, store list, and the build script that makes every edition

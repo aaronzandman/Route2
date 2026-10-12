@@ -1,5 +1,5 @@
 import json,re,subprocess
-VER="2.3"; OUT="planners/"
+VER="2.4"; OUT="planners/"
 src=open('source/route-planner-source.html').read()
 stores=json.load(open('source/stores.json'))
 i=src.index('// ===EDITION-START==='); j=src.index('// ===EDITION-END===')
@@ -29,6 +29,7 @@ for e in E:
     r=subprocess.run(['node','-e',"new Function(require('fs').readFileSync('/tmp/t.js','utf8'))"],capture_output=True,text=True); assert r.returncode==0,(e["code"],r.stderr)
     open(OUT+e["file"],'w').write(html); print(e["file"],e["stores"])
     open(OUT+("ALL" if e["code"]=="ALL" else e["code"])+".html",'w').write(html)  # stable link, always newest
+open("version.json","w").write(json.dumps({"version":VER,"editions":[("ALL" if e["code"]=="ALL" else e["code"]) for e in E]}))
 B={"version":VER,"template":template,"editions":[{k:e[k] for k in("code","title","file","stores","note","block","size")} for e in E]}
 payload=json.dumps(B,separators=(',',':')).replace('<','\\u003c')
 tag='<script type="application/json" id="bundle">'

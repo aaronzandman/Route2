@@ -93,6 +93,16 @@ legend{font-weight:600;font-size:14px;margin-bottom:6px}
 .changes{margin:6px 0 0;padding-left:18px;font-size:14px}
 .changes li{margin:2px 0}
 .saved{font-size:12px;opacity:.85;margin-left:auto}
+.modebar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;width:100%}
+.modebadge{display:inline-flex;align-items:center;gap:6px;font:700 13px/1 var(--body);letter-spacing:.4px;text-transform:uppercase;border-radius:999px;padding:5px 10px;background:rgba(255,255,255,.18);color:#fff}
+.modebadge::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
+.modebadge.online::before{background:#7CF0B5}
+.modebadge.offline::before{background:#FFD25E}
+.hbtn{font:600 13px var(--body);color:var(--road);background:#fff;border:0;border-radius:6px;padding:5px 10px;text-decoration:none;cursor:pointer}
+.hlink{color:#fff;font-size:13px}
+.upd{display:none;width:100%;background:#FFF3C4;color:#3A2E00;border-radius:8px;padding:8px 12px;font-size:14px;align-items:center;gap:10px;flex-wrap:wrap}
+.upd.show{display:flex}
+.upd a{font-weight:700;color:#1E4E8C}
 .pastq{display:flex;flex-wrap:wrap;gap:6px}
 .pastq button{padding:4px 10px 4px 6px;font-size:14px;border-radius:999px;display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--line)}
 .pastq button .dot{width:12px;height:12px;border-radius:50%;background:var(--muted)}
@@ -160,6 +170,11 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
   <h1><span id="appName">Service Route Planner</span> <span id="verTag" style="font-size:15px;opacity:.8"></span></h1>
   <span class="sub" id="summary">No calls loaded</span>
   <span class="saved" id="savedNote">Saved on this computer</span>
+  <div class="modebar">
+    <span class="modebadge" id="modeBadge"></span>
+    <span id="modeActions"></span>
+  </div>
+  <div class="upd" id="updBar" role="status"></div>
 </header>
 
 <div class="layout">
@@ -214,6 +229,13 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
       <legend>Order links</legend>
       <label class="incl"><input type="checkbox" id="edgeLinks"> Open order links in Microsoft Edge</label>
       <div class="hint">Turn this off if tapping an order number does nothing on this device.</div>
+    </fieldset>
+    <fieldset id="updSet">
+      <legend>Updates</legend>
+      <label class="incl"><input type="checkbox" id="autoUpd"> Check for new versions automatically</label>
+      <div class="hint">Only asks GitHub which version is newest. Your calls never leave this device.</div>
+      <div class="row"><button id="updNow">Check now</button></div>
+      <div class="msg" id="updMsg"></div>
     </fieldset>
     <fieldset>
       <legend>Backup</legend>
@@ -330,9 +352,12 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
 
 <script>
 // ---------- version ----------
-const APP_VERSION = "2.3";
+const APP_VERSION = "2.4";
+const REPO_URL = "https://github.com/AaronZandman/Route2";
+const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const LATEST_URL = "https://drive.google.com/drive/folders/1PUB4oO-vNFCRwoDu8PbWOcxdKwZk6vrY";
 const CHANGELOG = [
+  ["2.4", "Banner shows Online or Offline version. The online version has a Download button to save an offline copy. The offline version links to the GitHub repository and checks for updates automatically."],
   ["2.3", "Step-by-step help for copying open calls out of SAP (IW49N), with the required column order. The planner now warns when pasted columns are in the wrong order or a date can't be read."],
   ["2.2", "Past-due color levels: 1–2 days (yellow), 3 days (orange), 4+ days (red); pick more than one. Custom day range only ever shows expired calls. Each store shows all of its other open calls too. Sort the store list by days past due, most or least first. Most past due first switch builds the route oldest-first, then shortest drive."],
   ["2.1", "Days past due filter with quick buttons (7+, 14+, 30+) and your own day range. Sort stores by most past due. Each call shows how many days it is past due, also in the copied route."],
@@ -349,87 +374,71 @@ const CHANGELOG = [
   ["1.0", "Import calls, group by store, filters, route ordering, Google Maps directions."]
 ];
 // ===EDITION-START===
-const EDITION = {id:"local", name:"Service Route Planner – Virginia", key:"rp.", resetLabel:"Restore defaults"};
-const DEFAULT_GROUPS = `P1566	B
-P1587	B
-P1588	C
-P1589	B
-P1590	B
-P1591	B
-P1592	D
-P1593	C
-P1594	D
-P1595	B
-P1596	C
-P1615	F
-P1626	C
-P1632	A
-P1635	E
-P1636	D
-P1643	D
-P1679	D
-P1694	D
-P1720	A
-P1883	E
-P1885	A
-P2025	E
-P2030	E
-P2032	E`;
-
-const DEFAULT_STORES = `Store number	Division	Shopping center	Address	City	State	Zip code	County	Phone	Square footage	Ad day	Open date
-1566	Charlotte	Nuckols Place	5400 Wyndham Forest Dr	Glen Allen	VA	23059	Henrico	804-527-5334	54191	Wednesday	7/15/2017
-1587	Charlotte	Short Pump Crossing Shopping Center	3460 Pump Rd	Henrico	VA	23233-1111	Henrico	804-364-6314	63331	Wednesday
-1588	Charlotte	Carytown Exchange	3535 Ellwood Ave	Richmond	VA	23221	Richmond (Independent City)	804-253-6372	45600	Wednesday	12/9/2020
-1589	Charlotte	The Shoppes At Crossridge	10250 Staples Mill Rd	Glen Allen	VA	23060-3064	Henrico	804-755-2360	51487	Wednesday	7/29/2017
-1590	Charlotte	John Rolfe Commons	2250 John Rolfe Pkwy	Henrico	VA	23233-6913	Henrico	804-360-4920	56680	Wednesday	8/19/2017
-1591	Charlotte	Virginia Center Marketplace	10150 Brook Rd	Glen Allen	VA	23059-6514	Henrico	804-262-8190	63300	Wednesday
-1592	Charlotte	Harbour Pointe Shopping Center	13700 Hull Street Rd	Midlothian	VA	23112-2000	Chesterfield	804-739-1160	63557	Wednesday	11/4/2017
-1593	Charlotte	The Village Shopping Center	7035 Three Chopt Rd	Richmond	VA	23226	Henrico	804-288-1070	47395	Wednesday	8/28/2019
-1594	Charlotte	Colonial Square Shopping Center	3007 Boulevard	Colonial Heights	VA	23834-2445	Colonial Heights (Independent City)	804-520-4520	63100	Wednesday	11/1/2017
-1595	Charlotte	Westpark Shopping Center	9645 W Broad St	Glen Allen	VA	23060	Henrico	804-965-6303	49300	Wednesday	5/29/2019
-1596	Charlotte	White Oak Village	4591 S Laburnum Ave	Richmond	VA	23231-2421	Henrico	804-226-1915	61069	Wednesday	8/5/2017
-1626	Charlotte	Brandy Creek Commons	6603 Mechanicsville Tpke	Mechanicsville	VA	23111	Hanover	804-569-3902	50160	Wednesday	1/5/2019
-1632	Charlotte	Publix At Cosner's Corner	9601 Patriot Hwy	Fredericksburg	VA	22407	Spotsylvania	540-898-6801	49098	Wednesday	7/25/2018
-1635	Charlotte	Monticello Marketplace	4660 Monticello Ave	Williamsburg	VA	23188	James City	757-564-5902	62901	Wednesday
-1636	Charlotte	The Shops At Stratford Hills	7045 Forest Hill Ave	Richmond	VA	23225	Richmond (Independent City)	804-323-4110	54400	Wednesday	7/25/2018
-1643	Charlotte	Cosby Village	7200 Cosby Village Rd	Chesterfield	VA	23832	Chesterfield	804-639-6525	50280	Wednesday
-1679	Charlotte	Huguenot Village	2015 Huguenot Rd	North Chesterfield	VA	23235	Chesterfield	804-330-3704	49533	Wednesday	8/26/2020
-1694	Charlotte	Charter Colony Shopping Center	200 Charter Colony Pkwy	Midlothian	VA	23114	Chesterfield	804-378-3222	48387	Wednesday	6/10/2020
-1720	Charlotte	Embrey Mill Town Center	1640 Publix Way	Stafford	VA	22554	Stafford	540-288-9280	48387	Wednesday
-1883	Charlotte	Publix At Planters Station	3189 Godwin Blvd	Suffolk	VA	23434-8694	Suffolk (Independent City)	757-942-6032	46791	Wednesday
-1885	Charlotte	Chancellor Crossing	5940 Plank Rd	Fredericksburg	VA	22407-6232	Spotsylvania	540-736-6013	48387	Wednesday
-2025	Charlotte	Bartlett Station	22449 Spadea Way	Carrollton	VA	23314	Isle Of Wight	757-542-6041	48387	Wednesday	1/15/2025
-2030	Charlotte	Hickman Place	2200 General Booth Blvd	Virginia Beach	VA	23454	Virginia Beach (Independent City)	757-716-6015	49235	Wednesday
-2032	Charlotte	Dominion Station	1620 Cedar Rd STE 100	Chesapeake	VA	23322-7197	Chesapeake (Independent City)	757-550-6044	48387	Wednesday	4/23/2025
-1615	Charlotte	Publix At First Flight Square	1530 N Croatan Hwy	Kill Devil Hills	NC	27948	Dare	252-255-5006	45600	Wednesday	2/28/2018`;
-
-// Map positions from the company store list, used for mileage estimates and ordering.
-const DEFAULT_COORDS = `1566	37.68397	-77.586555
-1587	37.648952	-77.615845
-1588	37.5569	-77.48806
-1589	37.656944	-77.525856
-1590	37.62254	-77.62402
-1591	37.675133	-77.4631
-1592	37.410347	-77.65613
-1593	37.590977	-77.53272
-1594	37.268887	-77.41047
-1595	37.640015	-77.56325
-1596	37.525627	-77.35183
-1626	37.6109	-77.33578
-1632	38.219112	-77.50658
-1635	37.27248	-76.758385
-1636	37.534405	-77.52457
-1643	37.40154	-77.70873
-1679	37.519875	-77.612816
-1694	37.50507	-77.65897
-1720	38.426	-77.43402
-1883	36.786213	-76.59072
-1885	38.291405	-77.57935
-2025	36.94319	-76.53447
-2030	36.76458	-76.01289
-2032	36.728184	-76.299904
-1615	36.027336	-75.671135`;
-
+const EDITION = {id:"state-NC", name:"Service Route Planner \u2013 North Carolina", key:"rp-NC.", resetLabel:"Restore North Carolina store list", groupBy:"city"};
+const DEFAULT_GROUPS = ``;
+const DEFAULT_STORES = `Store #	Shopping Center	Address	City	State	Zip	Phone	Latitude	Longitude
+1442	Ballantyne Town Center	11222 Providence Rd W	Charlotte	NC	28277	(704) 716-2344	35.04258	-80.84965
+1453	Shops at Southline	2222 South Blvd	Charlotte	NC	28203-6581	(704) 373-2122	35.206657	-80.86254
+1466	Bradford	1020 Bradford Plaza Way	Cary	NC	27519	(919) 460-2082	35.793247	-78.8448
+1470	Mint Hill Commons	6828 Matthews Mint Hill Rd	Mint Hill	NC	28227-9324	(704) 573-0234	35.17094	-80.65955
+1473	Pinnacle Point	1830 Hendersonville Rd	Asheville	NC	28803-3207	(828) 274-6287	35.5049	-82.52241
+1474	Magnolia Plaza	8315 Magnolia Estates Dr	Cornelius	NC	28031-7837	(704) 895-7057	35.475414	-80.88894
+1475	Publix at Miller Street	34 Miller St	Winston-Salem	NC	27104-4212	(336) 724-3707	36.094845	-80.27575
+1480	Whitehall Commons	8120 S Tryon St	Charlotte	NC	28273-3325	(704) 583-2323	35.14604	-80.929794
+1481	Market Square	9815 Rose Commons Dr	Huntersville	NC	28078-3334	(704) 948-4801	35.40851	-80.864296
+1483	Steele Creek Crossing	12810 S Tryon St	Charlotte	NC	28273-6949	(704) 587-0339	35.104816	-80.98803
+1484	McKee Farms	3110 Fincher Farm Rd	Matthews	NC	28105-5462	(704) 814-6001	35.082245	-80.729935
+1490	Willow Oaks Crossing	5015 Weddington Rd	Concord	NC	28027	(704) 795-7127	35.396206	-80.66127
+1509	Prosperity Village Square	10110 Benfield Rd	Charlotte	NC	28269	(704) 992-6951	35.3748	-80.788574
+1514	The Shoppes at Heritage Village	1030 Forestville Rd	Wake Forest	NC	27587	(919) 556-6671	35.945904	-78.50794
+1516	Publix at Pine Valley	716 Bragg Dr	Wilmington	NC	28412	(910) 313-2201	34.180668	-77.89324
+1518	Cotswold	4425 Randolph Rd	Charlotte	NC	28211	(704) 367-5208	35.1778	-80.7994
+1519	Brawley Commons	631 Brawley School Rd	Mooresville	NC	28117-6204	(704) 660-6800	35.581768	-80.87465
+1520	Millpond Village	3480 Kildaire Farm Rd	Cary	NC	27518-1541	(919) 303-4024	35.70501	-78.797
+1521	Hoffman Village	1949 Hoffman Rd	Gastonia	NC	28054-6574	(704) 853-7000	35.225433	-81.132645
+1533	River Place	2004 S Glenburnie Rd	New Bern	NC	28562-5227	(252) 634-1646	35.100266	-77.10051
+1539	North Pointe Shopping Center	134 Venture Ln	Statesville	NC	28625	(704) 878-4073	35.818302	-80.87841
+1544	Publix Pointe	1441 Kelly Rd	Apex	NC	27502	(919) 303-6200	35.737526	-78.89342
+1546	Weaverville Plaza	165 Weaver Blvd	Weaverville	NC	28787	(828) 658-1020	35.705868	-82.568794
+1548	Publix at Three Creeks	1620 Blowing Rock Rd	Boone	NC	28607	(828) 263-8126	36.19921	-81.66139
+1550	Lake Hickory Crossings	36 29th Ave NE	Hickory	NC	28601-1100	(828) 322-3675	35.769314	-81.32824
+1551	Leesville Market Place	9640 Leesville Rd	Raleigh	NC	27613	(919) 848-3480	35.90569	-78.72725
+1552	Amberly Place	425 Emissary Dr	Cary	NC	27519	(919) 388-7201	35.825207	-78.90321
+1555	Harris Square	4055 Harris Square Dr	Harrisburg	NC	28075	(704) 454-7832	35.320442	-80.64581
+1556	Shoppes at Hanfield Village	5132 Old Charlotte Hwy	Monroe	NC	28110	(704) 289-6598	35.048042	-80.64222
+1569	Greenville Square	705 Greenville Blvd SE	Greenville	NC	27858	(252) 756-4682	35.588303	-77.370125
+1574	Peace Haven Village	3150 Gammon Ln	Clemmons	NC	27012	(336) 766-2069	36.04019	-80.38912
+1575	Tallywood Shopping Center	3114 Raeford Rd	Fayetteville	NC	28303	(910) 321-0114	35.04692	-78.93146
+1580	Ogden Market Place	7144 Market St	Wilmington	NC	28411	(910) 681-3555	34.271004	-77.81954
+1582	Westchester Square	2005 N Main St Ste 101	High Point	NC	27262	(336) 905-8610	35.981407	-80.024864
+1583	The Village Shoppes	7883 Village Center N	Sherrills Ford	NC	28673	(828) 478-2644	35.584713	-80.98934
+1586	South Market Village	635 Greenville Hwy	Hendersonville	NC	28792	(828) 694-4440	35.305576	-82.45932
+1603	Cambridge Village	513 Brentwood Rd	Denver	NC	28037	(704) 483-7152	35.448223	-80.99328
+1615	Publix at First Flight Square	1530 N Croatan Hwy	Kill Devil Hills	NC	27948	(252) 255-5006	36.027336	-75.671135
+1619	Arboretum at Surf City	2765 NC Hwy 210 E	Hampstead	NC	28443	(910) 329-1000	34.45176	-77.56461
+1623	Egret Landing	8800 Crew Drive	Emerald Isle	NC	28594	(252) 354-2104	34.66231	-77.05169
+1631	Ocean Isle Beach Market Place	1560 Market Place Blvd	Ocean Isle Beach	NC	28469	(910) 393-2059	33.90404	-78.43869
+1640	Waynesville Pavilion	124 Frazier St	Waynesville	NC	28786	(828) 454-5700	35.504246	-82.99398
+1652	Peace	417 W Peace St Ste 100	Raleigh	NC	27603	(919) 755-5444	35.78837	-78.64446
+1658	Grandover Village	6029 W Gate City Blvd	Greensboro	NC	27407	(336) 894-2591	36.000057	-79.90604
+1660	Gateway Marketplace	2001 Marlin Dr Unit 100	Jacksonville	NC	28546	(910) 353-0433	34.79604	-77.40825
+1677	Publix Commons at Federal Point	1018 Lake Park Blvd N Ste 107	Carolina Beach	NC	28428	(910) 458-8615	34.04399	-77.89519
+1703	Oak Island Marketplace	5003 E Oak Island Dr	Oak Island	NC	28465	(910) 278-6785	33.91143	-78.112785
+1704	Marvin Gardens	1615 Providence Rd S	Marvin	NC	28173	(704) 843-0119	34.98699	-80.77168
+1706	Church Street Commons	2750 S Church St	Burlington	NC	27215	(336) 586-1873	36.08065	-79.483215
+1727	Marketplace at Flowers Crossroads	24 Publix Dr	Clayton	NC	27527	(919) 550-2812	35.652176	-78.351944
+1744	Publix at Wendell Falls	2257 Wendell Falls Pkwy	Wendell	NC	27591	(919) 365-7055	35.776608	-78.43507
+1765	North Creek Village	15010 Village Crossing Rd	Huntersville	NC	28078	(704) 977-0021	35.454235	-80.80321
+1817	Marketplace at Ellis Crossing	1065 Yunus Rd	Durham	NC	27703-7200	(919) 598-0245	35.9408	-78.8543
+1824	Publix at Arboretum	7933 Providence Rd	Charlotte	NC	28277	(980) 273-7487	35.099136	-80.77755
+1855	Wallbrook	821 S Main Street	Rolesville	NC	27571-9264	(919) 263-6027	35.906536	-78.4801
+1858	West Edge	5525 Robin Lark Cir	Winston-Salem	NC	27106-9906	(336) 815-6007	36.1205	-80.36928
+1872	Harris Farms Shopping Center	1254 Coddle Creek Hwy	Mooresville	NC	28115	(704) 360-6915	35.561268	-80.78994
+1881	Clear Creek Crossings	12925 Albemarle Rd	Charlotte	NC	28227	(980) 365-7588	35.22505	-80.63641
+1886	Buffaloe Bend	7330 Buffaloe Rd	Raleigh	NC	27616		35.844086	-78.51527
+2017	Publix At Quail Commons	11525 Carmel Commons Blvd	Charlotte	NC	28226-5317	(704) 496-5209	35.087196	-80.84484
+2031	Middlecreek Crossings	16100 NC Hwy 50 N	Garner	NC	27529	(919) 334-4539	35.59163	-78.597275`;
+const DEFAULT_COORDS = ``;
 // ===EDITION-END===
 
 const COLS = ["Order Type","MaintActivType","Basic fin. date","Earliest finish","Priority","Customer","Personnel No.","Activity","Serial Number","Order","Description","Oper.WorkCenter","User status","Material","Location"];
@@ -1068,7 +1077,52 @@ $("resetSettings").onclick=()=>{
   loadSettings(); fillStartSelect(); $("setMsg").textContent=EDITION.id!=="local"?"Built-in store list restored.":"Defaults restored."; render();
 };
 
+// ---------- online / offline ----------
+const EDITION_CODE = EDITION.id==="company" ? "ALL" : EDITION.id==="local" ? "VA" : EDITION.id.replace("state-","");
+const IS_ONLINE = /(^|\.)github\.io$/i.test(location.hostname);
+const offlineName = v => "route-planner-"+(EDITION_CODE==="ALL"?"":EDITION_CODE+"-")+"v"+v+".html";
+const newer = (a,b) => { const x=String(a).split(".").map(Number), y=String(b).split(".").map(Number);
+  for(let i=0;i<Math.max(x.length,y.length);i++){ if((x[i]||0)!==(y[i]||0)) return (x[i]||0)>(y[i]||0); } return false; };
+function setupMode(){
+  const badge=$("modeBadge"), act=$("modeActions");
+  if(IS_ONLINE){
+    badge.className="modebadge online"; badge.textContent="Online version";
+    act.innerHTML=`<button class="hbtn" id="dlSelf">Download offline copy</button>`;
+    $("dlSelf").onclick=async()=>{
+      try{
+        const r=await fetch(location.pathname,{cache:"no-store"}); if(!r.ok) throw 0;
+        const url=URL.createObjectURL(new Blob([await r.text()],{type:"text/html"}));
+        const a=document.createElement("a"); a.href=url; a.download=offlineName(APP_VERSION); document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(()=>URL.revokeObjectURL(url),10000);
+        $("savedNote").textContent="Offline copy downloaded. It keeps its own saved data; use Save backup file to move your calls.";
+      }catch(e){ $("savedNote").textContent="Download didn't work. Check your connection and try again."; }
+    };
+    $("updSet").style.display="none";
+  } else {
+    badge.className="modebadge offline"; badge.textContent="Offline version";
+    act.innerHTML=`<a class="hlink" href="${REPO_URL}" target="_blank" rel="noopener">GitHub: Route2</a>`;
+    $("autoUpd").checked=store.get("autoUpd",true);
+    $("autoUpd").onchange=e=>{ store.set("autoUpd",e.target.checked); if(e.target.checked) checkUpdate(false); };
+    $("updNow").onclick=()=>checkUpdate(true);
+    if($("autoUpd").checked){ checkUpdate(false); setInterval(()=>checkUpdate(false), 6*3600*1000); }
+  }
+}
+async function checkUpdate(manual){
+  const m=$("updMsg"), bar=$("updBar");
+  if(manual) m.textContent="Checking…";
+  try{
+    const r=await fetch(SITE_URL+"version.json?t="+Date.now(),{cache:"no-store"}); if(!r.ok) throw 0;
+    const v=(await r.json()).version;
+    store.set("updCheckedAt",Date.now());
+    if(newer(v,APP_VERSION)){
+      bar.innerHTML=`<span><b>Version ${esc(v)} is available.</b> You have ${APP_VERSION}.</span><a href="${SITE_URL}download.html?edition=${EDITION_CODE}" target="_blank" rel="noopener">Download update</a><span>Open the new file in this same browser and your data carries over.</span>`;
+      bar.classList.add("show"); m.textContent=`Version ${v} is available.`;
+    } else { bar.classList.remove("show"); m.textContent=`You have the newest version (${APP_VERSION}). Checked ${new Date().toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}.`; }
+  }catch(e){ if(manual) m.textContent="Couldn't reach GitHub. Check your connection and try again."; }
+}
+
 // ---------- init ----------
+setupMode();
 $("colList").innerHTML=COLS.map((n,i)=>`<span>${i+1}</span><span>${esc(n)}</span>`).join("");
 if(!store.get("callsText","")) $("sapHelp").open=true;
 $("verTag").textContent="v"+APP_VERSION;

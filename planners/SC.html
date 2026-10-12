@@ -93,6 +93,16 @@ legend{font-weight:600;font-size:14px;margin-bottom:6px}
 .changes{margin:6px 0 0;padding-left:18px;font-size:14px}
 .changes li{margin:2px 0}
 .saved{font-size:12px;opacity:.85;margin-left:auto}
+.modebar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;width:100%}
+.modebadge{display:inline-flex;align-items:center;gap:6px;font:700 13px/1 var(--body);letter-spacing:.4px;text-transform:uppercase;border-radius:999px;padding:5px 10px;background:rgba(255,255,255,.18);color:#fff}
+.modebadge::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
+.modebadge.online::before{background:#7CF0B5}
+.modebadge.offline::before{background:#FFD25E}
+.hbtn{font:600 13px var(--body);color:var(--road);background:#fff;border:0;border-radius:6px;padding:5px 10px;text-decoration:none;cursor:pointer}
+.hlink{color:#fff;font-size:13px}
+.upd{display:none;width:100%;background:#FFF3C4;color:#3A2E00;border-radius:8px;padding:8px 12px;font-size:14px;align-items:center;gap:10px;flex-wrap:wrap}
+.upd.show{display:flex}
+.upd a{font-weight:700;color:#1E4E8C}
 .pastq{display:flex;flex-wrap:wrap;gap:6px}
 .pastq button{padding:4px 10px 4px 6px;font-size:14px;border-radius:999px;display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--line)}
 .pastq button .dot{width:12px;height:12px;border-radius:50%;background:var(--muted)}
@@ -160,6 +170,11 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
   <h1><span id="appName">Service Route Planner</span> <span id="verTag" style="font-size:15px;opacity:.8"></span></h1>
   <span class="sub" id="summary">No calls loaded</span>
   <span class="saved" id="savedNote">Saved on this computer</span>
+  <div class="modebar">
+    <span class="modebadge" id="modeBadge"></span>
+    <span id="modeActions"></span>
+  </div>
+  <div class="upd" id="updBar" role="status"></div>
 </header>
 
 <div class="layout">
@@ -214,6 +229,13 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
       <legend>Order links</legend>
       <label class="incl"><input type="checkbox" id="edgeLinks"> Open order links in Microsoft Edge</label>
       <div class="hint">Turn this off if tapping an order number does nothing on this device.</div>
+    </fieldset>
+    <fieldset id="updSet">
+      <legend>Updates</legend>
+      <label class="incl"><input type="checkbox" id="autoUpd"> Check for new versions automatically</label>
+      <div class="hint">Only asks GitHub which version is newest. Your calls never leave this device.</div>
+      <div class="row"><button id="updNow">Check now</button></div>
+      <div class="msg" id="updMsg"></div>
     </fieldset>
     <fieldset>
       <legend>Backup</legend>
@@ -330,9 +352,12 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
 
 <script>
 // ---------- version ----------
-const APP_VERSION = "2.3";
+const APP_VERSION = "2.4";
+const REPO_URL = "https://github.com/AaronZandman/Route2";
+const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const LATEST_URL = "https://drive.google.com/drive/folders/1PUB4oO-vNFCRwoDu8PbWOcxdKwZk6vrY";
 const CHANGELOG = [
+  ["2.4", "Banner shows Online or Offline version. The online version has a Download button to save an offline copy. The offline version links to the GitHub repository and checks for updates automatically."],
   ["2.3", "Step-by-step help for copying open calls out of SAP (IW49N), with the required column order. The planner now warns when pasted columns are in the wrong order or a date can't be read."],
   ["2.2", "Past-due color levels: 1–2 days (yellow), 3 days (orange), 4+ days (red); pick more than one. Custom day range only ever shows expired calls. Each store shows all of its other open calls too. Sort the store list by days past due, most or least first. Most past due first switch builds the route oldest-first, then shortest drive."],
   ["2.1", "Days past due filter with quick buttons (7+, 14+, 30+) and your own day range. Sort stores by most past due. Each call shows how many days it is past due, also in the copied route."],
@@ -1063,7 +1088,52 @@ $("resetSettings").onclick=()=>{
   loadSettings(); fillStartSelect(); $("setMsg").textContent=EDITION.id!=="local"?"Built-in store list restored.":"Defaults restored."; render();
 };
 
+// ---------- online / offline ----------
+const EDITION_CODE = EDITION.id==="company" ? "ALL" : EDITION.id==="local" ? "VA" : EDITION.id.replace("state-","");
+const IS_ONLINE = /(^|\.)github\.io$/i.test(location.hostname);
+const offlineName = v => "route-planner-"+(EDITION_CODE==="ALL"?"":EDITION_CODE+"-")+"v"+v+".html";
+const newer = (a,b) => { const x=String(a).split(".").map(Number), y=String(b).split(".").map(Number);
+  for(let i=0;i<Math.max(x.length,y.length);i++){ if((x[i]||0)!==(y[i]||0)) return (x[i]||0)>(y[i]||0); } return false; };
+function setupMode(){
+  const badge=$("modeBadge"), act=$("modeActions");
+  if(IS_ONLINE){
+    badge.className="modebadge online"; badge.textContent="Online version";
+    act.innerHTML=`<button class="hbtn" id="dlSelf">Download offline copy</button>`;
+    $("dlSelf").onclick=async()=>{
+      try{
+        const r=await fetch(location.pathname,{cache:"no-store"}); if(!r.ok) throw 0;
+        const url=URL.createObjectURL(new Blob([await r.text()],{type:"text/html"}));
+        const a=document.createElement("a"); a.href=url; a.download=offlineName(APP_VERSION); document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(()=>URL.revokeObjectURL(url),10000);
+        $("savedNote").textContent="Offline copy downloaded. It keeps its own saved data; use Save backup file to move your calls.";
+      }catch(e){ $("savedNote").textContent="Download didn't work. Check your connection and try again."; }
+    };
+    $("updSet").style.display="none";
+  } else {
+    badge.className="modebadge offline"; badge.textContent="Offline version";
+    act.innerHTML=`<a class="hlink" href="${REPO_URL}" target="_blank" rel="noopener">GitHub: Route2</a>`;
+    $("autoUpd").checked=store.get("autoUpd",true);
+    $("autoUpd").onchange=e=>{ store.set("autoUpd",e.target.checked); if(e.target.checked) checkUpdate(false); };
+    $("updNow").onclick=()=>checkUpdate(true);
+    if($("autoUpd").checked){ checkUpdate(false); setInterval(()=>checkUpdate(false), 6*3600*1000); }
+  }
+}
+async function checkUpdate(manual){
+  const m=$("updMsg"), bar=$("updBar");
+  if(manual) m.textContent="Checking…";
+  try{
+    const r=await fetch(SITE_URL+"version.json?t="+Date.now(),{cache:"no-store"}); if(!r.ok) throw 0;
+    const v=(await r.json()).version;
+    store.set("updCheckedAt",Date.now());
+    if(newer(v,APP_VERSION)){
+      bar.innerHTML=`<span><b>Version ${esc(v)} is available.</b> You have ${APP_VERSION}.</span><a href="${SITE_URL}download.html?edition=${EDITION_CODE}" target="_blank" rel="noopener">Download update</a><span>Open the new file in this same browser and your data carries over.</span>`;
+      bar.classList.add("show"); m.textContent=`Version ${v} is available.`;
+    } else { bar.classList.remove("show"); m.textContent=`You have the newest version (${APP_VERSION}). Checked ${new Date().toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}.`; }
+  }catch(e){ if(manual) m.textContent="Couldn't reach GitHub. Check your connection and try again."; }
+}
+
 // ---------- init ----------
+setupMode();
 $("colList").innerHTML=COLS.map((n,i)=>`<span>${i+1}</span><span>${esc(n)}</span>`).join("");
 if(!store.get("callsText","")) $("sapHelp").open=true;
 $("verTag").textContent="v"+APP_VERSION;

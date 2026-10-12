@@ -93,6 +93,16 @@ legend{font-weight:600;font-size:14px;margin-bottom:6px}
 .changes{margin:6px 0 0;padding-left:18px;font-size:14px}
 .changes li{margin:2px 0}
 .saved{font-size:12px;opacity:.85;margin-left:auto}
+.modebar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;width:100%}
+.modebadge{display:inline-flex;align-items:center;gap:6px;font:700 13px/1 var(--body);letter-spacing:.4px;text-transform:uppercase;border-radius:999px;padding:5px 10px;background:rgba(255,255,255,.18);color:#fff}
+.modebadge::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
+.modebadge.online::before{background:#7CF0B5}
+.modebadge.offline::before{background:#FFD25E}
+.hbtn{font:600 13px var(--body);color:var(--road);background:#fff;border:0;border-radius:6px;padding:5px 10px;text-decoration:none;cursor:pointer}
+.hlink{color:#fff;font-size:13px}
+.upd{display:none;width:100%;background:#FFF3C4;color:#3A2E00;border-radius:8px;padding:8px 12px;font-size:14px;align-items:center;gap:10px;flex-wrap:wrap}
+.upd.show{display:flex}
+.upd a{font-weight:700;color:#1E4E8C}
 .pastq{display:flex;flex-wrap:wrap;gap:6px}
 .pastq button{padding:4px 10px 4px 6px;font-size:14px;border-radius:999px;display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--line)}
 .pastq button .dot{width:12px;height:12px;border-radius:50%;background:var(--muted)}
@@ -160,6 +170,11 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
   <h1><span id="appName">Service Route Planner</span> <span id="verTag" style="font-size:15px;opacity:.8"></span></h1>
   <span class="sub" id="summary">No calls loaded</span>
   <span class="saved" id="savedNote">Saved on this computer</span>
+  <div class="modebar">
+    <span class="modebadge" id="modeBadge"></span>
+    <span id="modeActions"></span>
+  </div>
+  <div class="upd" id="updBar" role="status"></div>
 </header>
 
 <div class="layout">
@@ -214,6 +229,13 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
       <legend>Order links</legend>
       <label class="incl"><input type="checkbox" id="edgeLinks"> Open order links in Microsoft Edge</label>
       <div class="hint">Turn this off if tapping an order number does nothing on this device.</div>
+    </fieldset>
+    <fieldset id="updSet">
+      <legend>Updates</legend>
+      <label class="incl"><input type="checkbox" id="autoUpd"> Check for new versions automatically</label>
+      <div class="hint">Only asks GitHub which version is newest. Your calls never leave this device.</div>
+      <div class="row"><button id="updNow">Check now</button></div>
+      <div class="msg" id="updMsg"></div>
     </fieldset>
     <fieldset>
       <legend>Backup</legend>
@@ -330,9 +352,12 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
 
 <script>
 // ---------- version ----------
-const APP_VERSION = "2.3";
+const APP_VERSION = "2.4";
+const REPO_URL = "https://github.com/AaronZandman/Route2";
+const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const LATEST_URL = "https://drive.google.com/drive/folders/1PUB4oO-vNFCRwoDu8PbWOcxdKwZk6vrY";
 const CHANGELOG = [
+  ["2.4", "Banner shows Online or Offline version. The online version has a Download button to save an offline copy. The offline version links to the GitHub repository and checks for updates automatically."],
   ["2.3", "Step-by-step help for copying open calls out of SAP (IW49N), with the required column order. The planner now warns when pasted columns are in the wrong order or a date can't be read."],
   ["2.2", "Past-due color levels: 1–2 days (yellow), 3 days (orange), 4+ days (red); pick more than one. Custom day range only ever shows expired calls. Each store shows all of its other open calls too. Sort the store list by days past due, most or least first. Most past due first switch builds the route oldest-first, then shortest drive."],
   ["2.1", "Days past due filter with quick buttons (7+, 14+, 30+) and your own day range. Sort stores by most past due. Each call shows how many days it is past due, also in the copied route."],
@@ -349,69 +374,20 @@ const CHANGELOG = [
   ["1.0", "Import calls, group by store, filters, route ordering, Google Maps directions."]
 ];
 // ===EDITION-START===
-const EDITION = {id:"state-TN", name:"Service Route Planner \u2013 Tennessee", key:"rp-TN.", resetLabel:"Restore Tennessee store list", groupBy:"city"};
+const EDITION = {id:"state-KY", name:"Service Route Planner \u2013 Kentucky", key:"rp-KY.", resetLabel:"Restore Kentucky store list", groupBy:"city"};
 const DEFAULT_GROUPS = ``;
 const DEFAULT_STORES = `Store #	Shopping Center	Address	City	State	Zip	Phone	Latitude	Longitude
-119	Indian Lake Marketplace	110 Indian Lake Blvd	Hendersonville	TN	37075-6206	(615) 264-1350	36.310326	-86.60525
-123	Bellevue Center	7604 Highway 70 S	Nashville	TN	37221-1852	(615) 646-1870	36.07842	-86.94549
-142	Cool Springs Festival	8105 Moores Ln	Brentwood	TN	37027-8020	(615) 221-9880	35.963474	-86.80216
-160	Harpeth Village	2020 Fieldstone Pkwy	Franklin	TN	37069-4337	(615) 599-1825	35.964565	-86.883
-176	Franklin Marketplace	1021 Riverside Dr	Franklin	TN	37064-6500	(615) 591-3285	35.912518	-86.82829
-182	Oakwood Commons	4670 Lebanon Pike	Hermitage	TN	37076-1314	(615) 874-0898	36.217186	-86.59337
-1016	Parkway Town Centre	661 President Pl	Smyrna	TN	37167-5671	(615) 220-1919	35.97982	-86.55493
-1021	Marketplace at Maryland Farms	101 Creekside Xing	Brentwood	TN	37027-1062	(615) 507-1505	36.0369	-86.798805
-1031	McKay's Mill Village Center	1400 Liberty Pike Ste 200	Franklin	TN	37067-8628	(615) 591-4061	35.92483	-86.795746
-1033	Greensboro Village	1483 Nashville Pike	Gallatin	TN	37066-7144	(615) 451-6285	36.359604	-86.49569
-1047	Spring Hill Village	4935 Main St	Spring Hill	TN	37174-2735	(615) 302-4068	35.775105	-86.91837
-1057	Concord Village	10638 Concord Rd	Brentwood	TN	37027-8811	(615) 941-8871	35.997143	-86.69183
-1116	Nippers Corner	15544 Old Hickory Blvd	Nashville	TN	37211-7329	(615) 331-4912	36.04101	-86.74143
-1133	Publix at Harpeth Village	8028 Highway 100	Nashville	TN	37221-4212	(615) 673-2347	36.04716	-86.95227
-1141	Caldwell Square	460 Long Hollow Pike	Goodlettsville	TN	37072-3480	(615) 851-7180	36.3315	-86.69917
-1163	Kensington Place Shopping Center	1731 S Rutherford Blvd Ste S	Murfreesboro	TN	37130-5957	(615) 849-4290	35.81333	-86.36847
-1164	Publix at North Murfreesboro	3415 Memorial Blvd	Murfreesboro	TN	37129-3640	(615) 849-6254	35.912144	-86.386
-1165	Hurricane Creek	8644 E Brainerd Rd	Chattanooga	TN	37421-8325	(423) 296-1903	34.999165	-85.13403
-1166	Creek Plantation Village	5928 Hixson Pike Ste 112	Hixson	TN	37343-4839	(423) 847-8461	35.147335	-85.20735
-1172	Market at Victory Village	4175 Franklin Rd	Murfreesboro	TN	37128-4119	(615) 494-3196	35.84199	-86.471825
-1175	Lebanon Center	1703 W Main St	Lebanon	TN	37087-3193	(615) 444-2581	36.223503	-86.34521
-1211	Hill Center at Belle Meade	4324 Harding Pike	Nashville	TN	37205-2202	(615) 279-2038	36.126785	-86.84753
-1220	Mt Juliet Village	11207 Lebanon Rd	Mount Juliet	TN	37122-5545	(615) 758-4200	36.233017	-86.5144
-1234	Market at Salem Cove	2650 New Salem Hwy	Murfreesboro	TN	37128-5265	(615) 895-7096	35.812706	-86.45771
-1235	Mt View Marketplace	3532 Murfreesboro Pike	Antioch	TN	37013-2210	(615) 501-8250	36.05345	-86.614914
-1238	The Shops of Lee Village	1640 Lee Victory Pkwy	Smyrna	TN	37167-6529	(615) 223-9101	35.941505	-86.52754
-1244	Snow Hill Village	5958 Snow Hill Rd Ste 168	Ooltewah	TN	37363-7834	(423) 238-1032	35.09058	-85.0643
-1268	Providence Commons	665 S Mount Juliet Rd	Mount Juliet	TN	37122-6483	(615) 773-0250	36.161266	-86.51256
-1298	Hill Center at Nashville West	6614 Charlotte Pike	Nashville	TN	37209-4202	(615) 352-1055	36.140236	-86.88297
-1356	Publix at Mouse Creek	635 Paul Huff Pkwy NW	Cleveland	TN	37312-2970	(423) 476-4022	35.209568	-84.86069
-1360	Bowie Commons	7014 City Center Way	Fairview	TN	37062-6004	(615) 799-3474	35.97349	-87.13114
-1392	Madison Street Commons	1771 Madison St	Clarksville	TN	37043-4990	(931) 551-7031	36.51563	-87.3132
-1415	Publix at Turkey Creek	11656 Parkside Dr	Knoxville	TN	37934-2659	(865) 675-3018	35.89353	-84.17003
-1416	Northshore Town Center	2010 Town Center Blvd	Knoxville	TN	37922-6677	(865) 470-0720	35.860603	-84.07646
-1418	University Commons	2429 University Commons Way	Knoxville	TN	37919	(865) 522-6313	35.94992	-83.93972
-1425	Shoppes at Peachers Mill	1490 Tiny Town Rd	Clarksville	TN	37042-7201	(931) 503-2551	36.625175	-87.37263
-1426	The Crossings	2324 Lebanon Pike	Nashville	TN	37214-2411	(615) 884-2665	36.170834	-86.68387
-1460	Publix on North Market Street	400 N Market St	Chattanooga	TN	37405-4433	(423) 755-7901	35.065063	-85.30836
-1515	Valley Forge Shopping Center	2656 Parkway	Pigeon Forge	TN	37863-3246	(865) 774-2030	35.802597	-83.57625
-1529	Berry Farms Town Center	5021 Hughes Crossing Blvd	Franklin	TN	37064	(615) 595-2021	35.863697	-86.8431
-1543	Fairgrounds Plaza	2321 E Andrew Johnson Hwy	Greeneville	TN	37745	(423) 636-1478	36.18022	-82.78244
-1613	Northgate Mall	1600 N Jackson St Ste 340	Tullahoma	TN	37388	(931) 455-6032	35.380245	-86.22652
-1621	Village at Waterside	7326 McCutcheon Rd	Chattanooga	TN	37421	(423) 855-1376	35.043793	-85.15007
-1633	Markets West at Franklin	509 N State of Franklin Rd Ste 20	Johnson City	TN	37604	(423) 926-1260	36.313084	-82.38906
-1634	The Shoppes at Eagle Point	1265 Interstate Dr Ste 111	Cookeville	TN	38501-4135	(931) 526-8830	36.1385	-85.50757
-1648	Sango Square	920 Hwy 76	Clarksville	TN	37043	(931) 358-2257	36.52266	-87.23441
-1665	Publix at Melrose	2223 8th Ave S	Nashville	TN	37204	(615) 279-9470	36.128822	-86.77856
-1680	Capitol View	1010 Dr Martin L King Jr Blvd	Nashville	TN	37203	(615) 259-6072	36.16331	-86.789734
-1713	Smoky Mountain Gateway	750 Winfield Dunn Pkwy Ste 100	Sevierville	TN	37876	(865) 429-1734	35.88291	-83.57406
-1731	Publix at Mount Vernon Point	3535 Broad St	Chattanooga	TN	37409	(423) 668-5233	35.015038	-85.32541
-1732	Hill Center Greenwood	1111 Gallatin Ave	Nashville	TN	37206	(615) 226-7100	36.1898	-86.7449
-1739	The Shops at Windsong	211 Maharris Dr	Gallatin	TN	37066	(615) 989-9989	36.364582	-86.44221
-1778	Westlawn	5229 Veterans Pkwy	Murfreesboro	TN	37128-4377	(615) 995-7914	35.860924	-86.50897
-1779	Foothills Mall	198 Foothills Mall	Maryville	TN	37801-2310	(865) 518-0971	35.744446	-83.99438
-1780	Newman's Crossing	1931 Long Hollow Pike	Gallatin	TN	37066-8591	(615) 230-7647	36.382328	-86.54891
-1801	Hickory Ridge Shopping Center	445 Hwy 109 N	Lebanon	TN	37090	(615) 443-4349	36.19268	-86.410095
-1802	Walker Farms Shopping Center	2300 Trenton Rd	Clarksville	TN	37040	(931) 553-5067	36.577137	-87.31543
-1863	Shops at Enclave	1688 Ooltewah Ringgold Rd Ste 100	Ooltewah	TN	37363	(423) 508-6834	34.999672	-85.09461
-2020	White House Shops	453 Hwy 76	White House	TN	37188	(615) 581-6132	36.46734	-86.66399
-2036	Spring Hill Towne Crossing	1021 Jim Warren Pkwy	Spring Hill	TN	37174	(931) 487-5038	35.732	-86.89`;
+1846	Terra Crossing	2500 Terra Crossing Blvd	Louisville	KY	40245-5374	(502) 885-7662	38.27257	-85.49839
+1847	Publix at Marshall Commons	10005 Ballardsville Rd	Louisville	KY	40241-1202	(502) 302-7925	38.31706	-85.560394
+1887	The Fountains At Palomar	3855 Fountainblue Ln	Lexington	KY	40513	(859) 469-7337	38.003456	-84.57397
+2050	Publix at Flat Rock	150 Flat Rock Rd	Louisville	KY	40245		38.236137	-85.445526
+2051	Citation Point	1952 Stockton Way	Lexington	KY	40511-2412	(859) 286-8293	38.095634	-84.51252
+2052	Triple Crown Shopping Center	430 Richwood Rd	Walton	KY	41094	(859) 379-1137	38.913414	-84.636505
+3646	Terra Crossing	2502 Terra Crossing Blvd	Louisville	KY	40245-5374	(502) 302-6531	38.27257	-85.49839
+3647	Publix at Marshall Commons	10015 Ballardsville Rd	Louisville	KY	40241-1202	(502) 313-7027		
+3651	Citation Point	1976 Stockton Way	Lexington	KY	40511-2412	(859) 286-8931	38.095634	-84.51252
+3652	Triple Crown Shopping Center	420 Richwood Rd	Walton	KY	41094	(859) 379-1139	38.913414	-84.636505
+3687	The Fountains At Palomar	3825 Fountainblue Ln	Lexington	KY	40513	(859) 469-7339	38.003456	-84.57397`;
 const DEFAULT_COORDS = ``;
 // ===EDITION-END===
 
@@ -1051,7 +1027,52 @@ $("resetSettings").onclick=()=>{
   loadSettings(); fillStartSelect(); $("setMsg").textContent=EDITION.id!=="local"?"Built-in store list restored.":"Defaults restored."; render();
 };
 
+// ---------- online / offline ----------
+const EDITION_CODE = EDITION.id==="company" ? "ALL" : EDITION.id==="local" ? "VA" : EDITION.id.replace("state-","");
+const IS_ONLINE = /(^|\.)github\.io$/i.test(location.hostname);
+const offlineName = v => "route-planner-"+(EDITION_CODE==="ALL"?"":EDITION_CODE+"-")+"v"+v+".html";
+const newer = (a,b) => { const x=String(a).split(".").map(Number), y=String(b).split(".").map(Number);
+  for(let i=0;i<Math.max(x.length,y.length);i++){ if((x[i]||0)!==(y[i]||0)) return (x[i]||0)>(y[i]||0); } return false; };
+function setupMode(){
+  const badge=$("modeBadge"), act=$("modeActions");
+  if(IS_ONLINE){
+    badge.className="modebadge online"; badge.textContent="Online version";
+    act.innerHTML=`<button class="hbtn" id="dlSelf">Download offline copy</button>`;
+    $("dlSelf").onclick=async()=>{
+      try{
+        const r=await fetch(location.pathname,{cache:"no-store"}); if(!r.ok) throw 0;
+        const url=URL.createObjectURL(new Blob([await r.text()],{type:"text/html"}));
+        const a=document.createElement("a"); a.href=url; a.download=offlineName(APP_VERSION); document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(()=>URL.revokeObjectURL(url),10000);
+        $("savedNote").textContent="Offline copy downloaded. It keeps its own saved data; use Save backup file to move your calls.";
+      }catch(e){ $("savedNote").textContent="Download didn't work. Check your connection and try again."; }
+    };
+    $("updSet").style.display="none";
+  } else {
+    badge.className="modebadge offline"; badge.textContent="Offline version";
+    act.innerHTML=`<a class="hlink" href="${REPO_URL}" target="_blank" rel="noopener">GitHub: Route2</a>`;
+    $("autoUpd").checked=store.get("autoUpd",true);
+    $("autoUpd").onchange=e=>{ store.set("autoUpd",e.target.checked); if(e.target.checked) checkUpdate(false); };
+    $("updNow").onclick=()=>checkUpdate(true);
+    if($("autoUpd").checked){ checkUpdate(false); setInterval(()=>checkUpdate(false), 6*3600*1000); }
+  }
+}
+async function checkUpdate(manual){
+  const m=$("updMsg"), bar=$("updBar");
+  if(manual) m.textContent="Checking…";
+  try{
+    const r=await fetch(SITE_URL+"version.json?t="+Date.now(),{cache:"no-store"}); if(!r.ok) throw 0;
+    const v=(await r.json()).version;
+    store.set("updCheckedAt",Date.now());
+    if(newer(v,APP_VERSION)){
+      bar.innerHTML=`<span><b>Version ${esc(v)} is available.</b> You have ${APP_VERSION}.</span><a href="${SITE_URL}download.html?edition=${EDITION_CODE}" target="_blank" rel="noopener">Download update</a><span>Open the new file in this same browser and your data carries over.</span>`;
+      bar.classList.add("show"); m.textContent=`Version ${v} is available.`;
+    } else { bar.classList.remove("show"); m.textContent=`You have the newest version (${APP_VERSION}). Checked ${new Date().toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}.`; }
+  }catch(e){ if(manual) m.textContent="Couldn't reach GitHub. Check your connection and try again."; }
+}
+
 // ---------- init ----------
+setupMode();
 $("colList").innerHTML=COLS.map((n,i)=>`<span>${i+1}</span><span>${esc(n)}</span>`).join("");
 if(!store.get("callsText","")) $("sapHelp").open=true;
 $("verTag").textContent="v"+APP_VERSION;
