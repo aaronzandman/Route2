@@ -572,11 +572,12 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
 
 <script>
 // ---------- version ----------
-const APP_VERSION = "3.9";
+const APP_VERSION = "3.10";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["3.10", "Calls sent from the Companion app (or a transfer link) are picked up even when the planner is already open."],
   ["3.9", "Paste dispatch texts: copy one or more dispatch text messages and paste them into Import calls. They are added to your list (your SAP calls stay), marked SMS, with no due date until the next SAP import."],
   ["3.8", "Settings to turn features on or off. New: What changed since your last import (NEW tags, and calls no longer in SAP you can mark done), repeat-issue alerts by device and store, Due soon countdowns, Re-plan from here, End-of-day summary, and Hand off a call or stop to a teammate."],
   ["3.7", "Copy list in both views: a Copy list button above the store list and in the Day view copies your route for pasting into Teams, a text, or an email. The Day view copy shows which calls are done."],
@@ -1873,7 +1874,7 @@ function applySync(d){
 function offerSync(d, packed, fromPaste){
   const count=d.c?d.c.split("\n").length:0;
   if(d.a){
-    $("recvText").innerHTML=`Add <b>${count} handed-off call${count>1?"s":""}</b> to your list? Your current calls stay.`;
+    $("recvText").innerHTML=`Add <b>${count} ${d.src==="companion"?"call":"handed-off call"}${count>1?"s":""}</b>${d.src==="companion"?" from Companion":""} to your list? Your current calls stay.`;
     $("recvCopy").style.display = (!fromPaste && !IS_APP && /iPhone|iPad|iPod|Android/.test(navigator.userAgent)) ? "" : "none";
     $("recvHint").textContent=""; $("recvYes").textContent="Add to my list";
     $("recvDlg").classList.add("show");
@@ -2003,6 +2004,8 @@ async function checkUpdate(manual){
 setupMode();
 setupFeedback();
 setupPaste(); setupSettings(); setupHandoff();
+// A transfer link can also arrive while the planner is already open (e.g. sent from Companion): handle it then too.
+window.addEventListener("hashchange",()=>{ if(IS_ONLINE && /^#sync=/.test(location.hash)) receiveSync(); });
 $("replanBtn").onclick=replanHere; $("dvReplan").onclick=replanHere;
 $("eodBtn").onclick=openEOD; $("eodClose").onclick=()=>$("eodDlg").classList.remove("show");
 $("eodCopy").onclick=()=>copyText($("eodText").value,"Summary copied.");

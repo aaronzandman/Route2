@@ -1,5 +1,5 @@
 import json,re,subprocess
-VER="3.9"; OUT="planners/"
+VER="3.10"; OUT="planners/"
 src=open('source/route-planner-source.html').read()
 stores=json.load(open('source/stores.json'))
 i=src.index('// ===EDITION-START==='); j=src.index('// ===EDITION-END===')
