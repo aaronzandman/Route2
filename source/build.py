@@ -28,6 +28,7 @@ for e in E:
     open('/tmp/t.js','w').write(html.split('<script>')[1].split('</script>')[0])
     r=subprocess.run(['node','-e',"new Function(require('fs').readFileSync('/tmp/t.js','utf8'))"],capture_output=True,text=True); assert r.returncode==0,(e["code"],r.stderr)
     open(OUT+e["file"],'w').write(html); print(e["file"],e["stores"])
+    open(OUT+("ALL" if e["code"]=="ALL" else e["code"])+".html",'w').write(html)  # stable link, always newest
 B={"version":VER,"template":template,"editions":[{k:e[k] for k in("code","title","file","stores","note","block","size")} for e in E]}
 payload=json.dumps(B,separators=(',',':')).replace('<','\\u003c')
 tag='<script type="application/json" id="bundle">'

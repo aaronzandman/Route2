@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Service Route Planner</title>
+<style>
+:root{
+  --bg:#E9EDF0; --panel:#FFFFFF; --ink:#1C2430; --muted:#5D6875; --line:#CDD4DA;
+  --road:#1F6B4F; --road-ink:#FFFFFF; --shield:#1E4E8C; --shield-top:#B8322A;
+  --p1:#8E1B1B; --p2:#C8372D; --p3:#C98A12; --p4:#6B7785;
+  --over:#FBE6E3; --soft:#F3F6F8;
+  --t1:#D9A400; --t1bg:#FFF6D6; --t2:#E06A12; --t2bg:#FFE7D4; --t3:#C8372D; --t3bg:#FBE1DE;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --sign:"Bahnschrift","Arial Narrow","Roboto Condensed",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#161B21; --panel:#1F262E; --ink:#E6EAEE; --muted:#9AA5B1; --line:#343E49;
+  --road:#2E8A66; --soft:#252D36; --over:#3A2323;
+  --t1:#E8C14A; --t1bg:#3A3317; --t2:#F08A3C; --t2bg:#3D2A1A; --t3:#EE6A5F; --t3bg:#422222;
+}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 var(--body)}
+header{background:var(--road);color:var(--road-ink);padding:14px 20px;display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
+header h1{font:700 26px/1 var(--sign);margin:0;letter-spacing:.5px}
+header .sub{opacity:.85;font-size:14px}
+.layout{display:grid;grid-template-columns:300px minmax(0,1fr) 360px;gap:16px;padding:16px;align-items:start}
+@media (max-width:1150px){.layout{grid-template-columns:280px minmax(0,1fr)}.route{grid-column:1/-1}}
+@media (max-width:760px){.layout{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
+.panel h2{font:700 19px/1.2 var(--sign);margin:0 0 10px}
+.route{position:sticky;top:12px}
+@media (max-width:1150px){.route{position:static}}
+textarea{width:100%;min-height:130px;font:12px/1.4 ui-monospace,Consolas,monospace;border:1px solid var(--line);border-radius:6px;padding:8px;background:var(--soft);color:var(--ink);resize:vertical;white-space:pre;overflow:auto}
+button,select,input{font:inherit;color:inherit}
+button{border:1px solid var(--line);background:var(--soft);border-radius:6px;padding:6px 12px;cursor:pointer}
+button.primary{background:var(--road);border-color:var(--road);color:#fff;font-weight:600}
+button:hover{filter:brightness(.96)}
+:focus-visible{outline:3px solid #4C9BE8;outline-offset:2px}
+select,input[type=text],input[type=date]{border:1px solid var(--line);border-radius:6px;padding:6px 8px;background:var(--panel);width:100%}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
+.msg{font-size:13px;color:var(--muted);margin-top:6px}
+.msg.err{color:var(--p2)}
+fieldset{border:0;padding:0;margin:14px 0 0}
+legend{font-weight:600;font-size:14px;margin-bottom:6px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:3px 10px 3px 4px;cursor:pointer;user-select:none;font-size:14px}
+.chip input{position:absolute;opacity:0;pointer-events:none}
+.chip.on{background:var(--soft);border-color:var(--ink)}
+.chip.off{opacity:.45}
+.chip .n{color:var(--muted);font-size:12px}
+.chip.plain{padding-left:10px}
+
+/* Group shield — the one bold element */
+.shield{display:inline-grid;place-items:center;width:30px;height:32px;flex:none;
+  color:#fff;font:700 18px/1 var(--sign);padding-top:5px;
+  background:linear-gradient(var(--shield-top) 0 8px,var(--shield) 8px);
+  border-radius:5px 5px 50% 50% / 5px 5px 45% 45%;border:2px solid #fff;box-shadow:0 0 0 1.5px var(--shield)}
+.shield.wide{width:auto;min-width:30px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;text-align:center;line-height:1.3;padding:5px 7px 0;font-size:13px;border-radius:5px 5px 40% 40% / 5px 5px 30% 30%}
+.shield.sm{width:20px;height:22px;font-size:12px;padding-top:3px;border-width:1px;vertical-align:-5px;background:linear-gradient(var(--shield-top) 0 5px,var(--shield) 5px)}
+.shield.sm.wide{width:auto;font-size:11px;padding:3px 5px 0}
+.chip .shield{width:24px;height:26px;font-size:14px;padding-top:4px;border-width:1.5px;background:linear-gradient(var(--shield-top) 0 6px,var(--shield) 6px)}
+
+.toolbar{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.toolbar h2{margin:0}
+.store{border:1px solid var(--line);border-radius:10px;background:var(--panel);margin-bottom:12px;overflow:hidden}
+.store.excluded{opacity:.5}
+.store-head{display:flex;gap:12px;padding:12px 14px;align-items:flex-start}
+.store-head .info{flex:1;min-width:0}
+.store-name{font:700 20px/1.1 var(--sign)}
+.store-name small{font:500 14px var(--body);color:var(--muted);margin-left:6px}
+.addr{color:var(--muted);font-size:14px}
+.addr a{color:inherit}
+.incl{display:flex;align-items:center;gap:6px;font-size:14px;white-space:nowrap;cursor:pointer}
+.incl input{width:18px;height:18px;accent-color:var(--road)}
+.calls{width:100%;border-collapse:collapse;font-size:14px}
+.calls-wrap{overflow-x:auto;border-top:1px solid var(--line)}
+.calls td{padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+.calls tr:last-child td{border-bottom:0}
+.calls tr.overdue td{background:var(--over)}
+.pri{display:inline-block;min-width:66px;text-align:center;border-radius:4px;padding:1px 6px;color:#fff;font-weight:600;font-size:12px;white-space:nowrap}
+.pri.p1{background:var(--p1)}.pri.p2{background:var(--p2)}.pri.p3{background:var(--p3)}.pri.p4,.pri.p9{background:var(--p4)}
+.status{font-weight:600;font-size:12px;border:1px solid var(--line);border-radius:4px;padding:1px 5px}
+.muted{color:var(--muted)}
+.due{white-space:nowrap}
+.flag{color:var(--p2);font-weight:600;font-size:12px}
+.calls tr.done td{background:var(--soft)}
+.calls tr.done b,.calls tr.done .muted{text-decoration:line-through;color:var(--muted)}
+.calls td.chk{width:1%;white-space:nowrap}
+.done-box{display:flex;align-items:center;gap:5px;cursor:pointer;font-size:13px}
+.done-box input{width:20px;height:20px;accent-color:var(--road)}
+.calls a.ord{color:var(--shield);font-weight:600}
+.changes{margin:6px 0 0;padding-left:18px;font-size:14px}
+.changes li{margin:2px 0}
+.saved{font-size:12px;opacity:.85;margin-left:auto}
+.pastq{display:flex;flex-wrap:wrap;gap:6px}
+.pastq button{padding:4px 10px 4px 6px;font-size:14px;border-radius:999px;display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--line)}
+.pastq button .dot{width:12px;height:12px;border-radius:50%;background:var(--muted)}
+.pastq button .n{color:var(--muted);font-size:12px}
+.pastq button.on{border-color:var(--ink);background:var(--soft);font-weight:600}
+.pastq button.on::after{content:"✓";font-weight:700}
+.pastq button .dot.t1,.tier.t1{background:var(--t1)}.pastq button .dot.t2,.tier.t2{background:var(--t2)}.pastq button .dot.t3,.tier.t3{background:var(--t3)}.pastq button .dot.t0{background:transparent;border:2px solid var(--muted)}
+.tier{display:inline-block;color:#fff;border-radius:4px;padding:1px 6px;font-size:12px;font-weight:700;white-space:nowrap}
+.tier.t1{color:#3A2E00}
+.calls tr.t1 td{background:var(--t1bg)} .calls tr.t2 td{background:var(--t2bg)} .calls tr.t3 td{background:var(--t3bg)}
+.calls tr.t1 td:first-child{box-shadow:inset 4px 0 var(--t1)} .calls tr.t2 td:first-child{box-shadow:inset 4px 0 var(--t2)} .calls tr.t3 td:first-child{box-shadow:inset 4px 0 var(--t3)}
+.calls tr.subhead td{background:var(--soft);font-size:13px;font-weight:600;color:var(--muted);padding:5px 10px}
+.calls tr.extra b{font-weight:600}
+.dayrange{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:14px;margin-top:8px}
+.dayrange input{width:64px;border:1px solid var(--line);border-radius:6px;padding:5px 6px;background:var(--panel)}
+button.sorton{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.pastbadge{margin-left:6px}
+.prio-switch{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;padding:9px 10px;border:1.5px solid var(--line);border-radius:8px;cursor:pointer;font-weight:600}
+.prio-switch.on{border-color:var(--t3);background:var(--t3bg)}
+.prio-switch input{width:20px;height:20px;accent-color:var(--t3)}
+.empty{padding:40px 20px;text-align:center;color:var(--muted);border:2px dashed var(--line);border-radius:10px}
+
+.stops{list-style:none;margin:12px 0 0;padding:0}
+.stop{display:grid;grid-template-columns:28px 1fr auto;gap:10px;align-items:start;padding:9px 0;border-top:1px solid var(--line)}
+.stop .num{width:28px;height:28px;border-radius:50%;background:var(--road);color:#fff;display:grid;place-items:center;font:700 15px var(--sign)}
+.stop.home .num{background:var(--ink);color:var(--panel)}
+.stop .t{font-weight:600}
+.stop .leg{font-size:12px;color:var(--muted)}
+.mv{display:flex;flex-direction:column;gap:2px}
+.mv button{padding:0 7px;line-height:1.3;font-size:13px}
+.totals{display:flex;gap:18px;margin-top:10px;padding:10px;background:var(--soft);border-radius:8px}
+.totals b{font:700 22px/1 var(--sign);display:block}
+.totals span{font-size:12px;color:var(--muted)}
+.links{display:flex;flex-direction:column;gap:6px;margin-top:12px}
+.links a{display:block;text-align:center;background:var(--road);color:#fff;text-decoration:none;border-radius:6px;padding:8px;font-weight:600}
+.share{margin-top:12px;padding:10px;border:1px solid var(--line);border-radius:8px}
+.share button.primary{width:100%;padding:10px;font-size:16px}
+.share .opts{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:8px}
+.share .opts label{font-size:13px;display:flex;align-items:center;gap:5px;cursor:pointer}
+#sharePreview{min-height:0;height:0;padding:0;border:0;margin:0;transition:height .15s}
+#sharePreview.open{height:180px;padding:8px;border:1px solid var(--line);margin-top:8px}
+#gpsBox .msg{margin-top:4px}
+details.settings{margin:0 16px 24px}
+details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
+.set-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.set-grid label{font-weight:600;font-size:14px;display:block;margin-bottom:4px}
+.hint{font-size:12px;color:var(--muted)}
+@media print{
+  header,.import,.settings,.mv,.links,.row,.incl{display:none!important}
+  .layout{display:block}.panel,.store{break-inside:avoid;border-color:#999}
+  body{background:#fff}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1><span id="appName">Service Route Planner</span> <span id="verTag" style="font-size:15px;opacity:.8"></span></h1>
+  <span class="sub" id="summary">No calls loaded</span>
+  <span class="saved" id="savedNote">Saved on this computer</span>
+</header>
+
+<div class="layout">
+  <!-- Left: import + filters -->
+  <div class="panel import">
+    <h2>Import calls</h2>
+    <textarea id="callsInput" placeholder="Paste service call rows here (tab-separated, header row optional)"></textarea>
+    <div class="row">
+      <button class="primary" id="loadBtn">Load calls</button>
+      <button id="clearBtn">Clear</button>
+    </div>
+    <div class="msg" id="importMsg"></div>
+
+    <fieldset>
+      <legend>Days past due</legend>
+      <div class="pastq" id="pastQuick" role="group" aria-label="Days past due levels"></div>
+      <div class="dayrange">
+        <label for="pastMin">Or custom: expired</label>
+        <input type="number" id="pastMin" min="0" step="1" inputmode="numeric" placeholder="1">
+        <label for="pastMax">to</label>
+        <input type="number" id="pastMax" min="0" step="1" inputmode="numeric" placeholder="any">
+        <span>days</span>
+        <button id="pastClear">Clear</button>
+      </div>
+      <div class="msg" id="pastMsg"></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Completed calls</legend>
+      <label class="incl"><input type="checkbox" id="showDone"> Show completed calls</label>
+      <div class="row"><button id="clearDone">Clear completed list</button></div>
+      <div class="msg" id="doneMsg"></div>
+    </fieldset>
+    <fieldset>
+      <legend>Order links</legend>
+      <label class="incl"><input type="checkbox" id="edgeLinks"> Open order links in Microsoft Edge</label>
+      <div class="hint">Turn this off if tapping an order number does nothing on this device.</div>
+    </fieldset>
+    <fieldset>
+      <legend>Backup</legend>
+      <div class="hint">Everything saves automatically. A backup file lets you move your data to another browser or computer.</div>
+      <div class="row">
+        <button id="exportBtn">Save backup file</button>
+        <button id="importBackupBtn">Load backup file</button>
+        <input type="file" id="backupFile" accept=".json,application/json" hidden>
+      </div>
+      <div class="msg" id="backupMsg"></div>
+    </fieldset>
+
+    <fieldset><legend>Groups</legend><div class="chips" id="fGroups"></div></fieldset>
+    <fieldset><legend>Priority</legend><div class="chips" id="fPrio"></div></fieldset>
+    <fieldset><legend>Status</legend><div class="chips" id="fStatus"></div></fieldset>
+    <fieldset>
+      <legend>Due on or before</legend>
+      <div class="row" style="margin-top:0">
+        <input type="date" id="fDue" style="flex:1">
+        <button id="fDueClear">Any date</button>
+      </div>
+    </fieldset>
+  </div>
+
+  <!-- Middle: stores and calls -->
+  <div>
+    <div class="toolbar">
+      <h2 style="font:700 19px var(--sign)">Stores with open calls</h2>
+      <div class="row" style="margin:0">
+        <label for="listSort" class="hint" style="margin:0">Sort</label>
+        <select id="listSort" style="width:auto">
+          <option value="group">By group</option>
+          <option value="most">Days past due: most first</option>
+          <option value="least">Days past due: least first</option>
+        </select>
+        <button id="allIn">Include all</button>
+        <button id="allOut">Exclude all</button>
+      </div>
+    </div>
+    <div id="storeList"></div>
+  </div>
+
+  <!-- Right: route -->
+  <div class="panel route">
+    <h2>Route</h2>
+    <label class="hint" for="startSel">Start from</label>
+    <select id="startSel"></select>
+    <div id="storeStart" style="display:none">
+      <input type="text" id="startStore" list="storeDL" inputmode="numeric" placeholder="Type a store number" style="margin-top:6px">
+      <datalist id="storeDL"></datalist>
+      <div class="msg" id="storeStartMsg"></div>
+    </div>
+    <div id="gpsBox" style="display:none">
+      <div class="row"><button id="gpsBtn">Update my location</button></div>
+      <div class="msg" id="gpsMsg"></div>
+    </div>
+    <div id="customStart" style="display:none">
+      <input type="text" id="startAddr" placeholder="Start address (used for the map link)" style="margin-top:6px">
+      <input type="text" id="startCoords" placeholder="Optional lat, lng for mileage, e.g. 37.54, -77.43" style="margin-top:6px">
+    </div>
+    <label class="prio-switch" id="prioSwitch"><span>Most past due first<br><span class="hint" style="font-weight:400">Oldest calls first, then shortest drive</span></span><input type="checkbox" id="prioPast"></label>
+    <label class="hint" for="modeSel" style="display:block;margin-top:10px">Stop order</label>
+    <select id="modeSel">
+      <option value="optimize">Shortest drive (approx.)</option>
+      <option value="priority">Highest priority first, then shortest</option>
+      <option value="pasttier">Most past due first, then shortest</option>
+      <option value="due">Strictly oldest due first</option>
+      <option value="manual">Manual (use arrows)</option>
+    </select>
+    <label class="incl" style="margin-top:10px"><input type="checkbox" id="roundTrip"> Return to start</label>
+
+    <div class="totals" id="totals"></div>
+    <ol class="stops" id="stops"></ol>
+    <div class="share">
+      <button class="primary" id="copyBtn">Copy route for team</button>
+      <div class="opts">
+        <label><input type="checkbox" id="optCalls" checked> Call details</label>
+        <label><input type="checkbox" id="optLinks"> Order links</label>
+        <label><input type="checkbox" id="optMaps" checked> Map link for each stop</label>
+      </div>
+      <div class="row">
+        <button id="shareBtn" hidden>Share…</button>
+        <button id="previewBtn">Preview</button>
+        <button id="printBtn">Print</button>
+      </div>
+      <div class="msg" id="routeMsg"></div>
+      <textarea id="sharePreview" readonly aria-label="Route text"></textarea>
+    </div>
+    <div class="links" id="links"></div>
+  </div>
+</div>
+
+<details class="settings panel" id="aboutBox">
+  <summary>Version history</summary>
+  <div id="changelog"></div>
+</details>
+
+<details class="settings panel" id="storeData">
+  <summary>Store data and groups</summary>
+  <p class="hint">Edit and save to change store info, groups, or map positions. Saved in this browser only. Mileage is straight-line × 1.25 at 45 mph, so treat it as a rough guide; the Google Maps link gives real directions.</p>
+  <div class="set-grid">
+    <div><label for="groupsInput">Store groups (store, group)</label><textarea id="groupsInput"></textarea></div>
+    <div><label for="storesInput">Store list (paste with the header row, or load a file)</label><textarea id="storesInput"></textarea>
+      <div class="row"><button id="storeFileBtn">Load store file (.csv, .txt, or .json)</button><input type="file" id="storeFile" accept=".csv,.txt,.tsv,.json,text/csv,text/plain,application/json" hidden></div>
+      <div class="hint">Recognized columns: Store number, Division, Shopping center, Address, City, State, Zip code, County, Phone, and optional Latitude, Longitude, and Group. From Excel, use Save As &gt; CSV, or copy and paste the cells.</div></div>
+    <div><label for="coordsInput">Map positions (store, lat, lng)</label><textarea id="coordsInput"></textarea></div>
+  </div>
+  <div class="row">
+    <button class="primary" id="saveSettings">Save store data</button>
+    <button id="resetSettings"></button>
+    <span class="msg" id="setMsg"></span>
+  </div>
+</details>
+
+<script>
+// ---------- version ----------
+const APP_VERSION = "2.2";
+const LATEST_URL = "https://drive.google.com/drive/folders/1PUB4oO-vNFCRwoDu8PbWOcxdKwZk6vrY";
+const CHANGELOG = [
+  ["2.2", "Past-due color levels: 1–2 days (yellow), 3 days (orange), 4+ days (red); pick more than one. Custom day range only ever shows expired calls. Each store shows all of its other open calls too. Sort the store list by days past due, most or least first. Most past due first switch builds the route oldest-first, then shortest drive."],
+  ["2.1", "Days past due filter with quick buttons (7+, 14+, 30+) and your own day range. Sort stores by most past due. Each call shows how many days it is past due, also in the copied route."],
+  ["2.0", "Link to the shared Google Drive folder where the latest version of every edition is kept."],
+  ["1.9", "State editions for AL, FL, GA, KY, NC, SC, and TN, alongside the company-wide and VA editions. In state editions, stores without a group are grouped by city. Long group names are shortened to fit."],
+  ["1.8", "Company-wide edition includes all 1,443 stores with exact map positions. Local edition uses exact map positions for its 25 stores. Store lists can be loaded from JSON files. Stores without a group or division are grouped by state."],
+  ["1.7", "Company-wide edition added. Import store lists from CSV or tab-separated files with a header row, including optional latitude, longitude, and group columns. Type a store number to start from any store. Stops without map positions are ordered by ZIP code. Group badges fit longer names like divisions."],
+  ["1.6", "Copied route text gives each stop its own Google Maps link instead of one link for the whole route."],
+  ["1.5", "Version numbers and this history. Backup files record the version."],
+  ["1.4", "Order links use Edge on Android and iPhone too. Setting to turn Edge links off."],
+  ["1.3", "Order links open in Microsoft Edge on Windows."],
+  ["1.2", "Start from your current location. Copy route for team, preview, and share."],
+  ["1.1", "Runs fully offline. Auto-save, Done checkboxes for completed calls, order links, backup files."],
+  ["1.0", "Import calls, group by store, filters, route ordering, Google Maps directions."]
+];
+// ===EDITION-START===
+const EDITION = {id:"state-SC", name:"Service Route Planner \u2013 South Carolina", key:"rp-SC.", resetLabel:"Restore South Carolina store list", groupBy:"city"};
+const DEFAULT_GROUPS = ``;
+const DEFAULT_STORES = `Store #	Shopping Center	Address	City	State	Zip	Phone	Latitude	Longitude
+17	Kennerly Crossing	7320 Broad River Rd	Irmo	SC	29063-9656	(803) 407-0127	34.096973	-81.15759
+35	Five Forks Place	2700 Woodruff Rd	Simpsonville	SC	29681-4804	(864) 234-3860	34.804302	-82.227325
+67	Rosewood Shopping Center	2800 Rosewood Dr	Columbia	SC	29205-3412	(803) 806-8839	33.987236	-81.00321
+205	Center Point	6525 Calhoun Memorial Hwy	Easley	SC	29640-3669	(864) 850-2270	34.820007	-82.58483
+360	Anderson Pavilion Shopping Center	1611 E Greenville St	Anderson	SC	29621-2006	(864) 231-5240	34.530933	-82.636505
+449	Queensborough Shopping Center	1000 Johnnie Dodds Blvd Ste 106	Mount Pleasant	SC	29464-3187	(843) 856-3000	32.813595	-79.86796
+459	St James Shopping Center	208 Saint James Ave Ste C	Goose Creek	SC	29445-2994	(843) 569-7920	33.006596	-80.04259
+472	Ashley Landing Mall	1401 Sam Rittenberg Blvd	Charleston	SC	29407-5031	(843) 852-3350	32.814617	-79.995285
+473	Festival Centre at Indigo Park	45 Pembroke Dr	Hilton Head Island	SC	29926-2262	(843) 689-9977	32.21035	-80.72526
+483	Oakbrook Shopping Center	1575 Old Trolley Rd	Summerville	SC	29485-8208	(843) 832-0456	32.96681	-80.166
+486	North Augusta Plaza	334 E Martintown Rd	North Augusta	SC	29841-4261	(803) 441-3900	33.49586	-81.962395
+506	Eastgate Shopping Center	250 Eastgate Dr	Aiken	SC	29803-7698	(803) 643-7970	33.511307	-81.716354
+512	Lexington Place	100 Old Cherokee Rd	Lexington	SC	29072-9316	(803) 951-3999	33.999886	-81.21981
+530	Publix at Woodruff	1750 Woodruff Rd	Greenville	SC	29607-5933	(864) 987-7080	34.81824	-82.27172
+531	Publix at Thornblade	411 The Pkwy	Greer	SC	29650-4522	(864) 848-7820	34.87138	-82.25606
+543	Poplar Springs Plaza	2153 E Main St Ste B9	Duncan	SC	29334-8863	(864) 486-4700	34.88853	-82.067245
+563	Boulevard Market Fair	3801-E Clemson Blvd	Anderson	SC	29621-1318	(864) 231-1170	34.553623	-82.68535
+587	North Pointe Shopping Center	10128 Two Notch Rd	Columbia	SC	29223-4384	(803) 788-9484	34.11447	-80.88457
+597	Trenholm Plaza	4840 Forest Dr Ste 10	Columbia	SC	29206-4810	(803) 790-4920	34.016594	-80.96496
+602	McAlister Square	235 S Pleasantburg Dr	Greenville	SC	29607-2521	(864) 250-4700	34.836174	-82.36451
+632	Hampton Village	2801 Wade Hampton Blvd Ste 120	Taylors	SC	29687-2758	(864) 609-7300	34.9022	-82.33722
+633	Merchants Village	520 Folly Rd	Charleston	SC	29412-3019	(843) 762-5670	32.75359	-79.97096
+656	Columbiana Station	150 Harbison Blvd	Columbia	SC	29212-2204	(803) 407-0449	34.067978	-81.1622
+687	Hillcrest Shopping Center	1905 E Main St	Spartanburg	SC	29307-2308	(864) 253-1820	34.967255	-81.89057
+700	Island Crossing Shopping Center	11 Palmetto Bay Rd	Hilton Head Island	SC	29928-3293	(843) 842-2632	32.15791	-80.766136
+824	Palmetto Pavilion	8409 Dorchester Rd Ste 104	North Charleston	SC	29420-7324	(843) 767-5970	32.912964	-80.109795
+829	Rice Creek Village	4611 Hard Scrabble Rd	Columbia	SC	29229-8584	(803) 699-8131	34.153267	-80.91329
+845	Bluffton Commons at Belfair	80 Baylor Dr	Bluffton	SC	29910-8902	(843) 706-3049	32.277798	-80.87721
+874	Pelham Commons	215 Pelham Rd	Greenville	SC	29615-2546	(864) 370-8210	34.867878	-82.34706
+883	Murray Landing	2732 N Lake Dr	Columbia	SC	29212-8733	(803) 407-2216	34.09795	-81.22081
+1012	Mauldin Square	111 W Butler Rd	Mauldin	SC	29662-2534	(864) 987-1601	34.776943	-82.31019
+1055	Publix at North Point	1435 Ben Sawyer Blvd	Mount Pleasant	SC	29464-4574	(843) 856-3018	32.791634	-79.85432
+1081	The Shoppes of Park West	1125 Park West Blvd	Mount Pleasant	SC	29466-6974	(843) 388-2263	32.874115	-79.779335
+1095	Gervais Place	501 Gervais St	Columbia	SC	29201-3045	(803) 255-4351	33.99827	-81.0445
+1120	Paradise Shoppes of Summerville	1585 Central Ave Unit A	Summerville	SC	29483-5587	(843) 832-4017	33.01167	-80.234856
+1145	West Ashley Place	3642 Savannah Hwy Ste 132	Johns Island	SC	29455-7948	(843) 573-8734	32.805138	-80.11151
+1148	McBee Station	400 E McBee Ave Ste 100	Greenville	SC	29601-2940	(864) 240-2015	34.847927	-82.39516
+1205	Buckwalter Place	101 Buckwalter Place Blvd	Bluffton	SC	29910-5155	(843) 815-6430	32.270252	-80.91682
+1266	The Market at Cane Bay	1724 State Rd	Summerville	SC	29486	(843) 761-3750	33.10635	-80.12522
+1354	New River Crossing	112 Nickle Plate Rd	Hardeeville	SC	29927-4414	(843) 208-3600	32.308353	-80.97333
+1379	Gateway Village	1390 Tiger Blvd	Clemson	SC	29631-2617	(864) 654-3776	34.68573	-82.8174
+1383	Hendrix Crossing	847 Highway 378 W	Lexington	SC	29072-8316	(803) 996-6160	33.991127	-81.30632
+1412	Cross Creek	8360 Charlotte Hwy	Indian Land	SC	29707-6532	(803) 548-9000	34.95623	-80.8498
+1419	Publix On Gold Hill	928 Gold Hill Rd	Fort Mill	SC	29708-7947	(803) 548-7900	35.062683	-80.96444
+1463	Lady's Island	61 Ladys Island Dr	Beaufort	SC	29907-1618	(843) 770-0026	32.41221	-80.65107
+1464	Shops at Publix Pavilion	479 Bypass 72 NW Ste 100	Greenwood	SC	29649-1484	(864) 223-8902	34.20627	-82.18599
+1478	Pawleys Island Plaza	10225 Ocean Hwy # 17	Pawleys Island	SC	29585-6507	(843) 235-3755	33.43828	-79.13194
+1479	Coastal North Town Center	1576 Highway 17 N	North Myrtle Beach	SC	29582-2552	(843) 272-0050	33.84235	-78.658195
+1482	Wedgewood Square Shopping Center	1735 Heckle Blvd	Rock Hill	SC	29732-4803	(803) 372-6364	34.95063	-81.06379
+1485	Cherry Road Crossing	2186 Cherry Rd Ste 101	Rock Hill	SC	29732-3282	(803) 366-7500	34.96478	-80.996994
+1486	Landing Station	158 Highway 274	Lake Wylie	SC	29710-6045	(803) 831-5667	35.120228	-81.081085
+1510	Publix at Forest Square	2170 Oakheart Rd	Myrtle Beach	SC	29579-1253	(843) 903-4603	33.75856	-78.95881
+1511	Chapin Crossing	1235 Chapin Rd	Chapin	SC	29036	(803) 345-7536	34.164394	-81.35174
+1524	Village Shops at Grande Dunes	7925 N Kings Hwy	Myrtle Beach	SC	29572-3056	(843) 449-1660	33.751034	-78.81594
+1568	Prince Creek Village Center	11920 Hwy 707 Ste A	Murrells Inlet	SC	29576	(843) 357-0739	33.585896	-79.05471
+1599	10 Westedge	10 Westedge St Ste 100	Charleston	SC	29403	(843) 720-7000	32.786217	-79.956406
+1608	Martin Farms Shopping Center	704 Fairview Rd	Simpsonville	SC	29680	(864) 962-1030	34.702866	-82.25975
+1637	Publix at Lake Crossing	5441 Platt Springs Rd	Lexington	SC	29073	(803) 358-9587	33.906555	-81.22073
+1645	Riverland Market	1411 Folly Rd Ste 100	Charleston	SC	29412	(843) 762-5570	32.714508	-79.96693
+1646	Point Hope Commons	730 Hopewell Dr	Charleston	SC	29492	(843) 856-5193	32.921623	-79.871284
+1671	Seneca 130 Plaza	115 Rochester Hwy	Seneca	SC	29672	(864) 885-7055	34.702732	-82.938896
+1714	May River Crossing	2501 May River Crossing	Bluffton	SC	29910	(843) 815-3800	32.242702	-80.97825
+1716	Beaufort Plaza	33 Robert Smalls Pkwy	Beaufort	SC	29906	(843) 470-1231	32.43967	-80.70342
+1717	Market at Standing Springs	1400 W Georgia Rd	Simpsonville	SC	29680	(864) 962-1183	34.724815	-82.29491
+1767	University Square	5000 Old Buncombe Rd Unit 15	Greenville	SC	29617-8208	(864) 448-7652	34.910557	-82.42777
+1775	Moncks Corner Marketplace	2830 Hwy 52	Moncks Corner	SC	29461	(843) 761-7741	33.091057	-80.03289
+1806	Coventry Marketplace	955 Wood Duck Dr	Myrtle Beach	SC	29577-9412	(843) 293-1012	33.66426	-78.969376
+1812	Marketplace at the Mill	136 Sapwood Rd	Myrtle Beach	SC	29579-3738	(843) 903-2807	33.75309	-78.870155
+1856	Market at Boiling Springs	4400 Highway 9	Boiling Springs	SC	29316	(864) 381-6929	35.0622	-81.99729
+1866	One Nexton	1274 Nexton Pkwy	Summerville	SC	29486-2167	(843) 879-5573	33.06032	-80.1538
+2001	Market at Spears Creek	185 Earth Rd	Columbia	SC	29229	(803) 769-0440	34.113445	-80.844604
+2038	The Market Place at Carnes Crossroads	2700 N Main St Ste A	Summerville	SC	29486-7841	(843) 879-5076	33.063465	-80.09442`;
+const DEFAULT_COORDS = ``;
+// ===EDITION-END===
+
+const COLS = ["Order Type","MaintActivType","Basic fin. date","Earliest finish","Priority","Customer","Personnel No.","Activity","Serial Number","Order","Description","Oper.WorkCenter","User status","Material","Location"];
+
+// ---------- storage ----------
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem(EDITION.key+k); return v===null ? d : JSON.parse(v);}catch(e){return d;} },
+  set(k, v){ try{ localStorage.setItem(EDITION.key+k, JSON.stringify(v)); const n=document.getElementById("savedNote"); if(n) n.textContent="Saved "+new Date().toLocaleTimeString([], {hour:"numeric",minute:"2-digit"}); }
+    catch(e){ const n=document.getElementById("savedNote"); if(n) n.textContent="Not saving: this browser blocks storage for local files. Use Save backup file."; } }
+};
+
+// ---------- state ----------
+const S = {
+  calls: [], groups:{}, stores:{}, coords:{},
+  fGroups:new Set(), fPrio:new Set(), fStatus:new Set(), fDue:"",
+  known:{groups:new Set(), prio:new Set(), status:new Set()},
+  excluded:new Set(store.get("excluded", [])),
+  listSort: store.get("listSort","group"),
+  pastTiers: new Set(store.get("pastTiers",[])), pastLo: store.get("pastLo",""), pastHi: store.get("pastHi",""),
+  manual: store.get("manual", []),
+  lastOrder: [],
+  done: store.get("done", {}),
+  showDone: store.get("showDone", false),
+  gps: store.get("gps", null),
+  mapLinks: []
+};
+const ORDER_URL = n => "https://flpassociateapps.publix.com/sap/bc/ui2/flp#ZFIELDTECH-monitor&/ServiceOrder/" + encodeURIComponent(n);
+const isDone = c => !!S.done[c.order];
+// Order links open in Microsoft Edge using Edge's launch scheme (Windows, Android, iPhone).
+const UA = navigator.userAgent;
+const IN_EDGE = /Edg\/|EdgA\/|EdgiOS\//.test(UA);
+const IS_IOS = /iPhone|iPad|iPod/.test(UA);
+const useEdgeLinks = () => store.get("edgeLinks", true) && !IN_EDGE;
+const ORDER_HREF = n => {
+  const u = ORDER_URL(n);
+  if(!useEdgeLinks()) return u;
+  return IS_IOS ? "microsoft-edge-" + u : "microsoft-edge:" + u;
+};
+const orderTarget = () => useEdgeLinks() ? "" : ' target="_blank" rel="noopener"';
+
+// ---------- parsing ----------
+const cleanNum = s => String(s||"").trim().replace(/^P/i,"").replace(/^0+(?=\d)/,"");
+function parseGroups(t){
+  const g={}; t.split(/\r?\n/).forEach(l=>{const p=l.trim().split(/\s+/); if(p.length>=2 && /\d/.test(p[0])) g[cleanNum(p[0])]=p[1].toUpperCase();}); return g;
+}
+function splitRows(text){
+  const first=(text.split(/\r?\n/).find(l=>l.trim())||"");
+  const d=first.includes("\t")?"\t":",";
+  const rows=[]; let row=[], cell="", q=false;
+  for(let i=0;i<text.length;i++){
+    const ch=text[i];
+    if(q){ if(ch==='"'){ if(text[i+1]==='"'){cell+='"';i++;} else q=false; } else cell+=ch; }
+    else if(ch==='"' && cell==="") q=true;
+    else if(ch===d){ row.push(cell.trim()); cell=""; }
+    else if(ch==="\n"||ch==="\r"){ if(ch==="\r"&&text[i+1]==="\n") i++; row.push(cell.trim()); rows.push(row); row=[]; cell=""; }
+    else cell+=ch;
+  }
+  if(cell!==""||row.length){ row.push(cell.trim()); rows.push(row); }
+  return rows.filter(r=>r.some(c=>c!==""));
+}
+function jsonRows(t){
+  if(!/^\s*\[/.test(t)) return null;
+  try{
+    const a=JSON.parse(t); if(!Array.isArray(a)) return null;
+    const keys=[...new Set(a.flatMap(o=>o&&typeof o==="object"?Object.keys(o):[]))];
+    return [keys].concat(a.map(o=>keys.map(k=>o[k]==null?"":String(o[k]))));
+  }catch(e){ return null; }
+}
+function parseStores(t){
+  const rows=(jsonRows(t)||splitRows(t)).map(r=>r.map(c=>/^(not available|n\/a|null)$/i.test(c)?"":c)), s={}, coords={};
+  const hi=rows.findIndex(r=>r.some(c=>/store|address|city/i.test(c)) && !/^\d+$/.test(r[0]||""));
+  let idx={num:0,division:1,center:2,addr:3,city:4,state:5,zip:6,county:7,phone:8,lat:-1,lng:-1,group:-1};
+  if(hi>=0){
+    const hd=rows[hi].map(x=>x.toLowerCase().trim());
+    const f=re=>hd.findIndex(x=>re.test(x));
+    const num=f(/^(store|site|location|loc)\s*(number|num|no\.?|#|id)?$/);
+    idx={num:num>=0?num:0, division:f(/division|district|region/), center:f(/shopping\s*center|center|plaza|store\s*name|^name$/),
+      addr:f(/^(street\s*)?address(\s*1|\s*line\s*1)?$|^street$/), city:f(/^city$/), state:f(/^state$|^st$/), zip:f(/zip|postal/),
+      county:f(/county/), phone:f(/phone/), lat:f(/^lat(itude)?$/), lng:f(/^(lng|lon|long|longitude)$/), group:f(/^(route\s*)?group$/)};
+  }
+  const g=(r,k)=>idx[k]>=0?(r[idx[k]]||""):"";
+  rows.forEach((r,i)=>{
+    if(i===hi) return;
+    const n=cleanNum(g(r,"num")); if(!/^\d+$/.test(n)) return;
+    s[n]={num:n,division:g(r,"division"),center:g(r,"center"),addr:g(r,"addr"),city:g(r,"city"),state:g(r,"state"),
+      zip:g(r,"zip").split("-")[0],county:g(r,"county"),phone:g(r,"phone"),group:g(r,"group").toUpperCase()};
+    const la=parseFloat(g(r,"lat")), lo=parseFloat(g(r,"lng"));
+    if(!isNaN(la)&&!isNaN(lo)&&la!==0) coords[n]=[la,lo];
+  });
+  return {stores:s, coords};
+}
+function parseCoords(t){
+  const o={}; t.split(/\r?\n/).forEach(l=>{const p=l.trim().split(/[\s,]+/); if(p.length>=3){const a=+p[1],b=+p[2]; if(!isNaN(a)&&!isNaN(b)) o[cleanNum(p[0])]=[a,b];}}); return o;
+}
+function parseDue(d,t){
+  const m=/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec((d||"").trim()); if(!m) return null;
+  let [h,mi]=(t||"0:0").split(":").map(Number); h=h||0; mi=mi||0;
+  if(h>=24){h=23;mi=59;}
+  return new Date(+m[3],+m[1]-1,+m[2],h,mi);
+}
+function parseCalls(text){
+  const calls=[], errors=[];
+  text.split(/\r?\n/).forEach((line,i)=>{
+    if(!line.trim()) return;
+    const c=line.split("\t").map(x=>x.trim());
+    if(c[0]==="Order Type") return;
+    if(c.length<11){errors.push(i+1); return;}
+    const cust=cleanNum(c[5]), loc=cleanNum(c[14]);
+    const pr=parseInt(c[4])||9;
+    calls.push({
+      type:c[0], activ:c[1], date:c[2], time:c[3], due:parseDue(c[2],c[3]),
+      prioLabel:c[4]||"—", prio:pr, store:cust||loc, location:loc,
+      serial:c[8], order:c[9], desc:c[10], wc:c[11], status:c[12]||"—", material:c[13]
+    });
+  });
+  return {calls, errors};
+}
+
+// ---------- helpers ----------
+const $ = id => document.getElementById(id);
+const esc = s => String(s??"").replace(/[&<>"]/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch]));
+const groupOf = n => S.groups[n] || (S.stores[n] && (S.stores[n].group || S.stores[n].division || (EDITION.groupBy==="city" ? S.stores[n].city : S.stores[n].state))) || "?";
+const shieldHTML = (g, size) => `<span class="shield${size?" "+size:""}${String(g).length>2?" wide":""}" title="Group ${esc(g)}">${esc(g)}</span>`;
+const fullAddr = n => { const s=S.stores[n]; return s && s.addr ? `${s.addr}, ${s.city}, ${s.state} ${s.zip}` : `Store ${n}`; };
+const fmtDue = d => d ? d.toLocaleDateString(undefined,{weekday:"short",month:"numeric",day:"numeric"})+" "+d.toLocaleTimeString([], {hour:"numeric",minute:"2-digit"}) : "—";
+function miles(a,b){
+  if(!a||!b) return null;
+  const R=3958.8, r=x=>x*Math.PI/180;
+  const dLat=r(b[0]-a[0]), dLng=r(b[1]-a[1]);
+  const h=Math.sin(dLat/2)**2+Math.cos(r(a[0]))*Math.cos(r(b[0]))*Math.sin(dLng/2)**2;
+  return 2*R*Math.asin(Math.sqrt(h))*1.25;
+}
+const fmtTime = m => { m=Math.round(m); return m<60 ? `${m} min` : `${Math.floor(m/60)} h ${m%60} min`; };
+
+// ---------- filters ----------
+// Days a call is past its due date (fractional); null if no due date, negative if not due yet.
+const pastDays = (c, now=new Date()) => c.due ? (now - c.due)/864e5 : null;
+function fmtPast(c){
+  const d=pastDays(c); if(d===null||d<=0) return "";
+  if(d<1){ const hrs=Math.max(1,Math.floor(d*24)); return `${hrs} hr${hrs>1?"s":""} past due`; }
+  const n=Math.floor(d); return `${n} day${n>1?"s":""} past due`;
+}
+// Past-due levels: 0 not yet due, 1 = expired under 3 days, 2 = 3 days, 3 = 4+ days.
+const TIERS=[{k:1,label:"1–2 days"},{k:2,label:"3 days"},{k:3,label:"4+ days"},{k:0,label:"Not yet due"}];
+function tierOf(c){ const d=pastDays(c); if(d===null||d<=0) return 0; const w=Math.floor(d); return w>=4?3:w===3?2:1; }
+const tierLabel = t => (TIERS.find(x=>x.k===t)||{}).label;
+const pastSortMode = () => ["pasttier","due"].includes($("modeSel").value);
+function customRange(){
+  const lo=parseInt(S.pastLo), hi=parseInt(S.pastHi);
+  return (isNaN(lo)&&isNaN(hi)) ? null : {lo:isNaN(lo)?null:Math.max(0,lo), hi:isNaN(hi)?null:Math.max(0,hi)};
+}
+function pastFilter(c){
+  const r=customRange();
+  if(r){
+    // Custom range only ever includes calls that have expired.
+    const d=pastDays(c); if(d===null||d<=0) return false;
+    const w=Math.floor(d);
+    if(r.lo!==null && w<r.lo) return false;
+    if(r.hi!==null && w>r.hi) return false;
+    return true;
+  }
+  return !S.pastTiers.size || S.pastTiers.has(tierOf(c));
+}
+function visibleCalls(){
+  const due = S.fDue ? new Date(S.fDue+"T23:59:59") : null;
+  return S.calls.filter(c => (S.showDone || !isDone(c)) &&
+    S.fGroups.has(groupOf(c.store)) && S.fPrio.has(c.prio) && S.fStatus.has(c.status) &&
+    (!due || !c.due || c.due<=due) && pastFilter(c));
+}
+function syncFilterSets(){
+  const g=new Set(S.calls.map(c=>groupOf(c.store))), p=new Set(S.calls.map(c=>c.prio)), s=new Set(S.calls.map(c=>c.status));
+  // New values default to on; values the person turned off stay off.
+  g.forEach(x=>{ if(!S.known.groups.has(x)) S.fGroups.add(x); });
+  p.forEach(x=>{ if(!S.known.prio.has(x)) S.fPrio.add(x); });
+  s.forEach(x=>{ if(!S.known.status.has(x)) S.fStatus.add(x); });
+  S.known={groups:g,prio:p,status:s};
+}
+function renderChips(){
+  const count=(fn)=>{const m={}; S.calls.forEach(c=>{const k=fn(c); m[k]=(m[k]||0)+1;}); return m;};
+  const gc=count(c=>groupOf(c.store)), pc=count(c=>c.prio), sc=count(c=>c.status);
+  const plabel={}; S.calls.forEach(c=>plabel[c.prio]=c.prioLabel);
+  const mk=(host,keys,set,label,n,cls)=>{
+    host.innerHTML = keys.length ? "" : '<span class="hint">Load calls to filter</span>';
+    keys.forEach(k=>{
+      const el=document.createElement("label"); el.className="chip "+(cls||"")+(set.has(k)?" on":" off");
+      el.innerHTML=`<input type="checkbox" ${set.has(k)?"checked":""}>${label(k)} <span class="n">${n[k]}</span>`;
+      el.querySelector("input").onchange=e=>{ e.target.checked?set.add(k):set.delete(k); render(); };
+      host.appendChild(el);
+    });
+  };
+  mk($("fGroups"),[...S.known.groups].sort(),S.fGroups,k=>shieldHTML(k),gc);
+  mk($("fPrio"),[...S.known.prio].sort(),S.fPrio,k=>`<span class="pri p${k}">${esc(plabel[k])}</span>`,pc);
+  mk($("fStatus"),[...S.known.status].sort(),S.fStatus,k=>esc(k),sc,"plain");
+}
+
+// ---------- store list ----------
+// Least-past-due ordering: expired items by fewest days first; not-yet-due and no-date items last.
+function leastKey(due){ const now=Date.now(); if(!due) return Infinity; const t=due.getTime(); return t<now ? now-t : 1e15+t; }
+function storeGroups(calls){
+  const m=new Map();
+  calls.forEach(c=>{ if(!m.has(c.store)) m.set(c.store,[]); m.get(c.store).push(c); });
+  return [...m.entries()].map(([num,cs])=>{
+    const ls=S.listSort, dueKey=c=>c.due?c.due.getTime():Infinity;
+    cs.sort((a,b)=> ls==="most" ? (dueKey(a)-dueKey(b) || a.prio-b.prio)
+      : ls==="least" ? (leastKey(a.due)-leastKey(b.due) || a.prio-b.prio)
+      : (a.prio-b.prio || (a.due||0)-(b.due||0)));
+    return {num, calls:cs, best:Math.min(...cs.map(c=>c.prio)), tier:Math.max(...cs.map(tierOf)), earliest:cs.reduce((m,c)=>c.due&&(!m||c.due<m)?c.due:m,null)};
+  }).sort((a,b)=> S.listSort==="most"
+    ? ((a.earliest||Infinity)-(b.earliest||Infinity) || a.best-b.best || a.num.localeCompare(b.num,undefined,{numeric:true}))
+    : S.listSort==="least"
+    ? (leastKey(a.earliest)-leastKey(b.earliest) || a.best-b.best || a.num.localeCompare(b.num,undefined,{numeric:true}))
+    : (groupOf(a.num).localeCompare(groupOf(b.num)) || a.best-b.best || a.num.localeCompare(b.num)));
+}
+function addExtras(groups, shown){
+  const set=new Set(shown);
+  groups.forEach(g=>{
+    g.extra=S.calls.filter(c=>c.store===g.num && !set.has(c) && !isDone(c)).sort((a,b)=>(a.due||Infinity)-(b.due||Infinity));
+  });
+  return groups;
+}
+function renderStores(groups){
+  const host=$("storeList");
+  if(!Object.keys(S.stores).length){ host.innerHTML='<div class="empty">Your store list is empty. Open <b>Store data and groups</b> at the bottom of the page and load your company store file.</div>'; return; }
+  if(!S.calls.length){ host.innerHTML='<div class="empty">Paste your service call rows on the left and select <b>Load calls</b>.</div>'; return; }
+  if(!groups.length){ host.innerHTML='<div class="empty">No calls match the current filters.</div>'; return; }
+  const now=new Date();
+  host.innerHTML = groups.map(g=>{
+    const s=S.stores[g.num]; const inc=!S.excluded.has(g.num);
+    const rowFor=(c,extra)=>{
+      const over=c.due && c.due<now;
+      const locNote = c.location && c.location!==c.store ? `<div class="flag">Location field says ${esc(c.location)}</div>` : "";
+      const dn=isDone(c);
+      const t=tierOf(c);
+      return `<tr class="${dn?"done":t?"t"+t:""}${extra?" extra":""}">
+        <td class="chk"><label class="done-box" title="Mark call complete"><input type="checkbox" data-done="${esc(c.order)}" ${dn?"checked":""}> Done</label></td>
+        <td><span class="pri p${c.prio}">${esc(c.prioLabel)}</span></td>
+        <td><b>${esc(c.desc)}</b>${locNote}<div class="muted">Order <a class="ord" href="${ORDER_HREF(c.order)}"${orderTarget()} title="Opens in Microsoft Edge">${esc(c.order)}</a>${dn?" · completed "+new Date(S.done[c.order]).toLocaleDateString():""}${c.serial?" · SN "+esc(c.serial):""}${c.wc?" · "+esc(c.wc):""}</div></td>
+        <td class="due">${fmtDue(c.due)}${t&&!dn?`<div style="margin-top:2px"><span class="tier t${t}">${fmtPast(c)}</span></div>`:""}</td>
+        <td><span class="status">${esc(c.status)}</span></td></tr>`;
+    };
+    const ex=g.extra||[];
+    const rows=g.calls.map(c=>rowFor(c,false)).join("")+
+      (ex.length?`<tr class="subhead"><td colspan="5">Also open at this store (${ex.length})</td></tr>`+ex.map(c=>rowFor(c,true)).join(""):"");
+    return `<div class="store ${inc?"":"excluded"}">
+      <div class="store-head">
+        ${shieldHTML(groupOf(g.num))}
+        <div class="info">
+          <div class="store-name">${esc(g.num)}<small>${esc(s?s.center:"Store not in list")}</small></div>
+          <div class="addr">${s?`<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddr(g.num))}" target="_blank" rel="noopener">${esc(fullAddr(g.num))}</a> · <a href="tel:${esc(s.phone)}">${esc(s.phone)}</a>`:"Add this store under Store data to get an address"}</div>
+          <div class="muted" style="font-size:13px">${g.calls.length} call${g.calls.length>1?"s":""}${ex.length?` + ${ex.length} more open`:""}${(()=>{const o=g.calls.concat(ex).filter(c=>!isDone(c)&&pastDays(c)>0); if(!o.length) return ""; const old=o.reduce((m,c)=>c.due<m.due?c:m); return `<span class="tier t${tierOf(old)} pastbadge">Oldest ${fmtPast(old)}</span>`;})()}</div>
+        </div>
+        <label class="incl"><input type="checkbox" data-store="${esc(g.num)}" ${inc?"checked":""}> In route</label>
+      </div>
+      <div class="calls-wrap"><table class="calls">${rows}</table></div>
+    </div>`;
+  }).join("");
+  host.querySelectorAll("input[data-store]").forEach(cb=>cb.onchange=()=>{
+    const n=cb.dataset.store; cb.checked?S.excluded.delete(n):S.excluded.add(n);
+    store.set("excluded",[...S.excluded]); render();
+  });
+  host.querySelectorAll("input[data-done]").forEach(cb=>cb.onchange=()=>{
+    const o=cb.dataset.done;
+    if(cb.checked) S.done[o]=new Date().toISOString(); else delete S.done[o];
+    store.set("done",S.done); render();
+  });
+}
+
+// ---------- routing ----------
+function getStart(){
+  const v=$("startSel").value;
+  if(v==="") return null;
+  if(v==="gps"){
+    if(!S.gps) return null;
+    return {label:"Start: my location", addr:`${S.gps.lat.toFixed(5)},${S.gps.lng.toFixed(5)}`, pt:[S.gps.lat,S.gps.lng]};
+  }
+  if(v==="store"){
+    const n=cleanNum($("startStore").value);
+    if(!S.stores[n]) return null;
+    return {label:"Start: store "+n, addr:fullAddr(n), pt:S.coords[n]||null, num:n};
+  }
+  if(v==="custom"){
+    const addr=$("startAddr").value.trim(); if(!addr) return null;
+    const p=$("startCoords").value.split(/[\s,]+/).map(Number);
+    return {label:"Start", addr, pt: p.length>=2&&!isNaN(p[0])&&!isNaN(p[1])&&p[0]!==0 ? [p[0],p[1]] : null};
+  }
+  return {label:"Start: store "+v, addr:fullAddr(v), pt:S.coords[v]||null, num:v};
+}
+function pathCost(start, seq, round){
+  let d=0, prev=start?start.pt:null;
+  for(const s of seq){ if(prev) d+=miles(prev,S.coords[s.num]); prev=S.coords[s.num]; }
+  if(round && start && start.pt && prev) d+=miles(prev,start.pt);
+  return d;
+}
+function optimize(start, stops, round){
+  if(stops.length<2) return stops.slice();
+  // nearest neighbour
+  let rest=stops.slice(), seq=[], cur=start&&start.pt ? start.pt : null;
+  if(!cur){ seq.push(rest.shift()); cur=S.coords[seq[0].num]; }
+  while(rest.length){
+    let bi=0,bd=Infinity; rest.forEach((s,i)=>{const d=miles(cur,S.coords[s.num]); if(d<bd){bd=d;bi=i;}});
+    const s=rest.splice(bi,1)[0]; seq.push(s); cur=S.coords[s.num];
+  }
+  // 2-opt
+  let improved=true, best=pathCost(start,seq,round), guard=0;
+  while(improved && guard++<200){
+    improved=false;
+    for(let i=0;i<seq.length-1;i++) for(let k=i+1;k<seq.length;k++){
+      const cand=seq.slice(0,i).concat(seq.slice(i,k+1).reverse(),seq.slice(k+1));
+      const c=pathCost(start,cand,round);
+      if(c<best-0.01){ seq=cand; best=c; improved=true; }
+    }
+  }
+  return seq;
+}
+function orderStops(start, stops, mode, round){
+  const zipOf=n=>(S.stores[n]&&S.stores[n].zip)||"99999";
+  const withPt=stops.filter(s=>S.coords[s.num]);
+  const noPt=stops.filter(s=>!S.coords[s.num]).sort((a,b)=>zipOf(a.num).localeCompare(zipOf(b.num)) || a.num.localeCompare(b.num,undefined,{numeric:true}));
+  let seq;
+  if(mode==="manual"){
+    const byNum=new Map(stops.map(s=>[s.num,s]));
+    seq=S.manual.filter(n=>byNum.has(n)).map(n=>byNum.get(n));
+    stops.forEach(s=>{ if(!S.manual.includes(s.num)) seq.push(s); });
+    return seq;
+  }
+  if(mode==="due"){
+    seq=stops.slice().sort((a,b)=>(a.earliest||Infinity)-(b.earliest||Infinity) || a.best-b.best);
+    return seq;
+  }
+  if(mode==="priority" || mode==="pasttier"){
+    const key = mode==="pasttier" ? (s=>-s.tier) : (s=>s.best);
+    const levels=[...new Set(withPt.map(key))].sort((a,b)=>a-b);
+    seq=[]; let from=start;
+    levels.forEach((lv,idx)=>{
+      const part=optimize(from, withPt.filter(s=>key(s)===lv), round && idx===levels.length-1);
+      seq=seq.concat(part);
+      if(part.length){ const last=part[part.length-1]; from={pt:S.coords[last.num]}; }
+    });
+    return seq.concat(mode==="pasttier" ? noPt.sort((a,b)=>b.tier-a.tier) : noPt);
+  }
+  return optimize(start, withPt, round).concat(noPt);
+}
+function renderRoute(groups){
+  const stops=groups.filter(g=>!S.excluded.has(g.num));
+  const start=getStart(), mode=$("modeSel").value, round=$("roundTrip").checked;
+  const seq=orderStops(start, stops, mode, round);
+  S.lastOrder=seq.map(s=>s.num);
+  const list=$("stops"); list.innerHTML="";
+  let total=0, known=true, prev=start?start.pt:null;
+  if(start) list.insertAdjacentHTML("beforeend",`<li class="stop home"><span class="num">⌂</span><div><div class="t">${esc(start.label)}</div><div class="leg">${esc(start.addr)}</div></div><span></span></li>`);
+  seq.forEach((s,i)=>{
+    const pt=S.coords[s.num]; let leg="";
+    if(prev&&pt){ const d=miles(prev,pt); total+=d; leg=`≈ ${d.toFixed(0)} mi · ${fmtTime(d/45*60)} from previous`; }
+    else if(i>0||start){ known=false; leg="Distance unknown (no map position)"; }
+    prev=pt||prev;
+    const s0=S.stores[s.num];
+    const li=document.createElement("li"); li.className="stop";
+    li.innerHTML=`<span class="num">${i+1}</span>
+      <div><div class="t">${shieldHTML(groupOf(s.num),"sm")} ${esc(s.num)} ${s0?"· "+esc(s0.city):""}</div>
+      <div class="leg">${s.calls.length} call${s.calls.length>1?"s":""}${s.extra&&s.extra.length?` + ${s.extra.length} more open`:""}, top priority ${esc(s.calls[0].prioLabel)}${s.tier?` <span class="tier t${s.tier}">${tierLabel(s.tier)}</span>`:""}</div>
+      ${leg?`<div class="leg">${leg}</div>`:""}</div>
+      <div class="mv">${mode==="manual"?`<button aria-label="Move up" data-up="${i}">▲</button><button aria-label="Move down" data-down="${i}">▼</button>`:""}</div>`;
+    list.appendChild(li);
+  });
+  if(round && start && seq.length){
+    const last=S.coords[seq[seq.length-1].num];
+    let leg="";
+    if(start.pt&&last){ const d=miles(last,start.pt); total+=d; leg=`≈ ${d.toFixed(0)} mi · ${fmtTime(d/45*60)}`; }
+    list.insertAdjacentHTML("beforeend",`<li class="stop home"><span class="num">⌂</span><div><div class="t">Back to start</div><div class="leg">${leg}</div></div><span></span></li>`);
+  }
+  list.querySelectorAll("[data-up],[data-down]").forEach(b=>b.onclick=()=>{
+    const i=+(b.dataset.up??b.dataset.down), j=b.dataset.up!==undefined?i-1:i+1;
+    if(j<0||j>=S.lastOrder.length) return;
+    const o=S.lastOrder.slice(); [o[i],o[j]]=[o[j],o[i]]; S.manual=o; store.set("manual",o); render();
+  });
+  const calls=seq.reduce((n,s)=>n+s.calls.length,0);
+  S.routeTotals={stops:seq.length, calls, miles:known?total:null, start};
+  $("totals").innerHTML = seq.length
+    ? `<div><b>${seq.length}</b><span>stops</span></div><div><b>${calls}</b><span>calls</span></div><div><b>${known?"≈ "+total.toFixed(0):"?"}</b><span>miles</span></div><div><b>${known?fmtTime(total/45*60):"?"}</b><span>driving</span></div>`
+    : `<span class="hint">No stops selected. Check "In route" on a store to add it.</span>`;
+  // Google Maps links (max 10 places per link)
+  const pts=[]; if(start) pts.push(start.addr); seq.forEach(s=>pts.push(fullAddr(s.num))); if(round&&start) pts.push(start.addr);
+  const links=$("links"); links.innerHTML=""; S.mapLinks=[];
+  if(pts.length>=2){
+    const chunks=[]; for(let i=0;i<pts.length-1;i+=9) chunks.push(pts.slice(i,i+10));
+    S.mapLinks=chunks.map(c=>"https://www.google.com/maps/dir/"+c.map(encodeURIComponent).join("/"));
+    chunks.forEach((c,idx)=>{
+      const a=document.createElement("a"); a.target="_blank"; a.rel="noopener";
+      a.href="https://www.google.com/maps/dir/"+c.map(encodeURIComponent).join("/");
+      a.textContent=chunks.length>1?`Open part ${idx+1} of ${chunks.length} in Google Maps`:"Open route in Google Maps";
+      links.appendChild(a);
+    });
+  }
+}
+
+// ---------- main render ----------
+function render(){
+  syncFilterSets(); renderChips();
+  const vis=visibleCalls(), groups=addExtras(storeGroups(vis), vis);
+  renderStores(groups);
+  const pm=$("pastMsg"); if(pm){
+    pastUI();
+    const r=customRange(); let t="";
+    if(r) t = r.lo!==null && r.hi!==null ? `Showing calls expired ${r.lo} to ${r.hi} days.` : r.lo!==null ? `Showing calls expired ${r.lo} or more days.` : `Showing calls expired up to ${r.hi} days.`;
+    else if(S.pastTiers.size) t="Showing: "+TIERS.filter(x=>S.pastTiers.has(x.k)).map(x=>x.label).join(", ")+". Tap again to remove.";
+    else t="Showing all calls. Tap one or more levels to filter.";
+    pm.textContent=t;
+  }
+  const openVis=vis.filter(c=>!isDone(c));
+  renderRoute(addExtras(storeGroups(openVis), openVis));
+  if($("sharePreview").classList.contains("open")) $("sharePreview").value=buildShareText();
+  const doneN=S.calls.filter(isDone).length;
+  $("doneMsg").textContent = doneN ? `${doneN} completed call${doneN>1?"s":""}${S.showDone?" shown, crossed off":" hidden"}.` : "Check Done on a call to cross it off.";
+  const over=S.calls.filter(c=>!isDone(c)&&c.due&&c.due<new Date()).length;
+  $("summary").textContent = S.calls.length
+    ? `${S.calls.filter(c=>!isDone(c)).length} open of ${S.calls.length} calls at ${new Set(S.calls.map(c=>c.store)).size} stores · showing ${vis.length}${over?` · ${over} overdue`:""}`
+    : "No calls loaded";
+}
+function fillStartSelect(){
+  const sel=$("startSel");
+  let cur=store.get("start","");
+  if(/^\d+$/.test(cur)){ store.set("startStore",cur); cur="store"; store.set("start",cur); }
+  sel.innerHTML=`<option value="">First stop (no fixed start)</option><option value="gps">My current location</option><option value="store">A store…</option><option value="custom">Custom address…</option>`;
+  sel.value=["","gps","store","custom"].includes(cur)?cur:"";
+  $("storeDL").innerHTML=Object.values(S.stores).sort((a,b)=>a.num.localeCompare(b.num,undefined,{numeric:true}))
+    .map(s=>`<option value="${esc(s.num)}">${esc(s.city)}${s.state?", "+esc(s.state):""} · ${esc(s.center)}</option>`).join("");
+  $("startStore").value=store.get("startStore","");
+  showStartExtras(sel.value); storeStartStatus();
+}
+function storeStartStatus(){
+  const n=cleanNum($("startStore").value), m=$("storeStartMsg");
+  if(!n){ m.textContent=""; return; }
+  const s=S.stores[n];
+  m.className="msg"+(s?"":" err");
+  m.textContent = s ? `${s.center||"Store "+n}, ${s.city}${S.coords[n]?"":" (no map position, so mileage is unknown)"}` : `Store ${n} isn't in your store list.`;
+}
+function showStartExtras(v){
+  $("customStart").style.display=v==="custom"?"block":"none";
+  $("gpsBox").style.display=v==="gps"?"block":"none";
+  $("storeStart").style.display=v==="store"?"block":"none";
+}
+function locate(){
+  const m=$("gpsMsg");
+  if(!navigator.geolocation){ m.className="msg err"; m.textContent="This browser can't share your location. Use a custom address instead."; return; }
+  m.className="msg"; m.textContent="Finding your location…";
+  navigator.geolocation.getCurrentPosition(pos=>{
+    S.gps={lat:pos.coords.latitude,lng:pos.coords.longitude,acc:pos.coords.accuracy,at:Date.now()};
+    store.set("gps",S.gps); gpsStatus(); render();
+  },err=>{
+    m.className="msg err";
+    m.textContent = err.code===1 ? "Location permission was blocked. Allow location for this page in your browser's address bar, then select Update my location."
+      : "Couldn't get your location. Check that location services are on, then try again.";
+  },{enableHighAccuracy:true,timeout:15000,maximumAge:60000});
+}
+function gpsStatus(){
+  const m=$("gpsMsg"); m.className="msg";
+  if(!S.gps){ m.textContent="Location not found yet."; return; }
+  const near=Object.keys(S.coords).map(n=>[n,miles([S.gps.lat,S.gps.lng],S.coords[n])]).sort((a,b)=>a[1]-b[1])[0];
+  m.textContent=`Located at ${new Date(S.gps.at).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}`+(near?` · about ${near[1].toFixed(0)} mi from store ${near[0]}`:"");
+}
+function loadSettings(){
+  const pick=(k,d)=>{ const v=store.get(k,null); return (typeof v==="string" && v.trim()) ? v : d; };
+  const g=pick("groups",DEFAULT_GROUPS), s=pick("stores",DEFAULT_STORES), c=pick("coords",DEFAULT_COORDS);
+  $("groupsInput").value=g; $("storesInput").value=s; $("coordsInput").value=c;
+  const ps=parseStores(s);
+  S.groups=parseGroups(g); S.stores=ps.stores; S.coords=Object.assign({},ps.coords,parseCoords(c));
+}
+
+// ---------- events ----------
+$("loadBtn").onclick=()=>{
+  const {calls,errors}=parseCalls($("callsInput").value);
+  S.calls=calls; S.known={groups:new Set(),prio:new Set(),status:new Set()};
+  S.fGroups.clear(); S.fPrio.clear(); S.fStatus.clear();
+  store.set("callsText",$("callsInput").value);
+  const unknown=[...new Set(calls.map(c=>c.store))].filter(n=>!S.stores[n]);
+  const m=$("importMsg");
+  m.className="msg"+(errors.length||unknown.length?" err":"");
+  m.textContent = `Loaded ${calls.length} call${calls.length===1?"":"s"}.` +
+    (errors.length?` Skipped line${errors.length>1?"s":""} ${errors.join(", ")}: fewer than 11 tab-separated columns.`:"") +
+    (unknown.length?` Stores not in your store list: ${unknown.join(", ")}.`:"");
+  render();
+};
+$("clearBtn").onclick=()=>{ $("callsInput").value=""; S.calls=[]; store.set("callsText",""); $("importMsg").textContent=""; render(); };
+function pastUI(){
+  const counts={}; S.calls.filter(c=>!isDone(c)).forEach(c=>{const t=tierOf(c); counts[t]=(counts[t]||0)+1;});
+  const host=$("pastQuick"), r=customRange();
+  host.innerHTML=TIERS.map(x=>{const on=!r&&S.pastTiers.has(x.k); return `<button data-tier="${x.k}" class="${on?"on":""}" aria-pressed="${on}"><span class="dot t${x.k}"></span>${x.label}<span class="n">${counts[x.k]||0}</span></button>`;}).join("");
+  host.querySelectorAll("button").forEach(b=>b.onclick=()=>{
+    const k=+b.dataset.tier;
+    S.pastTiers.has(k)?S.pastTiers.delete(k):S.pastTiers.add(k);
+    S.pastLo=""; S.pastHi=""; $("pastMin").value=""; $("pastMax").value="";
+    savePast();
+  });
+  const on=pastSortMode();
+  $("listSort").value=S.listSort;
+  $("prioPast").checked=on; $("prioSwitch").classList.toggle("on",on);
+}
+function savePast(){ store.set("pastTiers",[...S.pastTiers]); store.set("pastLo",S.pastLo); store.set("pastHi",S.pastHi); render(); }
+$("pastMin").value=S.pastLo; $("pastMax").value=S.pastHi;
+["pastMin","pastMax"].forEach(id=>$(id).oninput=()=>{
+  S.pastLo=$("pastMin").value.trim(); S.pastHi=$("pastMax").value.trim();
+  if(customRange()) S.pastTiers.clear();
+  savePast();
+});
+$("pastClear").onclick=()=>{ S.pastLo=""; S.pastHi=""; S.pastTiers.clear(); $("pastMin").value=""; $("pastMax").value=""; savePast(); };
+function setPastPriority(on){
+  const sel=$("modeSel");
+  if(on){ if(!pastSortMode()) store.set("prevMode",sel.value); sel.value="pasttier"; S.listSort="most"; store.set("listSort","most"); }
+  else { const p=store.get("prevMode","optimize"); sel.value=["pasttier","due"].includes(p)?"optimize":p; }
+  store.set("mode",sel.value); render();
+}
+$("listSort").onchange=e=>{ S.listSort=e.target.value; store.set("listSort",S.listSort); render(); };
+$("prioPast").onchange=e=>setPastPriority(e.target.checked);
+$("fDue").onchange=e=>{ S.fDue=e.target.value; render(); };
+$("fDueClear").onclick=()=>{ $("fDue").value=""; S.fDue=""; render(); };
+$("allIn").onclick=()=>{ S.excluded.clear(); store.set("excluded",[]); render(); };
+$("allOut").onclick=()=>{ storeGroups(visibleCalls()).forEach(g=>S.excluded.add(g.num)); store.set("excluded",[...S.excluded]); render(); };
+$("startSel").onchange=e=>{ store.set("start",e.target.value); showStartExtras(e.target.value); if(e.target.value==="gps") locate(); render(); };
+$("gpsBtn").onclick=locate;
+$("startStore").oninput=e=>{ store.set("startStore",e.target.value.trim()); storeStartStatus(); render(); };
+["startAddr","startCoords"].forEach(id=>{ $(id).value=store.get(id,""); $(id).oninput=e=>{ store.set(id,e.target.value); render(); }; });
+$("modeSel").value=store.get("mode","optimize");
+$("modeSel").onchange=e=>{
+  if(e.target.value==="manual"){ S.manual=S.lastOrder.slice(); store.set("manual",S.manual); }
+  store.set("mode",e.target.value); render();
+};
+$("roundTrip").checked=store.get("round",false);
+$("roundTrip").onchange=e=>{ store.set("round",e.target.checked); render(); };
+function buildShareText(){
+  const withCalls=$("optCalls").checked, withLinks=$("optLinks").checked, withMaps=$("optMaps").checked;
+  const t=S.routeTotals||{stops:0,calls:0};
+  if(!t.stops) return "";
+  const vis=visibleCalls();
+  const day=new Date().toLocaleDateString(undefined,{weekday:"short",month:"numeric",day:"numeric"});
+  let out=`Route ${day}: ${t.stops} stop${t.stops>1?"s":""}, ${t.calls} call${t.calls>1?"s":""}`+(t.miles!=null?`, ≈ ${t.miles.toFixed(0)} mi`:"");
+  if(t.start) out+=`\nStarting from ${t.start.num?"store "+t.start.num:t.start.label.replace("Start: ","")}`;
+  S.lastOrder.forEach((n,i)=>{
+    const s=S.stores[n];
+    out+=`\n\n${i+1}. Store ${n}${s?" – "+s.city:""} (group ${groupOf(n)})`;
+    if(withMaps) out+=`\n   Map: https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(fullAddr(n))}`;
+    if(withCalls){
+      S.calls.filter(c=>c.store===n && !isDone(c) && vis.includes(c)).forEach(c=>{
+        out+=`\n   • ${c.prioLabel.replace(/^\d\s*-\s*/,"")}: ${c.desc} (#${c.order})${fmtPast(c)?" – "+fmtPast(c):""}`;
+        if(withLinks) out+=`\n     ${ORDER_URL(c.order)}`;
+      });
+      const ex=S.calls.filter(c=>c.store===n && !isDone(c) && !vis.includes(c));
+      if(ex.length){
+        out+=`\n   Also open here:`;
+        ex.forEach(c=>{ out+=`\n   ◦ ${c.prioLabel.replace(/^\d\s*-\s*/,"")}: ${c.desc} (#${c.order})${fmtPast(c)?" – "+fmtPast(c):""}`; if(withLinks) out+=`\n     ${ORDER_URL(c.order)}`; });
+      }
+    }
+  });
+  return out;
+}
+$("copyBtn").onclick=()=>{
+  const text=buildShareText(), m=$("routeMsg");
+  if(!text){ m.textContent="Add at least one stop to the route first."; return; }
+  const done=()=>{ m.textContent="Copied. Paste it into Teams, a text, or an email."; };
+  const fail=()=>{ openPreview(); $("sharePreview").select(); m.textContent="Copy was blocked. The text is selected below: press Ctrl+C (or ⌘C)."; };
+  if(navigator.clipboard && window.isSecureContext!==false) navigator.clipboard.writeText(text).then(done,()=>fallbackCopy(text,done,fail));
+  else fallbackCopy(text,done,fail);
+};
+function openPreview(){ const p=$("sharePreview"); p.value=buildShareText(); p.classList.add("open"); $("previewBtn").textContent="Hide preview"; }
+$("previewBtn").onclick=()=>{
+  const p=$("sharePreview");
+  if(p.classList.contains("open")){ p.classList.remove("open"); $("previewBtn").textContent="Preview"; } else openPreview();
+};
+["optCalls","optLinks","optMaps"].forEach(id=>{
+  $(id).checked=store.get(id,$(id).checked);
+  $(id).onchange=e=>{ store.set(id,e.target.checked); if($("sharePreview").classList.contains("open")) openPreview(); };
+});
+if(navigator.share){ $("shareBtn").hidden=false; $("shareBtn").onclick=()=>{ const t=buildShareText(); if(t) navigator.share({text:t}).catch(()=>{}); }; }
+function fallbackCopy(t,done,fail){ const ta=document.createElement("textarea"); ta.value=t; ta.style.position="fixed"; ta.style.opacity="0"; document.body.appendChild(ta); ta.select(); let ok=false; try{ok=document.execCommand("copy");}catch(e){} ta.remove(); ok?done():fail&&fail(); }
+$("printBtn").onclick=()=>window.print();
+$("edgeLinks").checked=store.get("edgeLinks",true);
+$("edgeLinks").onchange=e=>{ store.set("edgeLinks",e.target.checked); render(); };
+$("showDone").checked=S.showDone;
+$("showDone").onchange=e=>{ S.showDone=e.target.checked; store.set("showDone",S.showDone); render(); };
+$("clearDone").onclick=()=>{
+  if(!Object.keys(S.done).length) return;
+  if(!confirm("Un-mark every completed call? They will show as open again.")) return;
+  S.done={}; store.set("done",S.done); render();
+};
+$("exportBtn").onclick=()=>{
+  const keys=["callsText","done","showDone","excluded","manual","mode","round","start","startAddr","startCoords","groups","stores","coords"];
+  const data={app:"service-route-planner",edition:EDITION.id,version:APP_VERSION,savedAt:new Date().toISOString()};
+  keys.forEach(k=>{ const v=store.get(k,undefined); if(v!==undefined) data[k]=v; });
+  data.callsText=$("callsInput").value; data.done=S.done;
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
+  a.download="route-planner-"+(EDITION.id==="company"?"":EDITION.id==="local"?"VA-":EDITION.id.replace("state-","")+"-")+"backup-"+new Date().toISOString().slice(0,10)+".json";
+  document.body.appendChild(a); a.click(); a.remove();
+  $("backupMsg").textContent="Backup file saved to your downloads.";
+};
+$("importBackupBtn").onclick=()=>$("backupFile").click();
+$("backupFile").onchange=e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const d=JSON.parse(r.result);
+      if(d.app!=="service-route-planner") throw new Error();
+      if((d.edition||"local")!==EDITION.id){ $("backupMsg").textContent="That backup is from a different edition of the planner. Load it in the edition that made it."; return; }
+      Object.keys(d).forEach(k=>{ if(!["app","savedAt","version","edition"].includes(k)) store.set(k,d[k]); });
+      location.reload();
+    }catch(err){ $("backupMsg").textContent="That file isn't a route planner backup."; }
+  };
+  r.readAsText(f); e.target.value="";
+};
+function saveStoreData(){
+  store.set("groups",$("groupsInput").value); store.set("stores",$("storesInput").value); store.set("coords",$("coordsInput").value);
+  loadSettings(); fillStartSelect();
+  const n=Object.keys(S.stores).length, c=Object.keys(S.stores).filter(k=>S.coords[k]).length;
+  $("setMsg").textContent=`Saved ${n} store${n===1?"":"s"}, ${c} with map positions.`; render();
+}
+$("saveSettings").onclick=saveStoreData;
+$("storeFileBtn").onclick=()=>$("storeFile").click();
+$("storeFile").onchange=e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{ $("storesInput").value=r.result; saveStoreData(); };
+  r.readAsText(f); e.target.value="";
+};
+$("resetSettings").onclick=()=>{
+  if(EDITION.id!=="local" && !confirm("Replace your saved store list, groups, and map positions with the built-in store list?")) return;
+  ["groups","stores","coords"].forEach(k=>{ try{localStorage.removeItem(EDITION.key+k);}catch(e){} });
+  loadSettings(); fillStartSelect(); $("setMsg").textContent=EDITION.id!=="local"?"Built-in store list restored.":"Defaults restored."; render();
+};
+
+// ---------- init ----------
+$("verTag").textContent="v"+APP_VERSION;
+$("appName").textContent=EDITION.name;
+document.title=EDITION.name+" v"+APP_VERSION;
+$("resetSettings").textContent=EDITION.resetLabel;
+$("changelog").innerHTML=`<p style="margin:6px 0"><a href="${LATEST_URL}" target="_blank" rel="noopener">Get the latest version from the Google Drive folder</a></p>`+CHANGELOG.map(([v,t])=>`<p style="margin:6px 0"><b>v${v}</b>${v===APP_VERSION?" (this version)":""}<br><span class="muted">${esc(t)}</span></p>`).join("");
+(function(){
+  const prev=store.get("version",null);
+  store.set("version",APP_VERSION);
+  if(prev && prev!==APP_VERSION){
+    const note=CHANGELOG.filter(([v])=>parseFloat(v)>parseFloat(prev)).map(([v,t])=>`v${v}: ${t}`).join(" ");
+    $("savedNote").textContent=`Updated from v${prev} to v${APP_VERSION}. Your data carried over.`;
+    $("aboutBox").open=true;
+  }
+})();
+loadSettings(); fillStartSelect();
+if(!Object.keys(S.stores).length) $("storeData").open=true;
+if($("startSel").value==="gps"){ gpsStatus(); locate(); }
+const saved=store.get("callsText","");
+if(saved){ $("callsInput").value=saved; $("loadBtn").click(); } else render();
+</script>
+</body>
+</html>
