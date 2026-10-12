@@ -2,7 +2,7 @@
 
 Plan a day of service calls: paste your calls, see them grouped by store, filter by how long they're past due, and get a driving order with Google Maps directions. Your calls and settings are saved in your own browser and never leave your device.
 
-**Current version: 3.6**
+**Current version: 3.7**
 
 ## Pick your planner
 
@@ -24,6 +24,7 @@ Plan a day of service calls: paste your calls, see them grouped by store, filter
 - The online version also has a **Download offline copy** button in its banner. The offline version checks GitHub for new versions and shows a banner when one is ready.
 - **💬 Feedback** in the planner's banner opens Outlook with a bug report, error, or suggestion ready to send. Keep it general; if a report must include proprietary information, check the flag box so it's marked [PROPRIETARY].
 - **▶ Day view** goes stop by stop in route order: swipe between stops, tap **🧭 Navigate** to start turn-by-turn directions, call the store, open each order, and check calls off. It moves to the next stop when one is finished.
+- **📋 Copy list**, above the store list and in the Day view, copies your route to paste into Teams, a text, or an email. The Day view copy marks each call ☑ done or ☐ open.
 - **🗓 History** shows every call you've completed, by day, for about the last 13 months.
 - Either way, your calls and settings are saved in your own browser and never leave your device.
 - Pick one way and stick with it, since each keeps its own saved data. To move data between them, use **Save backup file** and **Load backup file** in the planner.
@@ -57,7 +58,7 @@ If your columns are in a different order, change the layout in SAP (Ctrl+F8) and
 
 ## What's in this repository
 
-- `planners/` – every edition. `ALL.html` and `<STATE>.html` are always the newest; the versioned files (`route-planner-VA-v3.6.html`) are kept for reference.
+- `planners/` – every edition. `ALL.html` and `<STATE>.html` are always the newest; the versioned files (`route-planner-VA-v3.7.html`) are kept for reference.
 - `version.json` – newest version number, used by offline copies to check for updates
 - `sw.js` – offline helper for the installed app; keeps copies of the planner's own files, never your calls
 - `qr.js` – QR code maker used by Send to phone (written for this project, no outside code)

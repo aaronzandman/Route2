@@ -147,7 +147,10 @@ legend{font-weight:600;font-size:14px;margin-bottom:6px}
 .dayv.show{display:flex}
 .dv-top{display:flex;gap:10px;align-items:center;padding:10px 12px;background:var(--road);color:#fff}
 .dv-top button{background:rgba(255,255,255,.18);color:#fff;border:0;border-radius:8px;width:40px;height:40px;font-size:18px;flex:none}
-.dv-prog{flex:1;min-width:0}
+.dv-prog{flex:1;min-width:0;order:-1}
+.dv-top #dvClose{order:-2}
+.toast{position:fixed;left:50%;bottom:calc(80px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--panel);padding:10px 16px;border-radius:999px;font-weight:600;z-index:80;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90vw;text-align:center}
+.toast.show{opacity:1}
 .dv-prog b{font:700 18px var(--sign);display:block}
 .dv-bar{height:7px;background:rgba(255,255,255,.25);border-radius:9px;overflow:hidden;margin:4px 0 2px}
 .dv-bar i{display:block;height:100%;background:#7CF0B5;width:0;transition:width .3s}
@@ -302,7 +305,7 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
   </div>
 </div>
 <div class="dayv" id="dayView" role="dialog" aria-modal="true" aria-label="Day view">
-  <div class="dv-top"><button id="dvClose" aria-label="Close day view">✕</button>
+  <div class="dv-top"><button id="dvClose" aria-label="Close day view">✕</button><button id="dvCopy" aria-label="Copy list" style="width:auto;padding:0 12px;font-size:15px;font-weight:700">📋 Copy</button>
     <div class="dv-prog"><b id="dvTitle">Today's route</b><div class="dv-bar"><i id="dvBar"></i></div><span id="dvSub"></span></div></div>
   <div class="dv-track" id="dvTrack"></div>
   <div class="dv-nav"><button id="dvPrev">◀ Prev</button><div class="dv-dots" id="dvDots"></div><button class="primary" id="dvNext">Next ▶</button></div>
@@ -442,6 +445,7 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
           <option value="most">Days past due: most first</option>
           <option value="least">Days past due: least first</option>
         </select>
+        <button id="copyList">📋 Copy list</button>
         <button id="histBtn">🗓 History</button>
         <button id="allIn">Include all</button>
         <button id="allOut">Exclude all</button>
@@ -525,11 +529,12 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
 
 <script>
 // ---------- version ----------
-const APP_VERSION = "3.6";
+const APP_VERSION = "3.7";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["3.7", "Copy list in both views: a Copy list button above the store list and in the Day view copies your route for pasting into Teams, a text, or an email. The Day view copy shows which calls are done."],
   ["3.6", "Day view: swipe through your route one stop at a time with big Done checkboxes, one-tap navigation (Google Maps, plus Apple Maps on iPhone), store phone and order links for each stop, a progress bar, and automatic move to the next stop when all its calls are done."],
   ["3.5", "Completed calls history: every call you mark Done is saved with its details, so you can scroll back through each day of the month even after loading a new SAP export. Calendar with daily counts, copy a day's list."],
   ["3.4", "Send to phone works with the installed app: after scanning, choose Copy for the installed app, then tap Paste transfer in the app. Needed on iPhone, where scanned links always open in Safari."],
@@ -2068,7 +2073,7 @@ function buildShareText(){
   S.lastOrder.forEach((n,i)=>{
     const s=S.stores[n];
     out+=`\n\n${i+1}. Store ${n}${s?" – "+s.city:""} (group ${groupOf(n)})`;
-    if(withMaps) out+=`\n   Map: https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(fullAddr(n))}`;
+    if(withMaps) out+=`\n   Map: ${navLink(n)}`;
     if(withCalls){
       S.calls.filter(c=>c.store===n && !isDone(c) && vis.includes(c)).forEach(c=>{
         out+=`\n   • ${c.prioLabel.replace(/^\d\s*-\s*/,"")}: ${c.desc} (#${c.order})${fmtPast(c)?" – "+fmtPast(c):""}`;
@@ -2101,6 +2106,29 @@ $("previewBtn").onclick=()=>{
   $(id).onchange=e=>{ store.set(id,e.target.checked); if($("sharePreview").classList.contains("open")) openPreview(); };
 });
 if(navigator.share){ $("shareBtn").hidden=false; $("shareBtn").onclick=()=>{ const t=buildShareText(); if(t) navigator.share({text:t}).catch(()=>{}); }; }
+function toast(msg){ let t=document.getElementById("toast"); if(!t){ t=document.createElement("div"); t.id="toast"; t.className="toast"; t.setAttribute("role","status"); document.body.appendChild(t); }
+  t.textContent=msg; t.classList.add("show"); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove("show"),2600); }
+function copyText(text, okMsg){
+  if(!text){ toast("Add at least one stop to the route first."); return; }
+  const ok=()=>toast(okMsg||"Copied. Paste it into Teams, a text, or an email.");
+  const manual=()=>{ openPreview(); $("sharePreview").value=text; $("sharePreview").select(); toast("Copy was blocked. Select the text and copy it."); };
+  if(navigator.clipboard && window.isSecureContext!==false) navigator.clipboard.writeText(text).then(ok,()=>fallbackCopy(text,ok,manual)); else fallbackCopy(text,ok,manual);
+}
+// Day view text: every stop in the day's order with done / open marks.
+function buildDayText(){
+  const withLinks=$("optLinks").checked, withMaps=$("optMaps").checked;
+  let calls=0, done=0; DV.stops.forEach(n=>{ const cs=dvCallsAt(n); calls+=cs.length; done+=cs.filter(isDone).length; });
+  const day=new Date().toLocaleDateString(undefined,{weekday:"short",month:"numeric",day:"numeric"});
+  let out=`Route ${day}: ${DV.stops.length} stop${DV.stops.length>1?"s":""}, ${done} of ${calls} calls done`;
+  DV.stops.forEach((n,i)=>{
+    const s=S.stores[n], cs=dvCallsAt(n), all=cs.length&&cs.every(isDone);
+    out+=`\n\n${i+1}. ${all?"✅ ":""}Store ${n}${s?" – "+s.city:""} (group ${groupOf(n)})`;
+    if(withMaps) out+=`\n   Map: ${navLink(n)}`;
+    cs.forEach(c=>{ out+=`\n   ${isDone(c)?"☑":"☐"} ${c.prioLabel.replace(/^\d\s*-\s*/,"")}: ${c.desc} (#${c.order})${!isDone(c)&&fmtPast(c)?" – "+fmtPast(c):""}`;
+      if(withLinks) out+=`\n     ${ORDER_URL(c.order)}`; });
+  });
+  return out;
+}
 function fallbackCopy(t,done,fail){ const ta=document.createElement("textarea"); ta.value=t; ta.style.position="fixed"; ta.style.opacity="0"; document.body.appendChild(ta); ta.select(); let ok=false; try{ok=document.execCommand("copy");}catch(e){} ta.remove(); ok?done():fail&&fail(); }
 $("printBtn").onclick=()=>window.print();
 $("edgeLinks").checked=store.get("edgeLinks",true);
@@ -2263,7 +2291,9 @@ function dvGo(i,smooth){
   store.set("dvState",{key:DV.stops.join(","),idx:i}); dvProgress();
 }
 $("dvTrack").addEventListener("scroll",()=>{ const t=$("dvTrack"); const i=Math.round(t.scrollLeft/Math.max(1,t.clientWidth)); if(i!==DV.idx){ DV.idx=i; store.set("dvState",{key:DV.stops.join(","),idx:i}); dvProgress(); } },{passive:true});
-$("dvBtn").onclick=openDayView; $("dvFab").onclick=openDayView; $("dvClose").onclick=closeDayView;
+$("dvBtn").onclick=openDayView;
+$("dvCopy").onclick=()=>copyText(buildDayText());
+$("copyList").onclick=()=>copyText(buildShareText()); $("dvFab").onclick=openDayView; $("dvClose").onclick=closeDayView;
 $("dvPrev").onclick=()=>dvGo(DV.idx-1,true); $("dvNext").onclick=()=>dvGo(DV.idx+1,true);
 document.addEventListener("keydown",e=>{ if(!$("dayView").classList.contains("show")) return; if(e.key==="Escape") closeDayView(); if(e.key==="ArrowRight") dvGo(DV.idx+1,true); if(e.key==="ArrowLeft") dvGo(DV.idx-1,true); });
 window.addEventListener("resize",()=>{ if($("dayView").classList.contains("show")) dvGo(DV.idx,false); });
