@@ -383,10 +383,11 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
 
 <script>
 // ---------- version ----------
-const APP_VERSION = "2.8";
+const APP_VERSION = "2.9";
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["2.9", "Store list updates automatically every day from Publix's store locator: new stores are added, none are ever removed. New Virginia stores show the group NEW until you assign one. Built-in stores are always included even if you've edited your store list."],
   ["2.8", "Due dates browser: every date that has calls, as tappable chips with counts and past-due colors; pick one or several. Landing pages list states first and the company-wide edition last."],
   ["2.7", "Bookmark button on the online version: one-tap Install or Add to Home screen where the browser supports it, otherwise the exact steps for your device and a copied link."],
   ["2.6", "Landing pages make Use online the main option. Release used to test the automatic update check."],
@@ -1130,6 +1131,13 @@ function loadSettings(){
   $("groupsInput").value=g; $("storesInput").value=s; $("coordsInput").value=c;
   const ps=parseStores(s);
   S.groups=parseGroups(g); S.stores=ps.stores; S.coords=Object.assign({},ps.coords,parseCoords(c));
+  // Built-in stores are always included: a saved, edited list never hides newly added stores.
+  S.addedFromBuiltIn=0;
+  if(s!==DEFAULT_STORES && DEFAULT_STORES){
+    const d=parseStores(DEFAULT_STORES), dc=Object.assign({},d.coords,parseCoords(DEFAULT_COORDS)), dg=parseGroups(DEFAULT_GROUPS);
+    Object.keys(d.stores).forEach(n=>{ if(!S.stores[n]){ S.stores[n]=d.stores[n]; S.addedFromBuiltIn++; } if(!S.coords[n]&&dc[n]) S.coords[n]=dc[n]; });
+    Object.keys(dg).forEach(n=>{ if(!S.groups[n]) S.groups[n]=dg[n]; });
+  }
 }
 
 // ---------- events ----------

@@ -1,9 +1,25 @@
 import json,re,subprocess
-VER="2.8"; OUT="planners/"
+VER="2.9"; OUT="planners/"
 src=open('source/route-planner-source.html').read()
 stores=json.load(open('source/stores.json'))
 i=src.index('// ===EDITION-START==='); j=src.index('// ===EDITION-END===')
 MARK='/*@@EDITION@@*/'; template=src[:i]+MARK+src[j:]; va_block=src[i:j]
+# Virginia edition keeps its own list (with route groups); add any Virginia store it doesn't have yet. Never remove.
+def _va_add(block):
+    have=set(re.findall(r'^(\d+)\t',block.split('const DEFAULT_STORES = `')[1].split('`')[0],re.M))
+    new=[r for r in stores if r.get("State")=="VA" and str(r["Store #"]) not in have]
+    if not new: return block
+    c=lambda v:"" if v is None or str(v).strip().lower()=="not available" else str(v).replace("\t"," ").replace("`","'")
+    srow="\n".join(f'{r["Store #"]}\t\t{c(r.get("Shopping Center"))}\t{c(r.get("Address"))}\t{c(r.get("City"))}\tVA\t{c(r.get("Zip"))}\t\t{c(r.get("Phone"))}' for r in new)
+    crow="\n".join(f'{r["Store #"]}\t{c(r.get("Latitude"))}\t{c(r.get("Longitude"))}' for r in new if c(r.get("Latitude")))
+    grow="\n".join(f'P{r["Store #"]}\tNEW' for r in new)
+    def app(b,name,rows):
+        k=b.index('const '+name+' = `'); e=b.index('`;',k); return b[:e]+("\n" if rows else "")+rows+b[e:]
+    block=app(block,"DEFAULT_STORES",srow); block=app(block,"DEFAULT_GROUPS",grow)
+    if crow: block=app(block,"DEFAULT_COORDS",crow)
+    print("Virginia edition: added",", ".join(str(r["Store #"]) for r in new))
+    return block
+va_block=_va_add(va_block)
 STATES={"AL":"Alabama","FL":"Florida","GA":"Georgia","KY":"Kentucky","NC":"North Carolina","SC":"South Carolina","TN":"Tennessee"}
 cols=["Store #","Shopping Center","Address","City","State","Zip","Phone","Latitude","Longitude"]
 clean=lambda v:"" if v is None or str(v).strip().lower()=="not available" else str(v).replace("\t"," ").replace("`","'").replace("\\","/").replace("${","$ {")
@@ -16,8 +32,8 @@ E=[dict(code="ALL",title="Company-wide",file=f"route-planner-v{VER}.html",stores
         block=block("company","Service Route Planner – Company Wide","rpc.","Restore company store list","state",stores))]
 for code,name in sorted(list(STATES.items())+[("VA","Virginia")]):
     if code=="VA":
-        n=len(set(re.findall(r'^(\d+)\t',va_block,re.M)))
-        E.append(dict(code="VA",title="Virginia",file=f"route-planner-VA-v{VER}.html",stores=25,block=va_block,
+        n=len(set(re.findall(r'^(\d+)\t',va_block.split('const DEFAULT_STORES = `')[1].split('`')[0],re.M)))
+        E.append(dict(code="VA",title="Virginia",file=f"route-planner-VA-v{VER}.html",stores=n,block=va_block,
             note="All Virginia stores plus Kill Devil Hills, NC (1615), with route groups A–F"))
     else:
         rows=[r for r in stores if r["State"]==code]

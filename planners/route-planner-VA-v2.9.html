@@ -383,10 +383,11 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
 
 <script>
 // ---------- version ----------
-const APP_VERSION = "2.8";
+const APP_VERSION = "2.9";
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["2.9", "Store list updates automatically every day from Publix's store locator: new stores are added, none are ever removed. New Virginia stores show the group NEW until you assign one. Built-in stores are always included even if you've edited your store list."],
   ["2.8", "Due dates browser: every date that has calls, as tappable chips with counts and past-due colors; pick one or several. Landing pages list states first and the company-wide edition last."],
   ["2.7", "Bookmark button on the online version: one-tap Install or Add to Home screen where the browser supports it, otherwise the exact steps for your device and a copied link."],
   ["2.6", "Landing pages make Use online the main option. Release used to test the automatic update check."],
@@ -408,82 +409,87 @@ const CHANGELOG = [
   ["1.0", "Import calls, group by store, filters, route ordering, Google Maps directions."]
 ];
 // ===EDITION-START===
-const EDITION = {id:"state-SC", name:"Service Route Planner \u2013 South Carolina", key:"rp-SC.", resetLabel:"Restore South Carolina store list", groupBy:"city"};
-const DEFAULT_GROUPS = ``;
-const DEFAULT_STORES = `Store #	Shopping Center	Address	City	State	Zip	Phone	Latitude	Longitude
-17	Kennerly Crossing	7320 Broad River Rd	Irmo	SC	29063-9656	(803) 407-0127	34.096973	-81.15759
-35	Five Forks Place	2700 Woodruff Rd	Simpsonville	SC	29681-4804	(864) 234-3860	34.804302	-82.227325
-67	Rosewood Shopping Center	2800 Rosewood Dr	Columbia	SC	29205-3412	(803) 806-8839	33.987236	-81.00321
-205	Center Point	6525 Calhoun Memorial Hwy	Easley	SC	29640-3669	(864) 850-2270	34.820007	-82.58483
-360	Anderson Pavilion Shopping Center	1611 E Greenville St	Anderson	SC	29621-2006	(864) 231-5240	34.530933	-82.636505
-449	Queensborough Shopping Center	1000 Johnnie Dodds Blvd Ste 106	Mount Pleasant	SC	29464-3187	(843) 856-3000	32.813595	-79.86796
-459	St James Shopping Center	208 Saint James Ave Ste C	Goose Creek	SC	29445-2994	(843) 569-7920	33.006596	-80.04259
-472	Ashley Landing Mall	1401 Sam Rittenberg Blvd	Charleston	SC	29407-5031	(843) 852-3350	32.814617	-79.995285
-473	Festival Centre at Indigo Park	45 Pembroke Dr	Hilton Head Island	SC	29926-2262	(843) 689-9977	32.21035	-80.72526
-483	Oakbrook Shopping Center	1575 Old Trolley Rd	Summerville	SC	29485-8208	(843) 832-0456	32.96681	-80.166
-486	North Augusta Plaza	334 E Martintown Rd	North Augusta	SC	29841-4261	(803) 441-3900	33.49586	-81.962395
-506	Eastgate Shopping Center	250 Eastgate Dr	Aiken	SC	29803-7698	(803) 643-7970	33.511307	-81.716354
-512	Lexington Place	100 Old Cherokee Rd	Lexington	SC	29072-9316	(803) 951-3999	33.999886	-81.21981
-530	Publix at Woodruff	1750 Woodruff Rd	Greenville	SC	29607-5933	(864) 987-7080	34.81824	-82.27172
-531	Publix at Thornblade	411 The Pkwy	Greer	SC	29650-4522	(864) 848-7820	34.87138	-82.25606
-543	Poplar Springs Plaza	2153 E Main St Ste B9	Duncan	SC	29334-8863	(864) 486-4700	34.88853	-82.067245
-563	Boulevard Market Fair	3801-E Clemson Blvd	Anderson	SC	29621-1318	(864) 231-1170	34.553623	-82.68535
-587	North Pointe Shopping Center	10128 Two Notch Rd	Columbia	SC	29223-4384	(803) 788-9484	34.11447	-80.88457
-597	Trenholm Plaza	4840 Forest Dr Ste 10	Columbia	SC	29206-4810	(803) 790-4920	34.016594	-80.96496
-602	McAlister Square	235 S Pleasantburg Dr	Greenville	SC	29607-2521	(864) 250-4700	34.836174	-82.36451
-632	Hampton Village	2801 Wade Hampton Blvd Ste 120	Taylors	SC	29687-2758	(864) 609-7300	34.9022	-82.33722
-633	Merchants Village	520 Folly Rd	Charleston	SC	29412-3019	(843) 762-5670	32.75359	-79.97096
-656	Columbiana Station	150 Harbison Blvd	Columbia	SC	29212-2204	(803) 407-0449	34.067978	-81.1622
-687	Hillcrest Shopping Center	1905 E Main St	Spartanburg	SC	29307-2308	(864) 253-1820	34.967255	-81.89057
-700	Island Crossing Shopping Center	11 Palmetto Bay Rd	Hilton Head Island	SC	29928-3293	(843) 842-2632	32.15791	-80.766136
-824	Palmetto Pavilion	8409 Dorchester Rd Ste 104	North Charleston	SC	29420-7324	(843) 767-5970	32.912964	-80.109795
-829	Rice Creek Village	4611 Hard Scrabble Rd	Columbia	SC	29229-8584	(803) 699-8131	34.153267	-80.91329
-845	Bluffton Commons at Belfair	80 Baylor Dr	Bluffton	SC	29910-8902	(843) 706-3049	32.277798	-80.87721
-874	Pelham Commons	215 Pelham Rd	Greenville	SC	29615-2546	(864) 370-8210	34.867878	-82.34706
-883	Murray Landing	2732 N Lake Dr	Columbia	SC	29212-8733	(803) 407-2216	34.09795	-81.22081
-1012	Mauldin Square	111 W Butler Rd	Mauldin	SC	29662-2534	(864) 987-1601	34.776943	-82.31019
-1055	Publix at North Point	1435 Ben Sawyer Blvd	Mount Pleasant	SC	29464-4574	(843) 856-3018	32.791634	-79.85432
-1081	The Shoppes of Park West	1125 Park West Blvd	Mount Pleasant	SC	29466-6974	(843) 388-2263	32.874115	-79.779335
-1095	Gervais Place	501 Gervais St	Columbia	SC	29201-3045	(803) 255-4351	33.99827	-81.0445
-1120	Paradise Shoppes of Summerville	1585 Central Ave Unit A	Summerville	SC	29483-5587	(843) 832-4017	33.01167	-80.234856
-1145	West Ashley Place	3642 Savannah Hwy Ste 132	Johns Island	SC	29455-7948	(843) 573-8734	32.805138	-80.11151
-1148	McBee Station	400 E McBee Ave Ste 100	Greenville	SC	29601-2940	(864) 240-2015	34.847927	-82.39516
-1205	Buckwalter Place	101 Buckwalter Place Blvd	Bluffton	SC	29910-5155	(843) 815-6430	32.270252	-80.91682
-1266	The Market at Cane Bay	1724 State Rd	Summerville	SC	29486	(843) 761-3750	33.10635	-80.12522
-1354	New River Crossing	112 Nickle Plate Rd	Hardeeville	SC	29927-4414	(843) 208-3600	32.308353	-80.97333
-1379	Gateway Village	1390 Tiger Blvd	Clemson	SC	29631-2617	(864) 654-3776	34.68573	-82.8174
-1383	Hendrix Crossing	847 Highway 378 W	Lexington	SC	29072-8316	(803) 996-6160	33.991127	-81.30632
-1412	Cross Creek	8360 Charlotte Hwy	Indian Land	SC	29707-6532	(803) 548-9000	34.95623	-80.8498
-1419	Publix On Gold Hill	928 Gold Hill Rd	Fort Mill	SC	29708-7947	(803) 548-7900	35.062683	-80.96444
-1463	Lady's Island	61 Ladys Island Dr	Beaufort	SC	29907-1618	(843) 770-0026	32.41221	-80.65107
-1464	Shops at Publix Pavilion	479 Bypass 72 NW Ste 100	Greenwood	SC	29649-1484	(864) 223-8902	34.20627	-82.18599
-1478	Pawleys Island Plaza	10225 Ocean Hwy # 17	Pawleys Island	SC	29585-6507	(843) 235-3755	33.43828	-79.13194
-1479	Coastal North Town Center	1576 Highway 17 N	North Myrtle Beach	SC	29582-2552	(843) 272-0050	33.84235	-78.658195
-1482	Wedgewood Square Shopping Center	1735 Heckle Blvd	Rock Hill	SC	29732-4803	(803) 372-6364	34.95063	-81.06379
-1485	Cherry Road Crossing	2186 Cherry Rd Ste 101	Rock Hill	SC	29732-3282	(803) 366-7500	34.96478	-80.996994
-1486	Landing Station	158 Highway 274	Lake Wylie	SC	29710-6045	(803) 831-5667	35.120228	-81.081085
-1510	Publix at Forest Square	2170 Oakheart Rd	Myrtle Beach	SC	29579-1253	(843) 903-4603	33.75856	-78.95881
-1511	Chapin Crossing	1235 Chapin Rd	Chapin	SC	29036	(803) 345-7536	34.164394	-81.35174
-1524	Village Shops at Grande Dunes	7925 N Kings Hwy	Myrtle Beach	SC	29572-3056	(843) 449-1660	33.751034	-78.81594
-1568	Prince Creek Village Center	11920 Hwy 707 Ste A	Murrells Inlet	SC	29576	(843) 357-0739	33.585896	-79.05471
-1599	10 Westedge	10 Westedge St Ste 100	Charleston	SC	29403	(843) 720-7000	32.786217	-79.956406
-1608	Martin Farms Shopping Center	704 Fairview Rd	Simpsonville	SC	29680	(864) 962-1030	34.702866	-82.25975
-1637	Publix at Lake Crossing	5441 Platt Springs Rd	Lexington	SC	29073	(803) 358-9587	33.906555	-81.22073
-1645	Riverland Market	1411 Folly Rd Ste 100	Charleston	SC	29412	(843) 762-5570	32.714508	-79.96693
-1646	Point Hope Commons	730 Hopewell Dr	Charleston	SC	29492	(843) 856-5193	32.921623	-79.871284
-1671	Seneca 130 Plaza	115 Rochester Hwy	Seneca	SC	29672	(864) 885-7055	34.702732	-82.938896
-1714	May River Crossing	2501 May River Crossing	Bluffton	SC	29910	(843) 815-3800	32.242702	-80.97825
-1716	Beaufort Plaza	33 Robert Smalls Pkwy	Beaufort	SC	29906	(843) 470-1231	32.43967	-80.70342
-1717	Market at Standing Springs	1400 W Georgia Rd	Simpsonville	SC	29680	(864) 962-1183	34.724815	-82.29491
-1767	University Square	5000 Old Buncombe Rd Unit 15	Greenville	SC	29617-8208	(864) 448-7652	34.910557	-82.42777
-1775	Moncks Corner Marketplace	2830 Hwy 52	Moncks Corner	SC	29461	(843) 761-7741	33.091057	-80.03289
-1806	Coventry Marketplace	955 Wood Duck Dr	Myrtle Beach	SC	29577-9412	(843) 293-1012	33.66426	-78.969376
-1812	Marketplace at the Mill	136 Sapwood Rd	Myrtle Beach	SC	29579-3738	(843) 903-2807	33.75309	-78.870155
-1856	Market at Boiling Springs	4400 Highway 9	Boiling Springs	SC	29316	(864) 381-6929	35.0622	-81.99729
-1866	One Nexton	1274 Nexton Pkwy	Summerville	SC	29486-2167	(843) 879-5573	33.06032	-80.1538
-2001	Market at Spears Creek	185 Earth Rd	Columbia	SC	29229	(803) 769-0440	34.113445	-80.844604
-2038	The Market Place at Carnes Crossroads	2700 N Main St Ste A	Summerville	SC	29486-7841	(843) 879-5076	33.063465	-80.09442`;
-const DEFAULT_COORDS = ``;
+const EDITION = {id:"local", name:"Service Route Planner – Virginia", key:"rp.", resetLabel:"Restore defaults"};
+const DEFAULT_GROUPS = `P1566	B
+P1587	B
+P1588	C
+P1589	B
+P1590	B
+P1591	B
+P1592	D
+P1593	C
+P1594	D
+P1595	B
+P1596	C
+P1615	F
+P1626	C
+P1632	A
+P1635	E
+P1636	D
+P1643	D
+P1679	D
+P1694	D
+P1720	A
+P1883	E
+P1885	A
+P2025	E
+P2030	E
+P2032	E`;
+
+const DEFAULT_STORES = `Store number	Division	Shopping center	Address	City	State	Zip code	County	Phone	Square footage	Ad day	Open date
+1566	Charlotte	Nuckols Place	5400 Wyndham Forest Dr	Glen Allen	VA	23059	Henrico	804-527-5334	54191	Wednesday	7/15/2017
+1587	Charlotte	Short Pump Crossing Shopping Center	3460 Pump Rd	Henrico	VA	23233-1111	Henrico	804-364-6314	63331	Wednesday
+1588	Charlotte	Carytown Exchange	3535 Ellwood Ave	Richmond	VA	23221	Richmond (Independent City)	804-253-6372	45600	Wednesday	12/9/2020
+1589	Charlotte	The Shoppes At Crossridge	10250 Staples Mill Rd	Glen Allen	VA	23060-3064	Henrico	804-755-2360	51487	Wednesday	7/29/2017
+1590	Charlotte	John Rolfe Commons	2250 John Rolfe Pkwy	Henrico	VA	23233-6913	Henrico	804-360-4920	56680	Wednesday	8/19/2017
+1591	Charlotte	Virginia Center Marketplace	10150 Brook Rd	Glen Allen	VA	23059-6514	Henrico	804-262-8190	63300	Wednesday
+1592	Charlotte	Harbour Pointe Shopping Center	13700 Hull Street Rd	Midlothian	VA	23112-2000	Chesterfield	804-739-1160	63557	Wednesday	11/4/2017
+1593	Charlotte	The Village Shopping Center	7035 Three Chopt Rd	Richmond	VA	23226	Henrico	804-288-1070	47395	Wednesday	8/28/2019
+1594	Charlotte	Colonial Square Shopping Center	3007 Boulevard	Colonial Heights	VA	23834-2445	Colonial Heights (Independent City)	804-520-4520	63100	Wednesday	11/1/2017
+1595	Charlotte	Westpark Shopping Center	9645 W Broad St	Glen Allen	VA	23060	Henrico	804-965-6303	49300	Wednesday	5/29/2019
+1596	Charlotte	White Oak Village	4591 S Laburnum Ave	Richmond	VA	23231-2421	Henrico	804-226-1915	61069	Wednesday	8/5/2017
+1626	Charlotte	Brandy Creek Commons	6603 Mechanicsville Tpke	Mechanicsville	VA	23111	Hanover	804-569-3902	50160	Wednesday	1/5/2019
+1632	Charlotte	Publix At Cosner's Corner	9601 Patriot Hwy	Fredericksburg	VA	22407	Spotsylvania	540-898-6801	49098	Wednesday	7/25/2018
+1635	Charlotte	Monticello Marketplace	4660 Monticello Ave	Williamsburg	VA	23188	James City	757-564-5902	62901	Wednesday
+1636	Charlotte	The Shops At Stratford Hills	7045 Forest Hill Ave	Richmond	VA	23225	Richmond (Independent City)	804-323-4110	54400	Wednesday	7/25/2018
+1643	Charlotte	Cosby Village	7200 Cosby Village Rd	Chesterfield	VA	23832	Chesterfield	804-639-6525	50280	Wednesday
+1679	Charlotte	Huguenot Village	2015 Huguenot Rd	North Chesterfield	VA	23235	Chesterfield	804-330-3704	49533	Wednesday	8/26/2020
+1694	Charlotte	Charter Colony Shopping Center	200 Charter Colony Pkwy	Midlothian	VA	23114	Chesterfield	804-378-3222	48387	Wednesday	6/10/2020
+1720	Charlotte	Embrey Mill Town Center	1640 Publix Way	Stafford	VA	22554	Stafford	540-288-9280	48387	Wednesday
+1883	Charlotte	Publix At Planters Station	3189 Godwin Blvd	Suffolk	VA	23434-8694	Suffolk (Independent City)	757-942-6032	46791	Wednesday
+1885	Charlotte	Chancellor Crossing	5940 Plank Rd	Fredericksburg	VA	22407-6232	Spotsylvania	540-736-6013	48387	Wednesday
+2025	Charlotte	Bartlett Station	22449 Spadea Way	Carrollton	VA	23314	Isle Of Wight	757-542-6041	48387	Wednesday	1/15/2025
+2030	Charlotte	Hickman Place	2200 General Booth Blvd	Virginia Beach	VA	23454	Virginia Beach (Independent City)	757-716-6015	49235	Wednesday
+2032	Charlotte	Dominion Station	1620 Cedar Rd STE 100	Chesapeake	VA	23322-7197	Chesapeake (Independent City)	757-550-6044	48387	Wednesday	4/23/2025
+1615	Charlotte	Publix At First Flight Square	1530 N Croatan Hwy	Kill Devil Hills	NC	27948	Dare	252-255-5006	45600	Wednesday	2/28/2018`;
+
+// Map positions from the company store list, used for mileage estimates and ordering.
+const DEFAULT_COORDS = `1566	37.68397	-77.586555
+1587	37.648952	-77.615845
+1588	37.5569	-77.48806
+1589	37.656944	-77.525856
+1590	37.62254	-77.62402
+1591	37.675133	-77.4631
+1592	37.410347	-77.65613
+1593	37.590977	-77.53272
+1594	37.268887	-77.41047
+1595	37.640015	-77.56325
+1596	37.525627	-77.35183
+1626	37.6109	-77.33578
+1632	38.219112	-77.50658
+1635	37.27248	-76.758385
+1636	37.534405	-77.52457
+1643	37.40154	-77.70873
+1679	37.519875	-77.612816
+1694	37.50507	-77.65897
+1720	38.426	-77.43402
+1883	36.786213	-76.59072
+1885	38.291405	-77.57935
+2025	36.94319	-76.53447
+2030	36.76458	-76.01289
+2032	36.728184	-76.299904
+1615	36.027336	-75.671135`;
+
 // ===EDITION-END===
 
 const COLS = ["Order Type","MaintActivType","Basic fin. date","Earliest finish","Priority","Customer","Personnel No.","Activity","Serial Number","Order","Description","Oper.WorkCenter","User status","Material","Location"];
@@ -980,6 +986,13 @@ function loadSettings(){
   $("groupsInput").value=g; $("storesInput").value=s; $("coordsInput").value=c;
   const ps=parseStores(s);
   S.groups=parseGroups(g); S.stores=ps.stores; S.coords=Object.assign({},ps.coords,parseCoords(c));
+  // Built-in stores are always included: a saved, edited list never hides newly added stores.
+  S.addedFromBuiltIn=0;
+  if(s!==DEFAULT_STORES && DEFAULT_STORES){
+    const d=parseStores(DEFAULT_STORES), dc=Object.assign({},d.coords,parseCoords(DEFAULT_COORDS)), dg=parseGroups(DEFAULT_GROUPS);
+    Object.keys(d.stores).forEach(n=>{ if(!S.stores[n]){ S.stores[n]=d.stores[n]; S.addedFromBuiltIn++; } if(!S.coords[n]&&dc[n]) S.coords[n]=dc[n]; });
+    Object.keys(dg).forEach(n=>{ if(!S.groups[n]) S.groups[n]=dg[n]; });
+  }
 }
 
 // ---------- events ----------

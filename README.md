@@ -2,7 +2,7 @@
 
 Plan a day of service calls: paste your calls, see them grouped by store, filter by how long they're past due, and get a driving order with Google Maps directions. Your calls and settings are saved in your own browser and never leave your device.
 
-**Current version: 2.8**
+**Current version: 2.9**
 
 ## Pick your planner
 
@@ -53,8 +53,9 @@ If your columns are in a different order, change the layout in SAP (Ctrl+F8) and
 
 ## What's in this repository
 
-- `planners/` – every edition. `ALL.html` and `<STATE>.html` are always the newest; the versioned files (`route-planner-VA-v2.8.html`) are kept for reference.
+- `planners/` – every edition. `ALL.html` and `<STATE>.html` are always the newest; the versioned files (`route-planner-VA-v2.9.html`) are kept for reference.
 - `version.json` – newest version number, used by offline copies to check for updates
 - `icons/` – app icons used when the planner is added to a home screen
+- `.github/workflows/update-stores.yml` – runs every morning: reads Publix's store locator, adds any new stores (never removes one), rebuilds every edition, and pushes the update
 - `index.html` – download page with every edition built in
 - `source/` – shared planner code, store list, and the build script that makes every edition
