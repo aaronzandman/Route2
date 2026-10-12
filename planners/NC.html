@@ -389,7 +389,7 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
   <!-- Left: import + filters -->
   <div class="panel import">
     <h2>Import calls</h2>
-    <textarea id="callsInput" placeholder="Paste service call rows here (tab-separated, header row optional)"></textarea>
+    <textarea id="callsInput" placeholder="Paste service call rows from SAP, or paste dispatch text messages"></textarea>
     <div class="row">
       <button class="primary" id="loadBtn">Load calls</button>
       <button id="clearBtn">Clear</button>
@@ -409,6 +409,7 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
           <li>Copy with <kbd>Ctrl</kbd>+<kbd>C</kbd> (or right-click &gt; Copy Text).</li>
           <li>Click in the box above, paste with <kbd>Ctrl</kbd>+<kbd>V</kbd>, and select <b>Load calls</b>.</li>
         </ol>
+        <p style="margin:8px 0 2px"><b>Got a dispatch text?</b> Copy the text message, paste it in the box, and select <b>Load calls</b>. It's added to your list as an SMS call; your SAP calls stay.</p>
         <p style="margin:8px 0 2px"><b>The report must show these columns, in this order:</b></p>
         <div class="colgrid" id="colList"></div>
         <p class="hint" style="margin:4px 0 0">The header row is optional. If your columns are in a different order, change the report layout in SAP (<kbd>Ctrl</kbd>+<kbd>F8</kbd>) and save it with your variant. The planner will warn you if something looks out of order.</p>
@@ -571,11 +572,12 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
 
 <script>
 // ---------- version ----------
-const APP_VERSION = "3.8";
+const APP_VERSION = "3.9";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["3.9", "Paste dispatch texts: copy one or more dispatch text messages and paste them into Import calls. They are added to your list (your SAP calls stay), marked SMS, with no due date until the next SAP import."],
   ["3.8", "Settings to turn features on or off. New: What changed since your last import (NEW tags, and calls no longer in SAP you can mark done), repeat-issue alerts by device and store, Due soon countdowns, Re-plan from here, End-of-day summary, and Hand off a call or stop to a teammate."],
   ["3.7", "Copy list in both views: a Copy list button above the store list and in the Day view copies your route for pasting into Teams, a text, or an email. The Day view copy shows which calls are done."],
   ["3.6", "Day view: swipe through your route one stop at a time with big Done checkboxes, one-tap navigation (Google Maps, plus Apple Maps on iPhone), store phone and order links for each stop, a progress bar, and automatic move to the next stop when all its calls are done."],
@@ -783,6 +785,19 @@ function parseDue(d,t){
   let [h,mi]=(t||"0:0").split(":").map(Number); h=h||0; mi=mi||0;
   if(h>=24){h=23;mi=59;}
   return new Date(+m[3],+m[1]-1,+m[2],h,mi);
+}
+// ---------- dispatch texts ----------
+// Reads texts like "801624020 2035 scale printer scale not advancing Sev: 3 P1593 - THE VILLAGE SHOPPING CENTER Retail Stores."
+// (same rules as the Companion app's reader). Texts carry no due date; status SMS marks where the call came from.
+const DISPATCH_RX=/(\d{9,10})\s+([\s\S]+?)\s+Sev\s*:?\s*(\d)\s+P0*(\d{3,5})\s*[-–—]\s*([\s\S]+?)(?=\s+\d{9,10}\s|\s*$)/gi;
+const SEV_LABEL={"1":"1 - Urgent","2":"2 - High","3":"3 - Standard","4":"4 - Low"};
+function parseDispatch(text){
+  const out=[]; let m; DISPATCH_RX.lastIndex=0;
+  while((m=DISPATCH_RX.exec(String(text||"")))!==null){
+    const desc=m[2].replace(/\s+/g," ").trim();
+    out.push(["SMS","","","",SEV_LABEL[m[3]]||m[3]+" - Standard","P"+m[4],"","","",m[1],desc,"","SMS","",m[4]].join("\t"));
+  }
+  return out;
 }
 function parseCalls(text){
   const calls=[], errors=[], warnings=[]; let badDates=0;
@@ -1193,7 +1208,25 @@ function loadSettings(){
 
 // ---------- events ----------
 $("loadBtn").onclick=()=>{
+  // Dispatch texts (no tab-separated rows) are ADDED to the current list instead of replacing it.
+  const raw=$("callsInput").value;
+  if(S.initDone && !raw.includes("\t")){
+    const rows=parseDispatch(raw);
+    if(rows.length){
+      const have=new Set(S.calls.map(c=>c.order));
+      const add=rows.filter(r=>!have.has(r.split("\t")[9]));
+      const base=(store.get("callsText","")||"").replace(/\s+$/,"");
+      $("callsInput").value = add.length ? (base?base+"\n":"")+add.join("\n") : base;
+      S.addingTexts=add.length; S.skippedTexts=rows.length-add.length;
+    }
+  }
   const {calls,errors,warnings}=parseCalls($("callsInput").value);
+  if(S.initDone && !calls.length && S.calls.length && $("callsInput").value.trim()){
+    // Nothing readable was pasted: keep the current list instead of wiping it.
+    const m0=$("importMsg"); m0.className="msg err";
+    m0.textContent="Nothing to load: that isn't SAP rows or a dispatch text. Your calls were not changed. See How to get your calls from SAP.";
+    $("callsInput").value=store.get("callsText",""); $("sapHelp").open=true; return;
+  }
   const prevCalls=S.calls;
   S.calls=calls; S.known={groups:new Set(),prio:new Set(),status:new Set()};
   S.fGroups.clear(); S.fPrio.clear(); S.fStatus.clear();
@@ -1207,6 +1240,12 @@ $("loadBtn").onclick=()=>{
     (warnings.length?" "+warnings.join(" ")+" See How to get your calls from SAP.":"");
   if(warnings.length||errors.length) $("sapHelp").open=true;
   backfillHistory();
+  if(S.addingTexts!==undefined){
+    const a=S.addingTexts, sk=S.skippedTexts; delete S.addingTexts; delete S.skippedTexts;
+    S.newOrders=new Set([...S.newOrders,...calls.filter(c=>c.wc===""&&c.status==="SMS"&&!prevCalls.some(p=>p.order===c.order)).map(c=>c.order)]); store.set("newOrders",[...S.newOrders]);
+    m.className="msg"; m.textContent = a ? `Added ${a} call${a>1?"s":""} from dispatch text${a>1?"s":""}.`+(sk?` ${sk} already on your list.`:"") : "Those calls are already on your list.";
+    render(); return;
+  }
   if(S.initDone) compareImport(prevCalls, calls);
   render();
 };

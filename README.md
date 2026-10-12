@@ -2,7 +2,7 @@
 
 Plan a day of service calls: paste your calls, see them grouped by store, filter by how long they're past due, and get a driving order with Google Maps directions. Your calls and settings are saved in your own browser and never leave your device.
 
-**Current version: 3.8**
+**Current version: 3.9**
 
 ## Pick your planner
 
@@ -42,6 +42,8 @@ Plan a day of service calls: paste your calls, see them grouped by store, filter
 6. Copy with **Ctrl+C**.
 7. In the planner, paste into **Import calls** and select **Load calls**.
 
+**Got a dispatch text?** Copy the text message, paste it into Import calls, and select Load calls. It's added to your list as an SMS call.
+
 The report must show these 15 columns, in this order (header row optional):
 
 | # | Column | # | Column |
@@ -59,7 +61,7 @@ If your columns are in a different order, change the layout in SAP (Ctrl+F8) and
 
 ## What's in this repository
 
-- `planners/` – every edition. `ALL.html` and `<STATE>.html` are always the newest; the versioned files (`route-planner-VA-v3.8.html`) are kept for reference.
+- `planners/` – every edition. `ALL.html` and `<STATE>.html` are always the newest; the versioned files (`route-planner-VA-v3.9.html`) are kept for reference.
 - `version.json` – newest version number, used by offline copies to check for updates
 - `sw.js` – offline helper for the installed app; keeps copies of the planner's own files, never your calls
 - `qr.js` – QR code maker used by Send to phone (written for this project, no outside code)
