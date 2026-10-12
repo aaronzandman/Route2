@@ -441,11 +441,12 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
 
 <script>
 // ---------- version ----------
-const APP_VERSION = "3.2";
+const APP_VERSION = "3.3";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["3.3", "Install app: put the planner on your phone's home screen or computer's taskbar with its own icon. It opens full screen like an app and works without signal once installed. Your data stays on your device."],
   ["3.2", "Feedback: the confirmation checkbox is replaced by an optional flag for reports that contain proprietary information. Flagged reports are clearly marked in the email."],
   ["3.1", "Feedback button: report a bug, an error, or a suggestion. It opens Outlook with your report ready to send."],
   ["3.0", "Send to phone (online version): your open calls and route settings move from your computer to your phone by scanning QR codes with the phone's camera. Codes open your state's planner. Nothing is uploaded; the data travels only inside the codes."],
@@ -1222,7 +1223,7 @@ function setupMode(){
   const badge=$("modeBadge"), act=$("modeActions");
   if(IS_ONLINE){
     badge.className="modebadge online"; badge.textContent="Online version";
-    act.innerHTML=`<button class="hbtn" id="sendBtn">📱 Send to phone</button> <button class="hbtn" id="bmkBtn">☆ Bookmark</button> <button class="hbtn" id="dlSelf">Download offline copy</button>`;
+    act.innerHTML=`<button class="hbtn" id="instBtn">📲 Install app</button> <button class="hbtn" id="sendBtn">📱 Send to phone</button> <button class="hbtn" id="bmkBtn">☆ Bookmark</button> <button class="hbtn" id="dlSelf">Download offline copy</button>`;
     setupSend();
     setupBookmark();
     $("dlSelf").onclick=async()=>{
@@ -1370,24 +1371,48 @@ async function receiveSync(){
   };
 }
 let installPrompt=null;
-window.addEventListener("beforeinstallprompt",e=>{ e.preventDefault(); installPrompt=e; const b=$("bmkBtn"); if(b) b.textContent="☆ Add to Home screen"; });
+window.addEventListener("beforeinstallprompt",e=>{ e.preventDefault(); installPrompt=e; });
+window.addEventListener("appinstalled",()=>{ installPrompt=null; const b=$("instBtn"); if(b) b.style.display="none"; $("savedNote").textContent="Installed. Open Route Planner from your home screen or apps."; });
+const IS_APP = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone===true;
 function setupBookmark(){
   // Make the online version installable (home-screen icon) where the browser supports it.
   const add=(rel,href,extra)=>{ const l=document.createElement("link"); l.rel=rel; l.href=href; Object.assign(l,extra||{}); document.head.appendChild(l); };
   add("manifest",EDITION_CODE+".webmanifest");
   add("apple-touch-icon","../icons/apple-touch-icon.png");
-  const m=document.createElement("meta"); m.name="theme-color"; m.content="#1F6B4F"; document.head.appendChild(m);
-  $("bmkBtn").onclick=async()=>{
-    if(installPrompt){ installPrompt.prompt(); const r=await installPrompt.userChoice.catch(()=>null); installPrompt=null; $("bmkBtn").textContent="☆ Bookmark"; if(r&&r.outcome==="accepted"){ $("savedNote").textContent="Added to your home screen."; return; } }
-    showBookmarkHelp();
+  const meta=(n,c)=>{ const m=document.createElement("meta"); m.name=n; m.content=c; document.head.appendChild(m); };
+  meta("theme-color","#1F6B4F"); meta("apple-mobile-web-app-capable","yes"); meta("mobile-web-app-capable","yes");
+  meta("apple-mobile-web-app-title","Route "+EDITION_CODE); meta("apple-mobile-web-app-status-bar-style","default");
+  // Offline helper: keeps a copy of the planner's own files so the installed app opens without signal. It never stores your calls.
+  if("serviceWorker" in navigator) navigator.serviceWorker.register("../sw.js").catch(()=>{});
+  if(IS_APP){
+    $("instBtn").style.display="none"; $("bmkBtn").style.display="none";
+    $("modeBadge").textContent="App"; 
+  }
+  $("instBtn").onclick=async()=>{
+    if(installPrompt){ installPrompt.prompt(); const r=await installPrompt.userChoice.catch(()=>null); installPrompt=null;
+      if(r&&r.outcome==="accepted") return; }
+    showInstallHelp();
   };
+  $("bmkBtn").onclick=()=>showBookmarkHelp();
   $("bmkClose").onclick=()=>$("bmk").classList.remove("show");
   $("bmk").onclick=e=>{ if(e.target.id==="bmk") $("bmk").classList.remove("show"); };
   document.addEventListener("keydown",e=>{ if(e.key==="Escape") $("bmk").classList.remove("show"); });
   $("bmkCopy").onclick=()=>{ const t=location.href.split("#")[0], done=()=>$("bmkMsg").textContent="Link copied.";
     if(navigator.clipboard) navigator.clipboard.writeText(t).then(done,()=>fallbackCopy(t,done)); else fallbackCopy(t,done); };
 }
+function showInstallHelp(){
+  const ua=navigator.userAgent; let html;
+  if(/iPhone|iPad|iPod/.test(ua)) html = /CriOS|EdgiOS|FxiOS/.test(ua)
+    ? `<ol><li>Tap the <b>Share</b> button (□↑) in the address bar.</li><li>Choose <b>Add to Home Screen</b>, then tap <b>Add</b>.</li></ol><p class="hint">If you don't see it, open this page in <b>Safari</b> and do the same.</p>`
+    : `<ol><li>Tap the <b>Share</b> button (□↑) at the bottom of Safari.</li><li>Scroll down and tap <b>Add to Home Screen</b>.</li><li>Tap <b>Add</b>. The <b>Route ${EDITION_CODE}</b> icon appears on your home screen.</li></ol>`;
+  else if(/Android/.test(ua)) html=`<ol><li>Tap the <b>⋮</b> menu in the top-right corner.</li><li>Tap <b>Install app</b> or <b>Add to Home screen</b>.</li><li>Tap <b>Install</b>. The <b>Route ${EDITION_CODE}</b> icon appears on your home screen.</li></ol>`;
+  else html=`<ol><li>In Edge or Chrome, click the <b>Install</b> icon at the right end of the address bar (a screen with a ↓ or a +).</li><li>Click <b>Install</b>. Route Planner opens in its own window and appears in your Start menu or taskbar.</li></ol><p class="hint">No icon? Open the browser's <b>⋯</b> menu and look for <b>Apps → Install this site as an app</b> (Edge) or <b>Cast, save, and share → Install page as app</b> (Chrome).</p>`;
+  $("bmkTitle").textContent="Install Route Planner";
+  $("bmkBody").innerHTML=html+`<p class="hint">It works like an app and opens without signal once installed. Your calls stay on this device.</p>`; $("bmkMsg").textContent="";
+  $("bmk").classList.add("show"); $("bmkClose").focus();
+}
 function showBookmarkHelp(){
+  $("bmkTitle").textContent="Bookmark this planner";
   const ua=navigator.userAgent, mac=/Macintosh|Mac OS X/.test(ua)&&!/iPhone|iPad/.test(ua);
   let html;
   if(/iPhone|iPad|iPod/.test(ua)) html=`<ol><li>Tap the <b>Share</b> button <span aria-hidden="true">(□↑)</span> at the bottom of Safari.</li><li>Choose <b>Add to Home Screen</b> for an app icon, or <b>Add Bookmark</b>.</li><li>Tap <b>Add</b>.</li></ol>`;
