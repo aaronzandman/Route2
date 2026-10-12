@@ -113,6 +113,14 @@ button.sorton{background:var(--ink);color:var(--panel);border-color:var(--ink)}
 .prio-switch{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;padding:9px 10px;border:1.5px solid var(--line);border-radius:8px;cursor:pointer;font-weight:600}
 .prio-switch.on{border-color:var(--t3);background:var(--t3bg)}
 .prio-switch input{width:20px;height:20px;accent-color:var(--t3)}
+details.help{margin-top:10px;border:1px solid var(--line);border-radius:8px;background:var(--soft)}
+details.help summary{cursor:pointer;font-weight:600;padding:8px 10px;font-size:14px}
+details.help .hb{padding:0 12px 10px;font-size:14px}
+details.help ol{padding-left:20px;margin:6px 0}
+details.help li{margin:5px 0}
+details.help kbd{font:12px ui-monospace,Consolas,monospace;border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:0 4px;background:var(--panel)}
+.colgrid{display:grid;grid-template-columns:auto 1fr;gap:2px 8px;font-size:13px;margin:6px 0}
+.colgrid span:nth-child(odd){color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
 .empty{padding:40px 20px;text-align:center;color:var(--muted);border:2px dashed var(--line);border-radius:10px}
 
 .stops{list-style:none;margin:12px 0 0;padding:0}
@@ -164,6 +172,23 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
       <button id="clearBtn">Clear</button>
     </div>
     <div class="msg" id="importMsg"></div>
+    <details class="help" id="sapHelp">
+      <summary>How to get your calls from SAP</summary>
+      <div class="hb">
+        <ol>
+          <li>In SAP, type <b>IW49N</b> in the command field and press <kbd>Enter</kbd>.</li>
+          <li>Select <b>Get Variant</b> (or press <kbd>Shift</kbd>+<kbd>F5</kbd>).</li>
+          <li>Choose your service-call variant and confirm.</li>
+          <li><b>Execute</b> the report (clock icon, or <kbd>F8</kbd>).</li>
+          <li>In the results, click the <b>Select All</b> icon in the <b>upper-left corner</b> of the list, so every row is highlighted.</li>
+          <li>Copy with <kbd>Ctrl</kbd>+<kbd>C</kbd> (or right-click &gt; Copy Text).</li>
+          <li>Click in the box above, paste with <kbd>Ctrl</kbd>+<kbd>V</kbd>, and select <b>Load calls</b>.</li>
+        </ol>
+        <p style="margin:8px 0 2px"><b>The report must show these columns, in this order:</b></p>
+        <div class="colgrid" id="colList"></div>
+        <p class="hint" style="margin:4px 0 0">The header row is optional. If your columns are in a different order, change the report layout in SAP (<kbd>Ctrl</kbd>+<kbd>F8</kbd>) and save it with your variant. The planner will warn you if something looks out of order.</p>
+      </div>
+    </details>
 
     <fieldset>
       <legend>Days past due</legend>
@@ -305,9 +330,10 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
 
 <script>
 // ---------- version ----------
-const APP_VERSION = "2.2";
+const APP_VERSION = "2.3";
 const LATEST_URL = "https://drive.google.com/drive/folders/1PUB4oO-vNFCRwoDu8PbWOcxdKwZk6vrY";
 const CHANGELOG = [
+  ["2.3", "Step-by-step help for copying open calls out of SAP (IW49N), with the required column order. The planner now warns when pasted columns are in the wrong order or a date can't be read."],
   ["2.2", "Past-due color levels: 1–2 days (yellow), 3 days (orange), 4+ days (red); pick more than one. Custom day range only ever shows expired calls. Each store shows all of its other open calls too. Sort the store list by days past due, most or least first. Most past due first switch builds the route oldest-first, then shortest drive."],
   ["2.1", "Days past due filter with quick buttons (7+, 14+, 30+) and your own day range. Sort stores by most past due. Each call shows how many days it is past due, also in the copied route."],
   ["2.0", "Link to the shared Google Drive folder where the latest version of every edition is kept."],
@@ -323,20 +349,69 @@ const CHANGELOG = [
   ["1.0", "Import calls, group by store, filters, route ordering, Google Maps directions."]
 ];
 // ===EDITION-START===
-const EDITION = {id:"state-KY", name:"Service Route Planner \u2013 Kentucky", key:"rp-KY.", resetLabel:"Restore Kentucky store list", groupBy:"city"};
+const EDITION = {id:"state-TN", name:"Service Route Planner \u2013 Tennessee", key:"rp-TN.", resetLabel:"Restore Tennessee store list", groupBy:"city"};
 const DEFAULT_GROUPS = ``;
 const DEFAULT_STORES = `Store #	Shopping Center	Address	City	State	Zip	Phone	Latitude	Longitude
-1846	Terra Crossing	2500 Terra Crossing Blvd	Louisville	KY	40245-5374	(502) 885-7662	38.27257	-85.49839
-1847	Publix at Marshall Commons	10005 Ballardsville Rd	Louisville	KY	40241-1202	(502) 302-7925	38.31706	-85.560394
-1887	The Fountains At Palomar	3855 Fountainblue Ln	Lexington	KY	40513	(859) 469-7337	38.003456	-84.57397
-2050	Publix at Flat Rock	150 Flat Rock Rd	Louisville	KY	40245		38.236137	-85.445526
-2051	Citation Point	1952 Stockton Way	Lexington	KY	40511-2412	(859) 286-8293	38.095634	-84.51252
-2052	Triple Crown Shopping Center	430 Richwood Rd	Walton	KY	41094	(859) 379-1137	38.913414	-84.636505
-3646	Terra Crossing	2502 Terra Crossing Blvd	Louisville	KY	40245-5374	(502) 302-6531	38.27257	-85.49839
-3647	Publix at Marshall Commons	10015 Ballardsville Rd	Louisville	KY	40241-1202	(502) 313-7027		
-3651	Citation Point	1976 Stockton Way	Lexington	KY	40511-2412	(859) 286-8931	38.095634	-84.51252
-3652	Triple Crown Shopping Center	420 Richwood Rd	Walton	KY	41094	(859) 379-1139	38.913414	-84.636505
-3687	The Fountains At Palomar	3825 Fountainblue Ln	Lexington	KY	40513	(859) 469-7339	38.003456	-84.57397`;
+119	Indian Lake Marketplace	110 Indian Lake Blvd	Hendersonville	TN	37075-6206	(615) 264-1350	36.310326	-86.60525
+123	Bellevue Center	7604 Highway 70 S	Nashville	TN	37221-1852	(615) 646-1870	36.07842	-86.94549
+142	Cool Springs Festival	8105 Moores Ln	Brentwood	TN	37027-8020	(615) 221-9880	35.963474	-86.80216
+160	Harpeth Village	2020 Fieldstone Pkwy	Franklin	TN	37069-4337	(615) 599-1825	35.964565	-86.883
+176	Franklin Marketplace	1021 Riverside Dr	Franklin	TN	37064-6500	(615) 591-3285	35.912518	-86.82829
+182	Oakwood Commons	4670 Lebanon Pike	Hermitage	TN	37076-1314	(615) 874-0898	36.217186	-86.59337
+1016	Parkway Town Centre	661 President Pl	Smyrna	TN	37167-5671	(615) 220-1919	35.97982	-86.55493
+1021	Marketplace at Maryland Farms	101 Creekside Xing	Brentwood	TN	37027-1062	(615) 507-1505	36.0369	-86.798805
+1031	McKay's Mill Village Center	1400 Liberty Pike Ste 200	Franklin	TN	37067-8628	(615) 591-4061	35.92483	-86.795746
+1033	Greensboro Village	1483 Nashville Pike	Gallatin	TN	37066-7144	(615) 451-6285	36.359604	-86.49569
+1047	Spring Hill Village	4935 Main St	Spring Hill	TN	37174-2735	(615) 302-4068	35.775105	-86.91837
+1057	Concord Village	10638 Concord Rd	Brentwood	TN	37027-8811	(615) 941-8871	35.997143	-86.69183
+1116	Nippers Corner	15544 Old Hickory Blvd	Nashville	TN	37211-7329	(615) 331-4912	36.04101	-86.74143
+1133	Publix at Harpeth Village	8028 Highway 100	Nashville	TN	37221-4212	(615) 673-2347	36.04716	-86.95227
+1141	Caldwell Square	460 Long Hollow Pike	Goodlettsville	TN	37072-3480	(615) 851-7180	36.3315	-86.69917
+1163	Kensington Place Shopping Center	1731 S Rutherford Blvd Ste S	Murfreesboro	TN	37130-5957	(615) 849-4290	35.81333	-86.36847
+1164	Publix at North Murfreesboro	3415 Memorial Blvd	Murfreesboro	TN	37129-3640	(615) 849-6254	35.912144	-86.386
+1165	Hurricane Creek	8644 E Brainerd Rd	Chattanooga	TN	37421-8325	(423) 296-1903	34.999165	-85.13403
+1166	Creek Plantation Village	5928 Hixson Pike Ste 112	Hixson	TN	37343-4839	(423) 847-8461	35.147335	-85.20735
+1172	Market at Victory Village	4175 Franklin Rd	Murfreesboro	TN	37128-4119	(615) 494-3196	35.84199	-86.471825
+1175	Lebanon Center	1703 W Main St	Lebanon	TN	37087-3193	(615) 444-2581	36.223503	-86.34521
+1211	Hill Center at Belle Meade	4324 Harding Pike	Nashville	TN	37205-2202	(615) 279-2038	36.126785	-86.84753
+1220	Mt Juliet Village	11207 Lebanon Rd	Mount Juliet	TN	37122-5545	(615) 758-4200	36.233017	-86.5144
+1234	Market at Salem Cove	2650 New Salem Hwy	Murfreesboro	TN	37128-5265	(615) 895-7096	35.812706	-86.45771
+1235	Mt View Marketplace	3532 Murfreesboro Pike	Antioch	TN	37013-2210	(615) 501-8250	36.05345	-86.614914
+1238	The Shops of Lee Village	1640 Lee Victory Pkwy	Smyrna	TN	37167-6529	(615) 223-9101	35.941505	-86.52754
+1244	Snow Hill Village	5958 Snow Hill Rd Ste 168	Ooltewah	TN	37363-7834	(423) 238-1032	35.09058	-85.0643
+1268	Providence Commons	665 S Mount Juliet Rd	Mount Juliet	TN	37122-6483	(615) 773-0250	36.161266	-86.51256
+1298	Hill Center at Nashville West	6614 Charlotte Pike	Nashville	TN	37209-4202	(615) 352-1055	36.140236	-86.88297
+1356	Publix at Mouse Creek	635 Paul Huff Pkwy NW	Cleveland	TN	37312-2970	(423) 476-4022	35.209568	-84.86069
+1360	Bowie Commons	7014 City Center Way	Fairview	TN	37062-6004	(615) 799-3474	35.97349	-87.13114
+1392	Madison Street Commons	1771 Madison St	Clarksville	TN	37043-4990	(931) 551-7031	36.51563	-87.3132
+1415	Publix at Turkey Creek	11656 Parkside Dr	Knoxville	TN	37934-2659	(865) 675-3018	35.89353	-84.17003
+1416	Northshore Town Center	2010 Town Center Blvd	Knoxville	TN	37922-6677	(865) 470-0720	35.860603	-84.07646
+1418	University Commons	2429 University Commons Way	Knoxville	TN	37919	(865) 522-6313	35.94992	-83.93972
+1425	Shoppes at Peachers Mill	1490 Tiny Town Rd	Clarksville	TN	37042-7201	(931) 503-2551	36.625175	-87.37263
+1426	The Crossings	2324 Lebanon Pike	Nashville	TN	37214-2411	(615) 884-2665	36.170834	-86.68387
+1460	Publix on North Market Street	400 N Market St	Chattanooga	TN	37405-4433	(423) 755-7901	35.065063	-85.30836
+1515	Valley Forge Shopping Center	2656 Parkway	Pigeon Forge	TN	37863-3246	(865) 774-2030	35.802597	-83.57625
+1529	Berry Farms Town Center	5021 Hughes Crossing Blvd	Franklin	TN	37064	(615) 595-2021	35.863697	-86.8431
+1543	Fairgrounds Plaza	2321 E Andrew Johnson Hwy	Greeneville	TN	37745	(423) 636-1478	36.18022	-82.78244
+1613	Northgate Mall	1600 N Jackson St Ste 340	Tullahoma	TN	37388	(931) 455-6032	35.380245	-86.22652
+1621	Village at Waterside	7326 McCutcheon Rd	Chattanooga	TN	37421	(423) 855-1376	35.043793	-85.15007
+1633	Markets West at Franklin	509 N State of Franklin Rd Ste 20	Johnson City	TN	37604	(423) 926-1260	36.313084	-82.38906
+1634	The Shoppes at Eagle Point	1265 Interstate Dr Ste 111	Cookeville	TN	38501-4135	(931) 526-8830	36.1385	-85.50757
+1648	Sango Square	920 Hwy 76	Clarksville	TN	37043	(931) 358-2257	36.52266	-87.23441
+1665	Publix at Melrose	2223 8th Ave S	Nashville	TN	37204	(615) 279-9470	36.128822	-86.77856
+1680	Capitol View	1010 Dr Martin L King Jr Blvd	Nashville	TN	37203	(615) 259-6072	36.16331	-86.789734
+1713	Smoky Mountain Gateway	750 Winfield Dunn Pkwy Ste 100	Sevierville	TN	37876	(865) 429-1734	35.88291	-83.57406
+1731	Publix at Mount Vernon Point	3535 Broad St	Chattanooga	TN	37409	(423) 668-5233	35.015038	-85.32541
+1732	Hill Center Greenwood	1111 Gallatin Ave	Nashville	TN	37206	(615) 226-7100	36.1898	-86.7449
+1739	The Shops at Windsong	211 Maharris Dr	Gallatin	TN	37066	(615) 989-9989	36.364582	-86.44221
+1778	Westlawn	5229 Veterans Pkwy	Murfreesboro	TN	37128-4377	(615) 995-7914	35.860924	-86.50897
+1779	Foothills Mall	198 Foothills Mall	Maryville	TN	37801-2310	(865) 518-0971	35.744446	-83.99438
+1780	Newman's Crossing	1931 Long Hollow Pike	Gallatin	TN	37066-8591	(615) 230-7647	36.382328	-86.54891
+1801	Hickory Ridge Shopping Center	445 Hwy 109 N	Lebanon	TN	37090	(615) 443-4349	36.19268	-86.410095
+1802	Walker Farms Shopping Center	2300 Trenton Rd	Clarksville	TN	37040	(931) 553-5067	36.577137	-87.31543
+1863	Shops at Enclave	1688 Ooltewah Ringgold Rd Ste 100	Ooltewah	TN	37363	(423) 508-6834	34.999672	-85.09461
+2020	White House Shops	453 Hwy 76	White House	TN	37188	(615) 581-6132	36.46734	-86.66399
+2036	Spring Hill Towne Crossing	1021 Jim Warren Pkwy	Spring Hill	TN	37174	(931) 487-5038	35.732	-86.89`;
 const DEFAULT_COORDS = ``;
 // ===EDITION-END===
 
@@ -439,12 +514,18 @@ function parseDue(d,t){
   return new Date(+m[3],+m[1]-1,+m[2],h,mi);
 }
 function parseCalls(text){
-  const calls=[], errors=[];
+  const calls=[], errors=[], warnings=[]; let badDates=0;
   text.split(/\r?\n/).forEach((line,i)=>{
     if(!line.trim()) return;
     const c=line.split("\t").map(x=>x.trim());
-    if(c[0]==="Order Type") return;
+    if(c.some(x=>/^order type$/i.test(x)) || (c.some(x=>/^description$/i.test(x)) && c.some(x=>/^priority$/i.test(x)))){
+      const norm=s=>s.toLowerCase().replace(/[^a-z0-9]/g,"");
+      const wrong=COLS.map((name,k)=>norm(c[k]||"")===norm(name)?null:`column ${k+1} should be "${name}"${c[k]?` but is "${c[k]}"`:""}`).filter(Boolean);
+      if(wrong.length) warnings.push("Header doesn't match: "+wrong.slice(0,3).join("; ")+(wrong.length>3?`; and ${wrong.length-3} more`:"")+".");
+      return;
+    }
     if(c.length<11){errors.push(i+1); return;}
+    if(c[2] && !parseDue(c[2],c[3])) badDates++;
     const cust=cleanNum(c[5]), loc=cleanNum(c[14]);
     const pr=parseInt(c[4])||9;
     calls.push({
@@ -453,7 +534,8 @@ function parseCalls(text){
       serial:c[8], order:c[9], desc:c[10], wc:c[11], status:c[12]||"—", material:c[13]
     });
   });
-  return {calls, errors};
+  if(badDates) warnings.push(`${badDates} call${badDates>1?"s have":" has"} a due date the planner can't read. Column 3 should be "Basic fin. date" (like 9/20/2026).`);
+  return {calls, errors, warnings};
 }
 
 // ---------- helpers ----------
@@ -808,16 +890,18 @@ function loadSettings(){
 
 // ---------- events ----------
 $("loadBtn").onclick=()=>{
-  const {calls,errors}=parseCalls($("callsInput").value);
+  const {calls,errors,warnings}=parseCalls($("callsInput").value);
   S.calls=calls; S.known={groups:new Set(),prio:new Set(),status:new Set()};
   S.fGroups.clear(); S.fPrio.clear(); S.fStatus.clear();
   store.set("callsText",$("callsInput").value);
   const unknown=[...new Set(calls.map(c=>c.store))].filter(n=>!S.stores[n]);
   const m=$("importMsg");
-  m.className="msg"+(errors.length||unknown.length?" err":"");
+  m.className="msg"+(errors.length||unknown.length||warnings.length?" err":"");
   m.textContent = `Loaded ${calls.length} call${calls.length===1?"":"s"}.` +
     (errors.length?` Skipped line${errors.length>1?"s":""} ${errors.join(", ")}: fewer than 11 tab-separated columns.`:"") +
-    (unknown.length?` Stores not in your store list: ${unknown.join(", ")}.`:"");
+    (unknown.length?` Stores not in your store list: ${unknown.join(", ")}.`:"") +
+    (warnings.length?" "+warnings.join(" ")+" See How to get your calls from SAP.":"");
+  if(warnings.length||errors.length) $("sapHelp").open=true;
   render();
 };
 $("clearBtn").onclick=()=>{ $("callsInput").value=""; S.calls=[]; store.set("callsText",""); $("importMsg").textContent=""; render(); };
@@ -968,6 +1052,8 @@ $("resetSettings").onclick=()=>{
 };
 
 // ---------- init ----------
+$("colList").innerHTML=COLS.map((n,i)=>`<span>${i+1}</span><span>${esc(n)}</span>`).join("");
+if(!store.get("callsText","")) $("sapHelp").open=true;
 $("verTag").textContent="v"+APP_VERSION;
 $("appName").textContent=EDITION.name;
 document.title=EDITION.name+" v"+APP_VERSION;

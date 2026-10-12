@@ -2,7 +2,7 @@
 
 Plan a day of service calls: paste your calls, see them grouped by store, filter by how long they're past due, and get a driving order with Google Maps directions. Your calls and settings are saved in your own browser and never leave your device.
 
-**Current version: 2.2**
+**Current version: 2.3**
 
 ## Pick your planner
 
@@ -25,8 +25,33 @@ Plan a day of service calls: paste your calls, see them grouped by store, filter
 
 [Download page with every edition](https://aaronzandman.github.io/Route2/)
 
+## Getting your calls from SAP
+
+1. In SAP, type **IW49N** in the command field and press **Enter**.
+2. Select **Get Variant** (Shift+F5).
+3. Choose your service-call variant and confirm.
+4. **Execute** the report (F8).
+5. Click the **Select All** icon in the upper-left corner of the results list.
+6. Copy with **Ctrl+C**.
+7. In the planner, paste into **Import calls** and select **Load calls**.
+
+The report must show these 15 columns, in this order (header row optional):
+
+| # | Column | # | Column |
+|---|---|---|---|
+| 1 | Order Type | 9 | Serial Number |
+| 2 | MaintActivType | 10 | Order |
+| 3 | Basic fin. date | 11 | Description |
+| 4 | Earliest finish | 12 | Oper.WorkCenter |
+| 5 | Priority | 13 | User status |
+| 6 | Customer | 14 | Material |
+| 7 | Personnel No. | 15 | Location |
+| 8 | Activity | | |
+
+If your columns are in a different order, change the layout in SAP (Ctrl+F8) and save it with your variant. The planner warns you if something looks out of order.
+
 ## What's in this repository
 
-- `planners/` – every edition. `ALL.html` and `<STATE>.html` are always the newest; the versioned files (`route-planner-VA-v2.2.html`) are kept for reference.
+- `planners/` – every edition. `ALL.html` and `<STATE>.html` are always the newest; the versioned files (`route-planner-VA-v2.3.html`) are kept for reference.
 - `index.html` – download page with every edition built in
 - `source/` – shared planner code, store list, and the build script that makes every edition

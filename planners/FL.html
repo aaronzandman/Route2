@@ -113,6 +113,14 @@ button.sorton{background:var(--ink);color:var(--panel);border-color:var(--ink)}
 .prio-switch{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;padding:9px 10px;border:1.5px solid var(--line);border-radius:8px;cursor:pointer;font-weight:600}
 .prio-switch.on{border-color:var(--t3);background:var(--t3bg)}
 .prio-switch input{width:20px;height:20px;accent-color:var(--t3)}
+details.help{margin-top:10px;border:1px solid var(--line);border-radius:8px;background:var(--soft)}
+details.help summary{cursor:pointer;font-weight:600;padding:8px 10px;font-size:14px}
+details.help .hb{padding:0 12px 10px;font-size:14px}
+details.help ol{padding-left:20px;margin:6px 0}
+details.help li{margin:5px 0}
+details.help kbd{font:12px ui-monospace,Consolas,monospace;border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:0 4px;background:var(--panel)}
+.colgrid{display:grid;grid-template-columns:auto 1fr;gap:2px 8px;font-size:13px;margin:6px 0}
+.colgrid span:nth-child(odd){color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
 .empty{padding:40px 20px;text-align:center;color:var(--muted);border:2px dashed var(--line);border-radius:10px}
 
 .stops{list-style:none;margin:12px 0 0;padding:0}
@@ -164,6 +172,23 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
       <button id="clearBtn">Clear</button>
     </div>
     <div class="msg" id="importMsg"></div>
+    <details class="help" id="sapHelp">
+      <summary>How to get your calls from SAP</summary>
+      <div class="hb">
+        <ol>
+          <li>In SAP, type <b>IW49N</b> in the command field and press <kbd>Enter</kbd>.</li>
+          <li>Select <b>Get Variant</b> (or press <kbd>Shift</kbd>+<kbd>F5</kbd>).</li>
+          <li>Choose your service-call variant and confirm.</li>
+          <li><b>Execute</b> the report (clock icon, or <kbd>F8</kbd>).</li>
+          <li>In the results, click the <b>Select All</b> icon in the <b>upper-left corner</b> of the list, so every row is highlighted.</li>
+          <li>Copy with <kbd>Ctrl</kbd>+<kbd>C</kbd> (or right-click &gt; Copy Text).</li>
+          <li>Click in the box above, paste with <kbd>Ctrl</kbd>+<kbd>V</kbd>, and select <b>Load calls</b>.</li>
+        </ol>
+        <p style="margin:8px 0 2px"><b>The report must show these columns, in this order:</b></p>
+        <div class="colgrid" id="colList"></div>
+        <p class="hint" style="margin:4px 0 0">The header row is optional. If your columns are in a different order, change the report layout in SAP (<kbd>Ctrl</kbd>+<kbd>F8</kbd>) and save it with your variant. The planner will warn you if something looks out of order.</p>
+      </div>
+    </details>
 
     <fieldset>
       <legend>Days past due</legend>
@@ -305,9 +330,10 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
 
 <script>
 // ---------- version ----------
-const APP_VERSION = "2.2";
+const APP_VERSION = "2.3";
 const LATEST_URL = "https://drive.google.com/drive/folders/1PUB4oO-vNFCRwoDu8PbWOcxdKwZk6vrY";
 const CHANGELOG = [
+  ["2.3", "Step-by-step help for copying open calls out of SAP (IW49N), with the required column order. The planner now warns when pasted columns are in the wrong order or a date can't be read."],
   ["2.2", "Past-due color levels: 1–2 days (yellow), 3 days (orange), 4+ days (red); pick more than one. Custom day range only ever shows expired calls. Each store shows all of its other open calls too. Sort the store list by days past due, most or least first. Most past due first switch builds the route oldest-first, then shortest drive."],
   ["2.1", "Days past due filter with quick buttons (7+, 14+, 30+) and your own day range. Sort stores by most past due. Each call shows how many days it is past due, also in the copied route."],
   ["2.0", "Link to the shared Google Drive folder where the latest version of every edition is kept."],
@@ -1324,12 +1350,18 @@ function parseDue(d,t){
   return new Date(+m[3],+m[1]-1,+m[2],h,mi);
 }
 function parseCalls(text){
-  const calls=[], errors=[];
+  const calls=[], errors=[], warnings=[]; let badDates=0;
   text.split(/\r?\n/).forEach((line,i)=>{
     if(!line.trim()) return;
     const c=line.split("\t").map(x=>x.trim());
-    if(c[0]==="Order Type") return;
+    if(c.some(x=>/^order type$/i.test(x)) || (c.some(x=>/^description$/i.test(x)) && c.some(x=>/^priority$/i.test(x)))){
+      const norm=s=>s.toLowerCase().replace(/[^a-z0-9]/g,"");
+      const wrong=COLS.map((name,k)=>norm(c[k]||"")===norm(name)?null:`column ${k+1} should be "${name}"${c[k]?` but is "${c[k]}"`:""}`).filter(Boolean);
+      if(wrong.length) warnings.push("Header doesn't match: "+wrong.slice(0,3).join("; ")+(wrong.length>3?`; and ${wrong.length-3} more`:"")+".");
+      return;
+    }
     if(c.length<11){errors.push(i+1); return;}
+    if(c[2] && !parseDue(c[2],c[3])) badDates++;
     const cust=cleanNum(c[5]), loc=cleanNum(c[14]);
     const pr=parseInt(c[4])||9;
     calls.push({
@@ -1338,7 +1370,8 @@ function parseCalls(text){
       serial:c[8], order:c[9], desc:c[10], wc:c[11], status:c[12]||"—", material:c[13]
     });
   });
-  return {calls, errors};
+  if(badDates) warnings.push(`${badDates} call${badDates>1?"s have":" has"} a due date the planner can't read. Column 3 should be "Basic fin. date" (like 9/20/2026).`);
+  return {calls, errors, warnings};
 }
 
 // ---------- helpers ----------
@@ -1693,16 +1726,18 @@ function loadSettings(){
 
 // ---------- events ----------
 $("loadBtn").onclick=()=>{
-  const {calls,errors}=parseCalls($("callsInput").value);
+  const {calls,errors,warnings}=parseCalls($("callsInput").value);
   S.calls=calls; S.known={groups:new Set(),prio:new Set(),status:new Set()};
   S.fGroups.clear(); S.fPrio.clear(); S.fStatus.clear();
   store.set("callsText",$("callsInput").value);
   const unknown=[...new Set(calls.map(c=>c.store))].filter(n=>!S.stores[n]);
   const m=$("importMsg");
-  m.className="msg"+(errors.length||unknown.length?" err":"");
+  m.className="msg"+(errors.length||unknown.length||warnings.length?" err":"");
   m.textContent = `Loaded ${calls.length} call${calls.length===1?"":"s"}.` +
     (errors.length?` Skipped line${errors.length>1?"s":""} ${errors.join(", ")}: fewer than 11 tab-separated columns.`:"") +
-    (unknown.length?` Stores not in your store list: ${unknown.join(", ")}.`:"");
+    (unknown.length?` Stores not in your store list: ${unknown.join(", ")}.`:"") +
+    (warnings.length?" "+warnings.join(" ")+" See How to get your calls from SAP.":"");
+  if(warnings.length||errors.length) $("sapHelp").open=true;
   render();
 };
 $("clearBtn").onclick=()=>{ $("callsInput").value=""; S.calls=[]; store.set("callsText",""); $("importMsg").textContent=""; render(); };
@@ -1853,6 +1888,8 @@ $("resetSettings").onclick=()=>{
 };
 
 // ---------- init ----------
+$("colList").innerHTML=COLS.map((n,i)=>`<span>${i+1}</span><span>${esc(n)}</span>`).join("");
+if(!store.get("callsText","")) $("sapHelp").open=true;
 $("verTag").textContent="v"+APP_VERSION;
 $("appName").textContent=EDITION.name;
 document.title=EDITION.name+" v"+APP_VERSION;

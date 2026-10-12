@@ -1,5 +1,5 @@
 import json,re,subprocess
-VER="2.2"; OUT="planners/"
+VER="2.3"; OUT="planners/"
 src=open('source/route-planner-source.html').read()
 stores=json.load(open('source/stores.json'))
 i=src.index('// ===EDITION-START==='); j=src.index('// ===EDITION-END===')
@@ -32,6 +32,17 @@ for e in E:
 B={"version":VER,"template":template,"editions":[{k:e[k] for k in("code","title","file","stores","note","block","size")} for e in E]}
 payload=json.dumps(B,separators=(',',':')).replace('<','\\u003c')
 tag='<script type="application/json" id="bundle">'
-for old,new in [("route-planner-downloads.html","route-planner-downloads.html"),("route-planner-downloads-local-v2.1.html",f"route-planner-downloads-local-v{VER}.html")]:
-    h=open(OUT+old).read(); a=h.index(tag)+len(tag); b=h.index('</script>',a)
-    open(OUT+new,'w').write(h[:a]+payload+h[b:]); print(new)
+# Offline download page (repo index.html) gets the new bundle; a versioned copy goes to the outputs folder.
+import os
+for path in ["index.html"]:
+    hh=open(path).read(); a=hh.index(tag)+len(tag); b=hh.index('</script>',a)
+    open(path,'w').write(hh[:a]+payload+hh[b:]); print("updated",path)
+EXTRA=os.environ.get("EXTRA_OUT")
+if EXTRA:
+    import shutil
+    shutil.copy("index.html",EXTRA+f"/route-planner-downloads-local-v{VER}.html")
+    for e in E: shutil.copy(OUT+e["file"],EXTRA+"/"+e["file"])
+    pub=EXTRA+"/route-planner-downloads.html"
+    if os.path.exists(pub):
+        hh=open(pub).read(); a=hh.index(tag)+len(tag); b=hh.index('</script>',a)
+        open(pub,'w').write(hh[:a]+payload+hh[b:]); print("updated published page")
