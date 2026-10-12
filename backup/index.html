@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Encrypted backup</title>
+<style>
+:root{--bg:#E9EDF0;--panel:#fff;--ink:#1C2430;--muted:#5D6875;--line:#CDD4DA;--road:#1F6B4F;--err:#B8322A}
+@media (prefers-color-scheme:dark){:root{--bg:#161B21;--panel:#1F262E;--ink:#E6EAEE;--muted:#9AA5B1;--line:#343E49;--road:#2E8A66;--err:#EE6A5F}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;max-width:900px;margin:0 auto}
+h1{font:700 24px/1.2 "Bahnschrift","Arial Narrow",system-ui,sans-serif;margin:0 0 6px}
+p{color:var(--muted);margin:6px 0}
+form{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+input{flex:1;min-width:200px;font:inherit;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink)}
+button{font:inherit;font-weight:700;border:0;border-radius:8px;padding:10px 16px;background:var(--road);color:#fff;cursor:pointer}
+button.sec{background:transparent;color:var(--road);border:1.5px solid var(--road)}
+#msg{min-height:1.5em;margin-top:8px;font-size:14px}
+#msg.err{color:var(--err)}
+#out{display:none;margin-top:14px}
+pre{white-space:pre-wrap;word-wrap:break-word;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:12px;font:13px/1.5 ui-monospace,Consolas,monospace;max-height:70vh;overflow:auto}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Encrypted backup</h1>
+  <p>This backup is encrypted. Enter the password to read it. Decryption happens only in this browser; the password is never sent anywhere or saved.</p>
+  <form id="f" autocomplete="off">
+    <input type="password" id="pw" placeholder="Password" aria-label="Password" autocomplete="off" required>
+    <button type="submit">Unlock</button>
+  </form>
+  <div id="msg" role="status"></div>
+  <div id="out">
+    <div class="row"><button type="button" id="copy">Copy</button><button type="button" class="sec" id="save">Download .md</button><button type="button" class="sec" id="lock">Lock</button></div>
+    <pre id="text"></pre>
+  </div>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+const b64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+let plain="";
+$("f").onsubmit=async e=>{
+  e.preventDefault(); const m=$("msg"); m.className=""; m.textContent="Unlocking…";
+  try{
+    if(!crypto||!crypto.subtle) throw new Error("This browser can't decrypt here. Open the page over https in Chrome, Edge, or Safari.");
+    const d=await (await fetch("brief.enc.json",{cache:"no-store"})).json();
+    const base=await crypto.subtle.importKey("raw",new TextEncoder().encode($("pw").value),"PBKDF2",false,["deriveKey"]);
+    const key=await crypto.subtle.deriveKey({name:"PBKDF2",salt:b64(d.salt),iterations:d.iterations,hash:"SHA-256"},base,{name:"AES-GCM",length:256},false,["decrypt"]);
+    let buf;
+    try{ buf=await crypto.subtle.decrypt({name:"AES-GCM",iv:b64(d.iv),additionalData:new TextEncoder().encode(d.aad)},key,b64(d.data)); }
+    catch(x){ throw new Error("Wrong password."); }
+    plain=new TextDecoder().decode(buf);
+    $("text").textContent=plain; $("out").style.display="block"; $("pw").value="";
+    m.textContent="Unlocked. Backup created "+(d.created||"")+".";
+  }catch(err){ m.className="err"; m.textContent=err.message||"Couldn't unlock."; }
+};
+$("copy").onclick=()=>navigator.clipboard.writeText(plain).then(()=>$("msg").textContent="Copied.",()=>$("msg").textContent="Copy was blocked; select the text and copy it.");
+$("save").onclick=()=>{ const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([plain],{type:"text/markdown"})); a.download="Route2-project-brief.md"; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),5000); };
+$("lock").onclick=()=>{ plain=""; $("text").textContent=""; $("out").style.display="none"; $("msg").textContent="Locked."; };
+</script>
+</body>
+</html>
