@@ -54,9 +54,10 @@ open("version.json","w").write(json.dumps({"version":VER,"editions":[("ALL" if e
 B={"version":VER,"template":template,"editions":[{k:e[k] for k in("code","title","file","stores","note","block","size")} for e in E]}
 payload=json.dumps(B,separators=(',',':')).replace('<','\\u003c')
 tag='<script type="application/json" id="bundle">'
-# Offline download page (repo index.html) gets the new bundle; a versioned copy goes to the outputs folder.
+# Download pages get the new bundle: index.html (GitHub Pages / offline download page) and
+# source/published-downloads.html (the page published as a Claude artifact).
 import os
-for path in ["index.html"]:
+for path in ["index.html","source/published-downloads.html"]:
     hh=open(path).read(); a=hh.index(tag)+len(tag); b=hh.index('</script>',a)
     open(path,'w').write(hh[:a]+payload+hh[b:]); print("updated",path)
 EXTRA=os.environ.get("EXTRA_OUT")
@@ -64,10 +65,8 @@ if EXTRA:
     import shutil
     shutil.copy("index.html",EXTRA+f"/route-planner-downloads-local-v{VER}.html")
     for e in E: shutil.copy(OUT+e["file"],EXTRA+"/"+e["file"])
-    pub=EXTRA+"/route-planner-downloads.html"
-    if os.path.exists(pub):
-        hh=open(pub).read(); a=hh.index(tag)+len(tag); b=hh.index('</script>',a)
-        open(pub,'w').write(hh[:a]+payload+hh[b:]); print("updated published page")
+    shutil.copy("source/published-downloads.html", EXTRA+"/route-planner-downloads.html")
+    print("copied published page")
 
 # Keep README store counts in step with the store list.
 import re as _re
