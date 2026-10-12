@@ -107,7 +107,7 @@ legend{font-weight:600;font-size:14px;margin-bottom:6px}
 .saved{font-size:12px;opacity:.85;margin-left:auto}
 /* header menu */
 .menuwrap{position:relative}
-.menu{position:absolute;right:0;top:calc(100% + 6px);z-index:30;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.25);padding:6px;display:flex;flex-direction:column;gap:4px;min-width:230px}
+.menu{position:fixed;max-width:calc(100vw - 16px);max-height:calc(100vh - 16px);overflow:auto;z-index:30;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.25);padding:6px;display:flex;flex-direction:column;gap:4px;min-width:230px}
 .menu[hidden]{display:none}
 .menu #modeActions{display:flex;flex-direction:column;gap:4px}
 .menu .hbtn,.menu #modeActions .hbtn{background:transparent;color:var(--ink);text-align:left;padding:9px 10px;font-size:14px;border-radius:6px;width:100%}
@@ -174,6 +174,7 @@ details.ropts[open]{padding-bottom:10px}
 #setDlg .fact{background:var(--soft);border-radius:8px;padding:8px 10px}#setDlg .fact b{display:block;font:700 20px/1.2 var(--sign)}#setDlg .fact span{font-size:12px;color:var(--muted)}
 #setDlg .uidbox{margin-top:10px;padding:8px 10px;border:1px dashed var(--line);border-radius:8px}#setDlg .uidbox b{font:700 18px ui-monospace,Consolas,monospace;letter-spacing:1px}
 #setDlg .ul{margin:6px 0;padding-left:20px;font-size:13px}#setDlg .ul li{margin:3px 0}#setDlg details summary{cursor:pointer;font-weight:600;color:var(--road);margin-top:6px}
+.fb .shot{background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:13px;margin-top:10px}.fb .shot .hint{display:block;margin-top:2px}
 .fb .devd{margin:6px 0 0 28px;font-size:13px}.fb .devd summary{cursor:pointer;color:var(--road);font-weight:600}
 .fb .devd pre{white-space:pre-wrap;word-break:break-word;background:var(--soft);border:1px solid var(--line);border-radius:6px;padding:8px;font:12px/1.45 ui-monospace,Consolas,monospace;margin:6px 0 0;max-height:220px;overflow:auto}
 .fb .ack input{width:20px;height:20px;flex:none;margin-top:1px;accent-color:var(--road)}
@@ -383,6 +384,8 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
     <div class="hint" id="fbPHint">Numbers only, 3 to 10 digits. The P is added for you.</div>
     <label class="lbl" for="fbMsg">What happened, or what would you like?</label>
     <textarea id="fbMsg" maxlength="1500" required></textarea>
+    <div class="shot">📷 <b>A screenshot helps a lot.</b> Take one showing the problem, then attach it in Outlook before you tap Send.
+      <span class="hint" id="fbShotHow"></span></div>
     <div class="warn"><b>Keep it general when you can.</b> Broad terms are best. If your report needs proprietary or confidential details, check the box below so it's handled carefully.</div>
     <label class="ack"><input type="checkbox" id="fbProp"> <span><b>This report contains proprietary or confidential information.</b></span></label>
     <label class="ack"><input type="checkbox" id="fbDevOn" checked> <span><b>Include device details to help fix the problem.</b><br><span class="hint">Added to the bottom of the email, so you see it in Outlook before sending. Never includes your calls, store addresses, location, or passwords.</span></span></label>
@@ -702,12 +705,13 @@ const ERRLOG=[];
   window.addEventListener("unhandledrejection",e=>add("Promise: "+((e.reason&&e.reason.message)||e.reason)));
 })();
 // ---------- version ----------
-const APP_VERSION = "4.5";
+const APP_VERSION = "4.6";
 const FEEDBACK_TO = "@@FEEDBACK_TO@@";
 const GC_CODE = "@@GC_CODE@@";   // GoatCounter site code for anonymous usage counts (blank = nothing is sent)
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["4.6", "Fixes: the ☰ Menu no longer runs off the edge of the screen on phones; dialogs and the tour stay on screen at every phone size. Send feedback now reminds you to attach a screenshot of the problem."],
   ["4.5", "Usage data is only sent from phones and tablets. Nothing is sent when you use the planner on a computer."],
   ["4.4", "Anonymous user ID: a random code (shown in Settings → Usage data) so one person is counted once across days and devices. It travels with Send to phone, calls from Companion, and backup files (never with a hand-off to a teammate), and can be typed in on another device. It is never linked to your name, P number, or email."],
   ["4.3", "Usage data and Your stats: ☰ Menu → Settings shows fun facts from your own data (calls completed, stores and cities served, routes opened, busiest day) and explains exactly what anonymous usage data is sent: app version, what you used (by name only), device type, screen size, and general area (country and state). Your calls, store numbers, addresses, GPS location, and names are never sent."],
@@ -1995,7 +1999,10 @@ function deviceDetails(){
 function setupFeedback(){
   const dlg=$("fbDlg"), err=$("fbErr");
   $("fbName").value=store.get("fbName",""); $("fbP").value=store.get("fbP","");
-  $("fbBtn").onclick=()=>{ err.textContent=""; $("fbAlt").textContent=""; $("fbProp").checked=false; $("fbDevOn").checked=true; $("fbDev").textContent=deviceDetails(); dlg.classList.add("show"); ($("fbName").value?$("fbMsg"):$("fbName")).focus(); };
+  $("fbBtn").onclick=()=>{ err.textContent=""; $("fbAlt").textContent=""; $("fbProp").checked=false; $("fbDevOn").checked=true; $("fbDev").textContent=deviceDetails();
+    const ua=navigator.userAgent;
+    $("fbShotHow").textContent=/Android/.test(ua)?"On Android: press Power + Volume down together.":/iPhone|iPad/.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1)?"On iPhone or iPad: press the Side (or Top) button + Volume up together.":/Mac/.test(ua)?"On a Mac: press Shift + Command + 4, then drag over the problem.":"On Windows: press Windows + Shift + S, drag over the problem, then paste it into the Outlook email (Ctrl + V).";
+    dlg.classList.add("show"); ($("fbName").value?$("fbMsg"):$("fbName")).focus(); };
   $("fbCancel").onclick=()=>dlg.classList.remove("show");
   dlg.onclick=e=>{ if(e.target.id==="fbDlg") dlg.classList.remove("show"); };
   $("fbP").addEventListener("input",e=>{ const v=e.target.value.replace(/\D/g,"").slice(0,10); if(v!==e.target.value) e.target.value=v; });
@@ -2010,7 +2017,7 @@ function setupFeedback(){
     const prop=$("fbProp").checked;
     err.textContent=""; store.set("fbName",name); store.set("fbP",pn);
     const subject=`[Route2 Feedback]${prop?" [PROPRIETARY]":""} ${type} – ${name} (P${pn})`;
-    const body=[...(prop?["🚩 RED FLAG: The sender marked this report as containing PROPRIETARY or CONFIDENTIAL information. Review before sharing it anywhere else.",""]:[]),`Type: ${type}`,`Name: ${name}`,`P Number: P${pn}`,"",msg,"","---",
+    const body=[...(prop?["🚩 RED FLAG: The sender marked this report as containing PROPRIETARY or CONFIDENTIAL information. Review before sharing it anywhere else.",""]:[]),`Type: ${type}`,`Name: ${name}`,`P Number: P${pn}`,"",msg,"",...(type!=="Suggestion"?["📷 Screenshot: please attach a screenshot of the problem before sending.",""]:[]),"---",
       `Planner: ${EDITION.name} v${APP_VERSION} (${IS_ONLINE?"online":"offline"})`,
       `Sent: ${new Date().toLocaleString()}`,`Proprietary information: ${prop?"YES – flagged by sender":"No"}`,
       ...($("fbDevOn").checked?["","Device details (included with the sender's permission):",deviceDetails()]:["","Device details: not included (sender unchecked it)"])].join("\n");
@@ -2277,7 +2284,13 @@ async function checkUpdate(manual){
 (function(){
   const btn=$("menuBtn"), m=$("menu");
   const close=()=>{ m.hidden=true; btn.setAttribute("aria-expanded","false"); };
-  btn.onclick=e=>{ e.stopPropagation(); m.hidden=!m.hidden; btn.setAttribute("aria-expanded",String(!m.hidden)); };
+  // Placed from the button's position each time, and kept inside the screen wherever the header wraps the button.
+  const place=()=>{ if(m.hidden) return; const r=btn.getBoundingClientRect(), mw=m.offsetWidth, mh=m.offsetHeight, vw=document.documentElement.clientWidth, vh=innerHeight;
+    let left=Math.min(Math.max(8,r.right-mw), vw-mw-8); left=Math.max(8,left);
+    let top=r.bottom+6; if(top+mh>vh-8) top=Math.max(8, r.top-6-mh>8 ? r.top-6-mh : vh-mh-8);
+    m.style.left=left+"px"; m.style.top=top+"px"; };
+  btn.onclick=e=>{ e.stopPropagation(); m.hidden=!m.hidden; btn.setAttribute("aria-expanded",String(!m.hidden)); place(); };
+  addEventListener("resize",place); addEventListener("scroll",()=>{ if(!m.hidden) place(); },true);
   m.addEventListener("click",e=>{ if(e.target.closest("button,a")) setTimeout(close,0); });
   document.addEventListener("click",e=>{ if(!m.hidden && !e.target.closest(".menuwrap")) close(); });
   document.addEventListener("keydown",e=>{ if(e.key==="Escape") close(); });
