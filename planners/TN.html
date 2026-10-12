@@ -124,6 +124,16 @@ legend{font-weight:600;font-size:14px;margin-bottom:6px}
 .calls tr.t1 td:first-child{box-shadow:inset 4px 0 var(--t1)} .calls tr.t2 td:first-child{box-shadow:inset 4px 0 var(--t2)} .calls tr.t3 td:first-child{box-shadow:inset 4px 0 var(--t3)}
 .calls tr.subhead td{background:var(--soft);font-size:13px;font-weight:600;color:var(--muted);padding:5px 10px}
 .calls tr.extra b{font-weight:600}
+.dates{display:flex;flex-wrap:wrap;gap:6px;max-height:210px;overflow:auto;padding:2px}
+.dchip{display:inline-flex;flex-direction:column;align-items:center;min-width:58px;padding:4px 8px 5px;border:1.5px solid var(--line);border-radius:8px;background:var(--panel);font-size:13px;line-height:1.2;cursor:pointer;border-top-width:4px}
+.dchip b{font-size:15px}
+.dchip .n{font-size:11px;color:var(--muted)}
+.dchip.t1{border-top-color:var(--t1)}.dchip.t2{border-top-color:var(--t2)}.dchip.t3{border-top-color:var(--t3)}.dchip.t0{border-top-color:var(--line)}
+.dchip.today{outline:2px dashed var(--road);outline-offset:1px}
+.dchip.on{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.dchip.on .n{color:inherit;opacity:.8}
+.dateshead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}
+.dateshead button{white-space:nowrap;flex:none}
 .dayrange{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:14px;margin-top:8px}
 .dayrange input{width:64px;border:1px solid var(--line);border-radius:6px;padding:5px 6px;background:var(--panel)}
 button.sorton{background:var(--ink);color:var(--panel);border-color:var(--ink)}
@@ -233,6 +243,11 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
         <button id="pastClear">Clear</button>
       </div>
       <div class="msg" id="pastMsg"></div>
+    </fieldset>
+    <fieldset>
+      <legend>Due dates</legend>
+      <div class="dateshead"><span class="hint" id="datesHint">Tap dates to show only those calls.</span><button id="datesAll">All dates</button></div>
+      <div class="dates" id="dateChips" role="group" aria-label="Due dates"></div>
     </fieldset>
 
     <fieldset>
@@ -368,10 +383,11 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
 
 <script>
 // ---------- version ----------
-const APP_VERSION = "2.7";
+const APP_VERSION = "2.8";
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["2.8", "Due dates browser: every date that has calls, as tappable chips with counts and past-due colors; pick one or several. Landing pages list states first and the company-wide edition last."],
   ["2.7", "Bookmark button on the online version: one-tap Install or Add to Home screen where the browser supports it, otherwise the exact steps for your device and a copied link."],
   ["2.6", "Landing pages make Use online the main option. Release used to test the automatic update check."],
   ["2.5", "Removed links to the Google Drive folder. New versions come from GitHub."],
@@ -474,6 +490,7 @@ const S = {
   known:{groups:new Set(), prio:new Set(), status:new Set()},
   excluded:new Set(store.get("excluded", [])),
   listSort: store.get("listSort","group"),
+  fDates: new Set(store.get("fDates",[])),
   pastTiers: new Set(store.get("pastTiers",[])), pastLo: store.get("pastLo",""), pastHi: store.get("pastHi",""),
   manual: store.get("manual", []),
   lastOrder: [],
@@ -626,10 +643,31 @@ function pastFilter(c){
   }
   return !S.pastTiers.size || S.pastTiers.has(tierOf(c));
 }
+const dateKey = d => d ? `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}` : "none";
+function renderDates(){
+  const host=$("dateChips"); if(!host) return;
+  const open=S.calls.filter(c=>S.showDone||!isDone(c)), m=new Map();
+  open.forEach(c=>{ const k=dateKey(c.due); if(!m.has(k)) m.set(k,{k,d:c.due,n:0,t:0}); const o=m.get(k); o.n++; o.t=Math.max(o.t,tierOf(c)); });
+  // forget selected dates that no longer have calls
+  [...S.fDates].forEach(k=>{ if(!m.has(k)) S.fDates.delete(k); });
+  const today=dateKey(new Date()), tmr=dateKey(new Date(Date.now()+864e5));
+  const list=[...m.values()].sort((a,b)=>a.k.localeCompare(b.k));
+  if(!list.length){ host.innerHTML='<span class="hint">Load calls to see their due dates.</span>'; $("datesHint").textContent=""; return; }
+  host.innerHTML=list.map(o=>{
+    const on=S.fDates.has(o.k);
+    const top = o.k==="none" ? "No date" : o.k===today ? "Today" : o.k===tmr ? "Tomorrow" : o.d.toLocaleDateString(undefined,{weekday:"short"});
+    const day = o.k==="none" ? "—" : `${o.d.getMonth()+1}/${o.d.getDate()}`;
+    return `<button class="dchip t${o.t}${o.k===today?" today":""}${on?" on":""}" data-date="${o.k}" aria-pressed="${on}" title="${o.n} call${o.n>1?"s":""}"><span>${top}</span><b>${day}</b><span class="n">${o.n} call${o.n>1?"s":""}</span></button>`;
+  }).join("");
+  host.querySelectorAll(".dchip").forEach(b=>b.onclick=()=>{ const k=b.dataset.date; S.fDates.has(k)?S.fDates.delete(k):S.fDates.add(k); store.set("fDates",[...S.fDates]); render(); });
+  $("datesHint").textContent = S.fDates.size ? `Showing ${S.fDates.size} date${S.fDates.size>1?"s":""}. Tap again to remove.` : `${list.length} date${list.length>1?"s":""} with calls. Tap to pick one or more.`;
+  $("datesAll").disabled=!S.fDates.size;
+}
 function visibleCalls(){
   const due = S.fDue ? new Date(S.fDue+"T23:59:59") : null;
   return S.calls.filter(c => (S.showDone || !isDone(c)) &&
     S.fGroups.has(groupOf(c.store)) && S.fPrio.has(c.prio) && S.fStatus.has(c.status) &&
+    (!S.fDates.size || S.fDates.has(dateKey(c.due))) &&
     (!due || !c.due || c.due<=due) && pastFilter(c));
 }
 function syncFilterSets(){
@@ -860,6 +898,7 @@ function renderRoute(groups){
 
 // ---------- main render ----------
 function render(){
+  renderDates();
   syncFilterSets(); renderChips();
   const vis=visibleCalls(), groups=addExtras(storeGroups(vis), vis);
   renderStores(groups);
@@ -979,6 +1018,7 @@ function setPastPriority(on){
 $("listSort").onchange=e=>{ S.listSort=e.target.value; store.set("listSort",S.listSort); render(); };
 $("prioPast").onchange=e=>setPastPriority(e.target.checked);
 $("fDue").onchange=e=>{ S.fDue=e.target.value; render(); };
+$("datesAll").onclick=()=>{ S.fDates.clear(); store.set("fDates",[]); render(); };
 $("fDueClear").onclick=()=>{ $("fDue").value=""; S.fDue=""; render(); };
 $("allIn").onclick=()=>{ S.excluded.clear(); store.set("excluded",[]); render(); };
 $("allOut").onclick=()=>{ storeGroups(visibleCalls()).forEach(g=>S.excluded.add(g.num)); store.set("excluded",[...S.excluded]); render(); };
