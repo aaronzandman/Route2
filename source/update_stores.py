@@ -23,6 +23,11 @@ def pick(d, *keys):
             return d[k]
     return ""
 
+def fmt_phone(p):
+    d = re.sub(r"\D", "", str(p or ""))
+    if len(d) == 11 and d[0] == "1": d = d[1:]
+    return f"({d[:3]}) {d[3:6]}-{d[6:]}" if len(d) == 10 else str(p or "")
+
 def convert(s):
     a = s.get("address") or {}
     ph = s.get("phoneNumbers") or {}
@@ -37,7 +42,7 @@ def convert(s):
         "Zip": str(pick(a, "zip", "zipCode", "postalCode")),
         "Latitude": s.get("latitude"),
         "Longitude": s.get("longitude"),
-        "Phone": phone or "",
+        "Phone": fmt_phone(phone),
     }
 
 def main():

@@ -383,10 +383,11 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
 
 <script>
 // ---------- version ----------
-const APP_VERSION = "2.9.1";
+const APP_VERSION = "2.9.2";
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["2.9.2", "Phone numbers for newly added stores are formatted like the rest, for example (239) 397-6860."],
   ["2.9.1", "Store list update. Added 44 new stores: 1782 Naples, FL; 1800 Palm Beach Gardens, FL; 1841 Jacksonville, FL; 1861 Clearwater, FL; 1865 Kingsland, GA; 1888 Durham, NC; 1899 Palm Bay, FL; 2009 Nolensville, TN; 2014 Saint Augustine, FL; 2016 Hinesville, GA; 2022 Orlando, FL; 2029 Calabash, NC; 2035 Winter Haven, FL; 2037 Plantation, FL; 2040 Aiken, SC; 2043 Lakeland, FL; 2053 Owensboro, KY; 2055 Florence, KY; 2057 Cold Spring, KY; 2058 Independence, KY; 2059 Elizabethtown, KY; 2088 Davenport, FL; 2090 Charleston, SC; 2091 Englewood, FL; 2094 Saint Petersburg, FL; 2095 Spring Hill, FL; 2096 Saint Augustine Beach, FL; 2099 Bradenton, FL; 2100 Mauldin, SC; 2101 Fayetteville, NC; 2102 Locust Grove, GA; 2103 Jacksonville, FL; 2105 Mills River, NC; 2106 Farragut, TN; 2107 Winter Haven, FL; 2108 Bradenton, FL; 2109 Bainbridge, GA; 2112 Fernandina Beach, FL; 2113 Saint Augustine, FL; 2117 Winter Haven, FL; 2120 Wesley Chapel, NC; 2121 Apopka, FL; 2141 Ruskin, FL; 2145 Athens, AL. Filled in missing details for stores 1884, 2013, 2018, 1886, 2050."],
   ["2.9", "Store list updates automatically every day from Publix's store locator: new stores are added, none are ever removed. New Virginia stores show the group NEW until you assign one. Built-in stores are always included even if you've edited your store list."],
   ["2.8", "Due dates browser: every date that has calls, as tappable chips with counts and past-due colors; pick one or several. Landing pages list states first and the company-wide edition last."],
@@ -619,7 +620,7 @@ const DEFAULT_STORES = `Store #	Shopping Center	Address	City	State	Zip	Phone	Lat
 1825	Publix at Summerhill	572 Hank Aaron Dr SE	Atlanta	GA	30312-2896	(470) 945-8956	33.737705	-84.38737
 1827	Gateway Crossing	51 Old Farm Rd	Jefferson	GA	30549	(706) 708-5216	34.124413	-83.6043
 1838	Oak Grove	5345 Jefferson Rd	Athens	GA	30606	(762) 400-8555	33.9925	-83.43847
-1865	Market at King's Bay	1521 E King Ave	Kingsland	GA	31548	9125404165	30.785544	-81.639429
+1865	Market at King's Bay	1521 E King Ave	Kingsland	GA	31548	(912) 540-4165	30.785544	-81.639429
 1867	Buckhead Landing	3330 Piedmont Rd NE Ste 16	Atlanta	GA	30305-1726	(470) 945-8948	33.845627	-84.37455
 1868	Midland Commons	6901 Ray Wright Way	Columbus	GA	31909-7700	(706) 358-0289	32.54564	-84.87475
 1870	Douglas Square	1329 S Peterson Ave	Douglas	GA	31533	(912) 493-6058	31.489819	-82.852875
@@ -632,13 +633,13 @@ const DEFAULT_STORES = `Store #	Shopping Center	Address	City	State	Zip	Phone	Lat
 2003	Lakeside Commons	2775 N Columbia St	Milledgeville	GA	31061	(478) 223-5015	33.148396	-83.27174
 2006	Limestone Marketplace	2155 Limestone Ridge NE	Gainesville	GA	30501-2135	(678) 971-6207	34.313644	-83.80074
 2011	Villa Rica Town Center	103 Villa Rica Pkwy Ste 200	Villa Rica	GA	30180-3250	(770) 462-6171	33.735233	-84.90623
-2016	Flemington Village Shopping Center	1435 E Oglethorpe Hwy	Hinesville	GA	31313	9122556174	31.855399	-81.572363
+2016	Flemington Village Shopping Center	1435 E Oglethorpe Hwy	Hinesville	GA	31313	(912) 255-6174	31.855399	-81.572363
 2024	Dahlonega Village	23 Maxwell Ln	Dahlonega	GA	30533	(706) 701-6331	34.471294	-83.96989
 2039	Cambridge Square Shopping Center	2010 Johnson Ferry Rd NE	Brookhaven	GA	30319	(404) 460-9991	33.89451	-84.33035
 2045	Publix Shops at Riverbrook Village	3715 Wahoo Falls Trace	Gainesville	GA	30506	(470) 892-3127	34.37693	-83.87544
 2047	Gateway Crossing Jasper	178 Virginia Way	Jasper	GA	30143	(706) 301-7235	34.45929	-84.452835
-2102	Shops at Indian Creek	4518 Hwy 42 S	Locust Grove	GA	30248-4111	4707546830	33.334756	-84.091767
-2109	Bainbridge Crossings	1515 Tallahassee Hwy	Bainbridge	GA	39819	2294426100	30.883949	-84.564418`;
+2102	Shops at Indian Creek	4518 Hwy 42 S	Locust Grove	GA	30248-4111	(470) 754-6830	33.334756	-84.091767
+2109	Bainbridge Crossings	1515 Tallahassee Hwy	Bainbridge	GA	39819	(229) 442-6100	30.883949	-84.564418`;
 const DEFAULT_COORDS = ``;
 // ===EDITION-END===
 
