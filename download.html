@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Downloading Route Planner</title>
+<style>
+:root{--bg:#E9EDF0;--panel:#fff;--ink:#1C2430;--muted:#5D6875;--road:#1F6B4F}
+@media (prefers-color-scheme:dark){:root{--bg:#161B21;--panel:#1F262E;--ink:#E6EAEE;--muted:#9AA5B1;--road:#2E8A66}}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;display:grid;place-items:center;min-height:100vh;padding:16px;box-sizing:border-box}
+.card{background:var(--panel);border-radius:12px;padding:24px;max-width:420px;width:100%;text-align:center}
+h1{font:700 24px/1.2 "Bahnschrift","Arial Narrow",system-ui,sans-serif;margin:0 0 8px}
+p{color:var(--muted);margin:8px 0}
+a.btn{display:inline-block;margin-top:12px;background:var(--road);color:#fff;text-decoration:none;font-weight:600;border-radius:8px;padding:10px 16px}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1 id="title">Downloading…</h1>
+  <p id="msg">Your planner file is downloading.</p>
+  <a class="btn" id="again" href="#" hidden>Download again</a>
+</div>
+<script>
+const NAMES={ALL:"Company-wide",AL:"Alabama",FL:"Florida",GA:"Georgia",KY:"Kentucky",NC:"North Carolina",SC:"South Carolina",TN:"Tennessee",VA:"Virginia"};
+const code=(new URLSearchParams(location.search).get("edition")||"").toUpperCase();
+const $=id=>document.getElementById(id);
+async function go(){
+  if(!NAMES[code]){ $("title").textContent="Edition not found"; $("msg").textContent="Go back and pick an edition from the list."; return; }
+  $("title").textContent="Downloading "+NAMES[code];
+  try{
+    const r=await fetch("planners/"+code+".html",{cache:"no-store"}); if(!r.ok) throw 0;
+    const html=await r.text();
+    const ver=(html.match(/APP_VERSION = "([\d.]+)"/)||[])[1];
+    const name="route-planner-"+(code==="ALL"?"":code+"-")+"v"+(ver||"latest")+".html";
+    const url=URL.createObjectURL(new Blob([html],{type:"text/html"}));
+    const save=()=>{ const a=document.createElement("a"); a.href=url; a.download=name; document.body.appendChild(a); a.click(); a.remove(); };
+    save();
+    $("msg").innerHTML=`<b>${name}</b> should be in your Downloads. Open it in Edge or Chrome; it works with no internet.`;
+    $("again").hidden=false; $("again").onclick=e=>{ e.preventDefault(); save(); };
+  }catch(e){ $("title").textContent="Download didn't start"; $("msg").textContent="Check your connection and try again."; }
+}
+go();
+</script>
+</body>
+</html>

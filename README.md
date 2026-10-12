@@ -6,21 +6,21 @@ Plan a day of service calls: paste your calls, see them grouped by store, filter
 
 ## Pick your planner
 
-| Edition | Stores | Use in your browser | Save a copy |
-|---|---|---|---|
-| **Company-wide** | All 1,443 stores | [Open](https://aaronzandman.github.io/Route2/planners/ALL.html) | [Download](https://github.com/aaronzandman/Route2/raw/main/planners/ALL.html) |
-| **Alabama** | 96 stores | [Open](https://aaronzandman.github.io/Route2/planners/AL.html) | [Download](https://github.com/aaronzandman/Route2/raw/main/planners/AL.html) |
-| **Florida** | 896 stores | [Open](https://aaronzandman.github.io/Route2/planners/FL.html) | [Download](https://github.com/aaronzandman/Route2/raw/main/planners/FL.html) |
-| **Georgia** | 222 stores | [Open](https://aaronzandman.github.io/Route2/planners/GA.html) | [Download](https://github.com/aaronzandman/Route2/raw/main/planners/GA.html) |
-| **Kentucky** | 11 stores | [Open](https://aaronzandman.github.io/Route2/planners/KY.html) | [Download](https://github.com/aaronzandman/Route2/raw/main/planners/KY.html) |
-| **North Carolina** | 61 stores | [Open](https://aaronzandman.github.io/Route2/planners/NC.html) | [Download](https://github.com/aaronzandman/Route2/raw/main/planners/NC.html) |
-| **South Carolina** | 72 stores | [Open](https://aaronzandman.github.io/Route2/planners/SC.html) | [Download](https://github.com/aaronzandman/Route2/raw/main/planners/SC.html) |
-| **Tennessee** | 60 stores | [Open](https://aaronzandman.github.io/Route2/planners/TN.html) | [Download](https://github.com/aaronzandman/Route2/raw/main/planners/TN.html) |
-| **Virginia** | 25 stores, route groups A–F | [Open](https://aaronzandman.github.io/Route2/planners/VA.html) | [Download](https://github.com/aaronzandman/Route2/raw/main/planners/VA.html) |
+| Edition | Stores | Download |
+|---|---|---|
+| **Company-wide** | All 1,443 stores | [**Download**](https://aaronzandman.github.io/Route2/download.html?edition=ALL) |
+| **Alabama** | 96 stores | [**Download**](https://aaronzandman.github.io/Route2/download.html?edition=AL) |
+| **Florida** | 896 stores | [**Download**](https://aaronzandman.github.io/Route2/download.html?edition=FL) |
+| **Georgia** | 222 stores | [**Download**](https://aaronzandman.github.io/Route2/download.html?edition=GA) |
+| **Kentucky** | 11 stores | [**Download**](https://aaronzandman.github.io/Route2/download.html?edition=KY) |
+| **North Carolina** | 61 stores | [**Download**](https://aaronzandman.github.io/Route2/download.html?edition=NC) |
+| **South Carolina** | 72 stores | [**Download**](https://aaronzandman.github.io/Route2/download.html?edition=SC) |
+| **Tennessee** | 60 stores | [**Download**](https://aaronzandman.github.io/Route2/download.html?edition=TN) |
+| **Virginia** | 25 stores, route groups A–F | [**Download**](https://aaronzandman.github.io/Route2/download.html?edition=VA) |
 
-- **Open** runs the planner right in your browser, on a phone or computer. It's always the newest version. Bookmark it.
-- **Download** saves the file so it works with no internet. On a phone, long-press **Download** and choose **Download link**. Open the saved file in Edge or Chrome.
-- Pick one way and stick with it. Each keeps its own saved data. To move data between them, use **Save backup file** and **Load backup file** in the planner.
+- Tap **Download** and the planner file saves to your device. It's always the newest version.
+- Open the saved file in Edge or Chrome. It works with no internet, and your calls and settings save in that browser.
+- When a new version comes out, download it again and open it in the same browser. Your saved data carries over.
 
 [Download page with every edition](https://aaronzandman.github.io/Route2/)
 
