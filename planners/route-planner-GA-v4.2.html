@@ -170,6 +170,8 @@ details.ropts[open]{padding-bottom:10px}
 .pnum input{border:0!important;border-radius:0!important;letter-spacing:.5px}
 .fb .warn{background:#FFF3C4;color:#3A2E00;border-radius:8px;padding:8px 10px;font-size:13px;margin-top:10px}
 .fb .ack{display:flex;gap:8px;align-items:flex-start;margin-top:8px;font-size:14px;cursor:pointer}
+.fb .devd{margin:6px 0 0 28px;font-size:13px}.fb .devd summary{cursor:pointer;color:var(--road);font-weight:600}
+.fb .devd pre{white-space:pre-wrap;word-break:break-word;background:var(--soft);border:1px solid var(--line);border-radius:6px;padding:8px;font:12px/1.45 ui-monospace,Consolas,monospace;margin:6px 0 0;max-height:220px;overflow:auto}
 .fb .ack input{width:20px;height:20px;flex:none;margin-top:1px;accent-color:var(--road)}
 .fb .ack:has(input:checked){color:var(--p2)}
 .fb .err{color:var(--p2);font-size:13px;min-height:1em;margin-top:6px}
@@ -379,6 +381,8 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
     <textarea id="fbMsg" maxlength="1500" required></textarea>
     <div class="warn"><b>Keep it general when you can.</b> Broad terms are best. If your report needs proprietary or confidential details, check the box below so it's handled carefully.</div>
     <label class="ack"><input type="checkbox" id="fbProp"> <span><b>This report contains proprietary or confidential information.</b></span></label>
+    <label class="ack"><input type="checkbox" id="fbDevOn" checked> <span><b>Include device details to help fix the problem.</b><br><span class="hint">Added to the bottom of the email, so you see it in Outlook before sending. Never includes your calls, store addresses, location, or passwords.</span></span></label>
+    <details class="devd"><summary>See exactly what's included</summary><pre id="fbDev"></pre></details>
     <div class="err" id="fbErr" role="alert"></div>
     <div class="row" style="justify-content:flex-end"><button type="button" id="fbCancel">Cancel</button><button type="submit" class="primary" id="fbSend">Open in Outlook</button></div>
     <p class="hint" id="fbAlt" style="margin:8px 0 0"></p>
@@ -654,12 +658,23 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
 
 
 <script>
+// ---------- recent errors (kept on this device; only shared if you send feedback with device details) ----------
+const ERRLOG=[];
+(function(){
+  const keyOf=()=>{ try{ return (typeof EDITION!=="undefined"?EDITION.key:"rp.")+"errLog"; }catch(e){ return "rp.errLog"; } };
+  try{ ERRLOG.push(...JSON.parse(localStorage.getItem(keyOf())||"[]")); }catch(e){}
+  const add=m=>{ ERRLOG.push({t:Date.now(),m:String(m||"Unknown error").slice(0,160)}); while(ERRLOG.length>5) ERRLOG.shift();
+    try{ localStorage.setItem(keyOf(),JSON.stringify(ERRLOG)); }catch(e){} };
+  window.addEventListener("error",e=>add((e.message||"Error")+(e.lineno?" (line "+e.lineno+")":"")));
+  window.addEventListener("unhandledrejection",e=>add("Promise: "+((e.reason&&e.reason.message)||e.reason)));
+})();
 // ---------- version ----------
-const APP_VERSION = "4.1";
+const APP_VERSION = "4.2";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["4.2", "Feedback can include device details (browser, screen, planner version, counts of loaded calls and stores, recent errors) to help fix problems. You see exactly what is added before sending and can uncheck it. Your calls, locations and addresses are never included."],
   ["4.1", "What's new: after an update, a short note shows what changed. Quick tour: a one-minute walk through the screen, offered on first use and any time from ☰ Menu."],
   ["4.0", "Simpler screen: one ☰ Menu for Install, Send to phone, Bookmark, Download, Settings and Feedback; the paste box shrinks to one line after loading; all filters in one Filters bar with a summary; tighter store cards (tap a store for address and phone); route options folded away with the stop list on top; version history and store data moved into Settings."],
   ["3.12", "Optional features now start turned off for a simpler screen: What changed, Repeat-issue alerts, Due soon, Re-plan from here, End-of-day summary, Hand off, Day view, and Send to phone. Turn on the ones you want in Settings."],
@@ -2003,11 +2018,35 @@ $("histNext").onclick=()=>{ histMonth=new Date(histMonth.getFullYear(),histMonth
 $("histClose").onclick=()=>$("histDlg").classList.remove("show");
 $("histDlg").onclick=e=>{ if(e.target.id==="histDlg") $("histDlg").classList.remove("show"); };
 
+// ---------- device details for feedback (shown to the user before sending) ----------
+function deviceDetails(){
+  const ua=navigator.userAgent, m=(re)=>(ua.match(re)||[])[1];
+  const browser = m(/Edg\/([\d]+)/)?"Edge "+m(/Edg\/([\d]+)/) : m(/SamsungBrowser\/([\d]+)/)?"Samsung Internet "+m(/SamsungBrowser\/([\d]+)/)
+    : m(/Firefox\/([\d]+)/)?"Firefox "+m(/Firefox\/([\d]+)/) : m(/Chrome\/([\d]+)/)?"Chrome "+m(/Chrome\/([\d]+)/) : m(/Version\/([\d.]+).*Safari/)?"Safari "+m(/Version\/([\d.]+).*Safari/) : "Other";
+  const os = /Windows NT 10/.test(ua)?"Windows 10 or 11" : m(/Android ([\d.]+)/)?"Android "+m(/Android ([\d.]+)/) : m(/(?:iPhone|CPU) OS ([\d_]+)/)?"iOS "+m(/(?:iPhone|CPU) OS ([\d_]+)/).replace(/_/g,".") : /Mac OS X/.test(ua)?"macOS" : /CrOS/.test(ua)?"ChromeOS" : /Linux/.test(ua)?"Linux":"Other";
+  const how = location.protocol==="file:"?"Offline copy (file)" : matchMedia("(display-mode: standalone)").matches?"Installed app" : "Browser tab ("+location.hostname+")";
+  let bytes=0; try{ for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k.startsWith(EDITION.key)) bytes+=k.length+(localStorage.getItem(k)||"").length; } }catch(e){}
+  const loaded=store.get("loadedAt",0), on=FEATURES.filter(f=>F(f[0])).map(f=>f[1]);
+  const lines=[
+    `Planner: ${EDITION.name} v${APP_VERSION} · ${how}`,
+    `Browser: ${browser} on ${os}`,
+    `Screen: ${screen.width}×${screen.height} · window ${innerWidth}×${innerHeight} · zoom/pixel ratio ${devicePixelRatio} · ${matchMedia("(pointer:coarse)").matches?"touch":"mouse"} · ${matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"} mode`,
+    `Language / time zone: ${navigator.language} / ${Intl.DateTimeFormat().resolvedOptions().timeZone}`,
+    `Internet: ${navigator.onLine?"online":"offline"} · offline cache: ${"serviceWorker" in navigator?(navigator.serviceWorker.controller?"active":"not active"):"not supported"}`,
+    `Data (counts only): ${S.calls.length} calls loaded, ${Object.keys(S.stores).length} stores, ${Object.keys(S.done||{}).length} marked done${loaded?", last import "+new Date(loaded).toLocaleString():""}`,
+    `Saved data size: ${(bytes/1024).toFixed(0)} KB`,
+    `Optional features on: ${on.length?on.join(", "):"none"}`,
+    `Recent errors: ${ERRLOG.length?"":"none"}`,
+    ...ERRLOG.slice(-5).map(e=>`  ${new Date(e.t).toLocaleString()} – ${e.m}`)
+  ];
+  return lines.join("\n");
+}
+
 // ---------- feedback (opens Outlook) ----------
 function setupFeedback(){
   const dlg=$("fbDlg"), err=$("fbErr");
   $("fbName").value=store.get("fbName",""); $("fbP").value=store.get("fbP","");
-  $("fbBtn").onclick=()=>{ err.textContent=""; $("fbAlt").textContent=""; $("fbProp").checked=false; dlg.classList.add("show"); ($("fbName").value?$("fbMsg"):$("fbName")).focus(); };
+  $("fbBtn").onclick=()=>{ err.textContent=""; $("fbAlt").textContent=""; $("fbProp").checked=false; $("fbDevOn").checked=true; $("fbDev").textContent=deviceDetails(); dlg.classList.add("show"); ($("fbName").value?$("fbMsg"):$("fbName")).focus(); };
   $("fbCancel").onclick=()=>dlg.classList.remove("show");
   dlg.onclick=e=>{ if(e.target.id==="fbDlg") dlg.classList.remove("show"); };
   $("fbP").addEventListener("input",e=>{ const v=e.target.value.replace(/\D/g,"").slice(0,10); if(v!==e.target.value) e.target.value=v; });
@@ -2024,8 +2063,8 @@ function setupFeedback(){
     const subject=`[Route2 Feedback]${prop?" [PROPRIETARY]":""} ${type} – ${name} (P${pn})`;
     const body=[...(prop?["🚩 RED FLAG: The sender marked this report as containing PROPRIETARY or CONFIDENTIAL information. Review before sharing it anywhere else.",""]:[]),`Type: ${type}`,`Name: ${name}`,`P Number: P${pn}`,"",msg,"","---",
       `Planner: ${EDITION.name} v${APP_VERSION} (${IS_ONLINE?"online":"offline"})`,
-      `Device: ${/iPhone|iPad/.test(navigator.userAgent)?"iPhone/iPad":/Android/.test(navigator.userAgent)?"Android":/Windows/.test(navigator.userAgent)?"Windows":/Mac/.test(navigator.userAgent)?"Mac":"Other"}`,
-      `Sent: ${new Date().toLocaleString()}`,`Proprietary information: ${prop?"YES – flagged by sender":"No"}`].join("\n");
+      `Sent: ${new Date().toLocaleString()}`,`Proprietary information: ${prop?"YES – flagged by sender":"No"}`,
+      ...($("fbDevOn").checked?["","Device details (included with the sender's permission):",deviceDetails()]:["","Device details: not included (sender unchecked it)"])].join("\n");
     const q=`to=${encodeURIComponent(FEEDBACK_TO)}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     const mobile=/iPhone|iPad|iPod|Android/.test(navigator.userAgent);
     const web="https://outlook.office.com/mail/deeplink/compose?"+q;
