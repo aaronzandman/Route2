@@ -100,6 +100,14 @@ legend{font-weight:600;font-size:14px;margin-bottom:6px}
 .modebadge.offline::before{background:#FFD25E}
 .hbtn{font:600 13px var(--body);color:var(--road);background:#fff;border:0;border-radius:6px;padding:5px 10px;text-decoration:none;cursor:pointer}
 .hlink{color:#fff;font-size:13px}
+.bmk{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:16px;z-index:50}
+.bmk.show{display:flex}
+.bmk .box{background:var(--panel);color:var(--ink);border-radius:12px;padding:18px;max-width:420px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,.3)}
+.bmk h3{font:700 22px/1.2 var(--sign);margin:0 0 8px}
+.bmk .key{display:inline-block;font:700 15px ui-monospace,Consolas,monospace;border:1px solid var(--line);border-bottom-width:3px;border-radius:6px;padding:2px 8px;background:var(--soft)}
+.bmk ol{padding-left:20px;margin:8px 0}
+.bmk li{margin:6px 0}
+.bmk .row{justify-content:flex-end}
 .upd{display:none;width:100%;background:#FFF3C4;color:#3A2E00;border-radius:8px;padding:8px 12px;font-size:14px;align-items:center;gap:10px;flex-wrap:wrap}
 .upd.show{display:flex}
 .upd a{font-weight:700;color:#1E4E8C}
@@ -176,6 +184,14 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
   </div>
   <div class="upd" id="updBar" role="status"></div>
 </header>
+<div class="bmk" id="bmk" role="dialog" aria-modal="true" aria-labelledby="bmkTitle">
+  <div class="box">
+    <h3 id="bmkTitle">Bookmark this planner</h3>
+    <div id="bmkBody"></div>
+    <div class="msg" id="bmkMsg"></div>
+    <div class="row"><button id="bmkCopy">Copy link</button><button class="primary" id="bmkClose">Done</button></div>
+  </div>
+</div>
 
 <div class="layout">
   <!-- Left: import + filters -->
@@ -352,10 +368,11 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
 
 <script>
 // ---------- version ----------
-const APP_VERSION = "2.6";
+const APP_VERSION = "2.7";
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["2.7", "Bookmark button on the online version: one-tap Install or Add to Home screen where the browser supports it, otherwise the exact steps for your device and a copied link."],
   ["2.6", "Landing pages make Use online the main option. Release used to test the automatic update check."],
   ["2.5", "Removed links to the Google Drive folder. New versions come from GitHub."],
   ["2.4", "Banner shows Online or Offline version. The online version has a Download button to save an offline copy. The offline version links to the GitHub repository and checks for updates automatically."],
@@ -1087,7 +1104,8 @@ function setupMode(){
   const badge=$("modeBadge"), act=$("modeActions");
   if(IS_ONLINE){
     badge.className="modebadge online"; badge.textContent="Online version";
-    act.innerHTML=`<button class="hbtn" id="dlSelf">Download offline copy</button>`;
+    act.innerHTML=`<button class="hbtn" id="bmkBtn">☆ Bookmark</button> <button class="hbtn" id="dlSelf">Download offline copy</button>`;
+    setupBookmark();
     $("dlSelf").onclick=async()=>{
       try{
         const r=await fetch(location.pathname,{cache:"no-store"}); if(!r.ok) throw 0;
@@ -1106,6 +1124,33 @@ function setupMode(){
     $("updNow").onclick=()=>checkUpdate(true);
     if($("autoUpd").checked){ checkUpdate(false); setInterval(()=>checkUpdate(false), 6*3600*1000); }
   }
+}
+let installPrompt=null;
+window.addEventListener("beforeinstallprompt",e=>{ e.preventDefault(); installPrompt=e; const b=$("bmkBtn"); if(b) b.textContent="☆ Add to Home screen"; });
+function setupBookmark(){
+  // Make the online version installable (home-screen icon) where the browser supports it.
+  const add=(rel,href,extra)=>{ const l=document.createElement("link"); l.rel=rel; l.href=href; Object.assign(l,extra||{}); document.head.appendChild(l); };
+  add("manifest",EDITION_CODE+".webmanifest");
+  add("apple-touch-icon","../icons/apple-touch-icon.png");
+  const m=document.createElement("meta"); m.name="theme-color"; m.content="#1F6B4F"; document.head.appendChild(m);
+  $("bmkBtn").onclick=async()=>{
+    if(installPrompt){ installPrompt.prompt(); const r=await installPrompt.userChoice.catch(()=>null); installPrompt=null; $("bmkBtn").textContent="☆ Bookmark"; if(r&&r.outcome==="accepted"){ $("savedNote").textContent="Added to your home screen."; return; } }
+    showBookmarkHelp();
+  };
+  $("bmkClose").onclick=()=>$("bmk").classList.remove("show");
+  $("bmk").onclick=e=>{ if(e.target.id==="bmk") $("bmk").classList.remove("show"); };
+  document.addEventListener("keydown",e=>{ if(e.key==="Escape") $("bmk").classList.remove("show"); });
+  $("bmkCopy").onclick=()=>{ const t=location.href.split("#")[0], done=()=>$("bmkMsg").textContent="Link copied.";
+    if(navigator.clipboard) navigator.clipboard.writeText(t).then(done,()=>fallbackCopy(t,done)); else fallbackCopy(t,done); };
+}
+function showBookmarkHelp(){
+  const ua=navigator.userAgent, mac=/Macintosh|Mac OS X/.test(ua)&&!/iPhone|iPad/.test(ua);
+  let html;
+  if(/iPhone|iPad|iPod/.test(ua)) html=`<ol><li>Tap the <b>Share</b> button <span aria-hidden="true">(□↑)</span> at the bottom of Safari.</li><li>Choose <b>Add to Home Screen</b> for an app icon, or <b>Add Bookmark</b>.</li><li>Tap <b>Add</b>.</li></ol>`;
+  else if(/Android/.test(ua)) html=`<ol><li>Tap the <b>⋮</b> menu in the top-right corner of the browser.</li><li>Tap <b>☆</b> to bookmark, or <b>Add to Home screen</b> for an app icon.</li></ol>`;
+  else html=`<p>Press <span class="key">${mac?"⌘":"Ctrl"}</span> + <span class="key">D</span>, then select <b>Done</b>.</p><p class="hint">Tip: in the bookmark window, choose <b>Favorites bar</b> or <b>Bookmarks bar</b> so it's always one click away.</p>`;
+  $("bmkBody").innerHTML=html; $("bmkMsg").textContent="";
+  $("bmk").classList.add("show"); $("bmkClose").focus();
 }
 async function checkUpdate(manual){
   const m=$("updMsg"), bar=$("updBar");

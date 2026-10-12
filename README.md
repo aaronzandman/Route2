@@ -2,7 +2,7 @@
 
 Plan a day of service calls: paste your calls, see them grouped by store, filter by how long they're past due, and get a driving order with Google Maps directions. Your calls and settings are saved in your own browser and never leave your device.
 
-**Current version: 2.6**
+**Current version: 2.7**
 
 ## Pick your planner
 
@@ -18,7 +18,7 @@ Plan a day of service calls: paste your calls, see them grouped by store, filter
 | **Tennessee** | 60 stores | [**▶ Use online**](https://aaronzandman.github.io/Route2/planners/TN.html) | [**Download**](https://aaronzandman.github.io/Route2/download.html?edition=TN) |
 | **Virginia** | 25 stores, route groups A–F | [**▶ Use online**](https://aaronzandman.github.io/Route2/planners/VA.html) | [**Download**](https://aaronzandman.github.io/Route2/download.html?edition=VA) |
 
-- **Use online** runs the planner right in your browser, on a phone or computer. Nothing to save, and it's always the newest version. Bookmark it.
+- **Use online** runs the planner right in your browser, on a phone or computer. Nothing to save, and it's always the newest version. Tap **☆ Bookmark** in its banner to bookmark it or add it to your home screen.
 - **Download** saves the planner file to your device so it works with no internet. Open the saved file in Edge or Chrome. Download again when a new version comes out.
 - The online version has a **Download offline copy** button in its banner. The offline version checks GitHub for new versions and shows a banner when one is ready.
 - Either way, your calls and settings are saved in your own browser and never leave your device.
@@ -53,7 +53,8 @@ If your columns are in a different order, change the layout in SAP (Ctrl+F8) and
 
 ## What's in this repository
 
-- `planners/` – every edition. `ALL.html` and `<STATE>.html` are always the newest; the versioned files (`route-planner-VA-v2.6.html`) are kept for reference.
+- `planners/` – every edition. `ALL.html` and `<STATE>.html` are always the newest; the versioned files (`route-planner-VA-v2.7.html`) are kept for reference.
 - `version.json` – newest version number, used by offline copies to check for updates
+- `icons/` – app icons used when the planner is added to a home screen
 - `index.html` – download page with every edition built in
 - `source/` – shared planner code, store list, and the build script that makes every edition

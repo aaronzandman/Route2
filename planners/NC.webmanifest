@@ -1,0 +1,28 @@
+{
+ "id": "route-planner-NC",
+ "name": "Route Planner \u2013 North Carolina",
+ "short_name": "Route NC",
+ "start_url": "NC.html",
+ "scope": "./NC.html",
+ "display": "standalone",
+ "background_color": "#E9EDF0",
+ "theme_color": "#1F6B4F",
+ "icons": [
+  {
+   "src": "../icons/icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png"
+  },
+  {
+   "src": "../icons/icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png"
+  },
+  {
+   "src": "../icons/icon-maskable-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "maskable"
+  }
+ ]
+}
