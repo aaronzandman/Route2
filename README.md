@@ -8,7 +8,6 @@ Plan a day of service calls: paste your calls, see them grouped by store, filter
 
 | Edition | Stores | Use online (recommended) | Save a copy |
 |---|---|---|---|
-| **Company-wide** | All 1,443 stores | [**▶ Use online**](https://aaronzandman.github.io/Route2/planners/ALL.html) | [**Download**](https://aaronzandman.github.io/Route2/download.html?edition=ALL) |
 | **Alabama** | 96 stores | [**▶ Use online**](https://aaronzandman.github.io/Route2/planners/AL.html) | [**Download**](https://aaronzandman.github.io/Route2/download.html?edition=AL) |
 | **Florida** | 896 stores | [**▶ Use online**](https://aaronzandman.github.io/Route2/planners/FL.html) | [**Download**](https://aaronzandman.github.io/Route2/download.html?edition=FL) |
 | **Georgia** | 222 stores | [**▶ Use online**](https://aaronzandman.github.io/Route2/planners/GA.html) | [**Download**](https://aaronzandman.github.io/Route2/download.html?edition=GA) |
@@ -17,6 +16,7 @@ Plan a day of service calls: paste your calls, see them grouped by store, filter
 | **South Carolina** | 72 stores | [**▶ Use online**](https://aaronzandman.github.io/Route2/planners/SC.html) | [**Download**](https://aaronzandman.github.io/Route2/download.html?edition=SC) |
 | **Tennessee** | 60 stores | [**▶ Use online**](https://aaronzandman.github.io/Route2/planners/TN.html) | [**Download**](https://aaronzandman.github.io/Route2/download.html?edition=TN) |
 | **Virginia** | 25 stores, route groups A–F | [**▶ Use online**](https://aaronzandman.github.io/Route2/planners/VA.html) | [**Download**](https://aaronzandman.github.io/Route2/download.html?edition=VA) |
+| **Company-wide** | All 1,443 stores | [**▶ Use online**](https://aaronzandman.github.io/Route2/planners/ALL.html) | [**Download**](https://aaronzandman.github.io/Route2/download.html?edition=ALL) |
 
 - **Use online** runs the planner right in your browser, on a phone or computer. Nothing to save, and it's always the newest version. Tap **☆ Bookmark** in its banner to bookmark it or add it to your home screen.
 - **Download** saves the planner file to your device so it works with no internet. Open the saved file in Edge or Chrome. Download again when a new version comes out.
