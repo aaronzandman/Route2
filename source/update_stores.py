@@ -102,7 +102,6 @@ def main():
     open("source/route-planner-source.html", "w").write(src)
     subprocess.run(["git", "rm", "-q", "--ignore-unmatch"] + [f"planners/{f}" for f in __import__("os").listdir("planners") if re.search(r"-v[\d.]+\.html$", f)], check=True)
     subprocess.run([sys.executable, "source/build.py"], check=True)
-    open("README.md", "w").write(re.sub(r"\*\*Current version: [\d.]+\*\*", f"**Current version: {nv}**", open("README.md").read()))
     msg = f"Store list update {nv}: " + " ".join(note)
     open(".store-update-msg", "w").write(msg)
     print(msg)

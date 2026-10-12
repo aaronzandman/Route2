@@ -78,5 +78,6 @@ try:
         cnt=f'All {e["stores"]:,} stores' if e["code"]=="ALL" else (f'{e["stores"]} stores, route groups A–F' if e["code"]=="VA" else f'{e["stores"]} stores')
         _r=_re.sub(r'(\| \*\*'+_re.escape(label)+r'\*\* \| )[^|]+( \|)', lambda m:m.group(1)+cnt+m.group(2), _r)
     _r=_re.sub(r"\*\*Current version: [\d.]+\*\*", f"**Current version: {VER}**", _r)
+    _r=_re.sub(r"route-planner-VA-v[\d.]+\.html", f"route-planner-VA-v{VER}.html", _r)
     open("README.md","w").write(_r)
 except FileNotFoundError: pass
