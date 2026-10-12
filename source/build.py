@@ -1,9 +1,9 @@
 import json,re,subprocess
-VER="4.2"; OUT="planners/"
+VER="4.3"; OUT="planners/"
 src=open('source/route-planner-source.html').read()
 stores=json.load(open('source/stores.json'))
 i=src.index('// ===EDITION-START==='); j=src.index('// ===EDITION-END===')
-MARK='/*@@EDITION@@*/'; template=(src[:i]+MARK+src[j:]).replace('@@FEEDBACK_TO@@',open('source/feedback_to.txt').read().strip()); va_block=src[i:j]
+MARK='/*@@EDITION@@*/'; template=(src[:i]+MARK+src[j:]).replace('@@FEEDBACK_TO@@',open('source/feedback_to.txt').read().strip()).replace('@@GC_CODE@@',(open('source/analytics.txt').read().strip() if __import__('os').path.exists('source/analytics.txt') else '')); va_block=src[i:j]
 # Virginia edition keeps its own list (with route groups); add any Virginia store it doesn't have yet. Never remove.
 def _va_add(block):
     have=set(re.findall(r'^(\d+)\t',block.split('const DEFAULT_STORES = `')[1].split('`')[0],re.M))

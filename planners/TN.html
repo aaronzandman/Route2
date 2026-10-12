@@ -170,6 +170,9 @@ details.ropts[open]{padding-bottom:10px}
 .pnum input{border:0!important;border-radius:0!important;letter-spacing:.5px}
 .fb .warn{background:#FFF3C4;color:#3A2E00;border-radius:8px;padding:8px 10px;font-size:13px;margin-top:10px}
 .fb .ack{display:flex;gap:8px;align-items:flex-start;margin-top:8px;font-size:14px;cursor:pointer}
+#setDlg .facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:8px}
+#setDlg .fact{background:var(--soft);border-radius:8px;padding:8px 10px}#setDlg .fact b{display:block;font:700 20px/1.2 var(--sign)}#setDlg .fact span{font-size:12px;color:var(--muted)}
+#setDlg .ul{margin:6px 0;padding-left:20px;font-size:13px}#setDlg .ul li{margin:3px 0}#setDlg details summary{cursor:pointer;font-weight:600;color:var(--road);margin-top:6px}
 .fb .devd{margin:6px 0 0 28px;font-size:13px}.fb .devd summary{cursor:pointer;color:var(--road);font-weight:600}
 .fb .devd pre{white-space:pre-wrap;word-break:break-word;background:var(--soft);border:1px solid var(--line);border-radius:6px;padding:8px;font:12px/1.45 ui-monospace,Consolas,monospace;margin:6px 0 0;max-height:220px;overflow:auto}
 .fb .ack input{width:20px;height:20px;flex:none;margin-top:1px;accent-color:var(--road)}
@@ -406,6 +409,30 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
     <p class="hint" style="margin:0 0 4px">Extra features start turned off to keep the screen simple. Turn on the ones you use; it's saved on this device.</p>
     <div id="setList"></div>
     <div class="setmore">
+    <fieldset id="statsSet">
+      <legend>Your stats</legend>
+      <div class="hint">Worked out on this device from your own data, across every planner version you use here. Not sent anywhere.</div>
+      <div class="facts" id="facts"></div>
+    </fieldset>
+    <fieldset id="usageSet">
+      <legend>Usage data</legend>
+      <p class="hint" style="margin:0 0 6px">To see how many people use the planner, on what devices and in which areas, the planner sends a small anonymous count when you open it (once a day) and when you use certain features. It's always on, and everything it sends is listed here.</p>
+      <details><summary>What's sent</summary><ul class="ul">
+        <li>Which planner and version (on this device: <i id="usageEd"></i>)</li>
+        <li>What you used, by name only: opened, loaded calls, opened a route, sent to phone, sent feedback, took the tour</li>
+        <li>Screen size, plus browser and device type (read from your browser)</li>
+        <li>General area (country and state), worked out by the counting service from your internet address. The address itself isn't stored.</li>
+      </ul></details>
+      <details><summary>What's never sent</summary><ul class="ul">
+        <li>Your calls, order numbers, descriptions, or serial numbers</li>
+        <li>Store numbers, addresses, or your GPS location</li>
+        <li>Your name, P number, email, or anything you type</li>
+        <li>Cookies, or any ID that identifies you or this device</li>
+        <li>The page address (it can hold call data or your Windows user name), so it's blocked from every count</li>
+      </ul></details>
+      <details><summary>Where it goes</summary><p class="hint">Counts go to <b>GoatCounter</b>, a privacy-focused counting service. Like any website, it sees your internet address while receiving a count; it uses it only to work out country and state and to avoid double counting for a few hours, and never saves it. No personally identifiable information is collected. Only the app's owner sees the totals, and only as counts (for example "42 people opened the Virginia planner this week"). Counts are only sent when you're online.</p></details>
+      <details id="sentWrap"><summary>Sent from this device</summary><div id="sentLog" class="hint"></div></details>
+    </fieldset>
     <fieldset>
       <legend>Order links</legend>
       <label class="incl"><input type="checkbox" id="edgeLinks"> Open order links in Microsoft Edge</label>
@@ -669,11 +696,13 @@ const ERRLOG=[];
   window.addEventListener("unhandledrejection",e=>add("Promise: "+((e.reason&&e.reason.message)||e.reason)));
 })();
 // ---------- version ----------
-const APP_VERSION = "4.2";
+const APP_VERSION = "4.3";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
+const GC_CODE = "";   // GoatCounter site code for anonymous usage counts (blank = nothing is sent)
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["4.3", "Usage data and Your stats: ☰ Menu → Settings shows fun facts from your own data (calls completed, stores and cities served, routes opened, busiest day) and explains exactly what anonymous usage data is sent: app version, what you used (by name only), device type, screen size, and general area (country and state). Your calls, store numbers, addresses, GPS location, and names are never sent."],
   ["4.2", "Feedback can include device details (browser, screen, planner version, counts of loaded calls and stores, recent errors) to help fix problems. You see exactly what is added before sending and can uncheck it. Your calls, locations and addresses are never included."],
   ["4.1", "What's new: after an update, a short note shows what changed. Quick tour: a one-minute walk through the screen, offered on first use and any time from ☰ Menu."],
   ["4.0", "Simpler screen: one ☰ Menu for Install, Send to phone, Bookmark, Download, Settings and Feedback; the paste box shrinks to one line after loading; all filters in one Filters bar with a summary; tighter store cards (tap a store for address and phone); route options folded away with the stop list on top; version history and store data moved into Settings."],
@@ -1219,6 +1248,7 @@ function renderRoute(groups){
       const a=document.createElement("a"); a.target="_blank"; a.rel="noopener";
       a.href="https://www.google.com/maps/dir/"+c.map(encodeURIComponent).join("/");
       a.textContent=chunks.length>1?`Open part ${idx+1} of ${chunks.length} in Google Maps`:"Open route in Google Maps";
+      a.addEventListener("click",()=>{ if(idx===0){ bump("routes"); track("open-route"); } });
       links.appendChild(a);
     });
   }
@@ -1354,7 +1384,7 @@ $("loadBtn").onclick=()=>{
     render(); return;
   }
   if(S.initDone) compareImport(prevCalls, calls);
-  if(S.initDone && calls.length){ S.impOpen=false; store.set("loadedAt",Date.now()); $("sapHelp").open=false; }
+  if(S.initDone && calls.length){ S.impOpen=false; store.set("loadedAt",Date.now()); $("sapHelp").open=false; bump("imports"); track("load-calls"); }
   render();
 };
 $("clearBtn").onclick=()=>{ $("callsInput").value=""; S.calls=[]; store.set("callsText",""); $("importMsg").textContent=""; render(); };
@@ -1587,7 +1617,7 @@ function applyFeatures(){
 function setupSettings(){
   $("setList").innerHTML=FEATURES.map(([k,t,d])=>`<label class="setl"><span><b>${t}</b><small>${d}</small></span><input type="checkbox" data-feat="${k}" ${F(k)?"checked":""}></label>`).join("");
   $("setList").querySelectorAll("input[data-feat]").forEach(cb=>cb.onchange=()=>{ FEAT[cb.dataset.feat]=cb.checked; store.set("features",FEAT); applyFeatures(); render(); });
-  $("setBtn").onclick=()=>$("setDlg").classList.add("show");
+  $("setBtn").onclick=()=>{ renderUsage(); $("setDlg").classList.add("show"); };
   $("setClose").onclick=()=>$("setDlg").classList.remove("show");
   $("setDlg").onclick=e=>{ if(e.target.id==="setDlg") $("setDlg").classList.remove("show"); };
 }
@@ -1854,6 +1884,46 @@ $("histNext").onclick=()=>{ histMonth=new Date(histMonth.getFullYear(),histMonth
 $("histClose").onclick=()=>$("histDlg").classList.remove("show");
 $("histDlg").onclick=e=>{ if(e.target.id==="histDlg") $("histDlg").classList.remove("show"); };
 
+// ---------- usage counts (anonymous) and Your stats ----------
+// Shared by every version on this device (state, Virginia, company-wide), so a person is counted once.
+const shared={ get(k,d){ try{ const v=localStorage.getItem("route2."+k); return v===null?d:JSON.parse(v); }catch(e){ return d; } },
+  set(k,v){ try{ localStorage.setItem("route2."+k,JSON.stringify(v)); }catch(e){} } };
+const USAGE=Object.assign({first:Date.now(),days:0,lastDay:"",imports:0,routes:0,sends:0,feedback:0},shared.get("usage",{}));
+function bump(k,n=1){ Object.assign(USAGE,shared.get("usage",{})); USAGE[k]=(USAGE[k]||0)+n; shared.set("usage",USAGE); }
+function track(ev){
+  const name=`planner/${EDITION_CODE}/${ev}`, log=shared.get("sentLog",[]);
+  const send=!!GC_CODE && navigator.onLine;
+  if(send){ try{ const img=new Image(); img.referrerPolicy="no-referrer";
+    img.src=`https://${GC_CODE}.goatcounter.com/count?p=${encodeURIComponent(name)}&t=${encodeURIComponent(EDITION_CODE+" v"+APP_VERSION)}&e=1&s=${screen.width},${screen.height},${devicePixelRatio}&rnd=${Math.random().toString(36).slice(2)}`; }catch(e){} }
+  log.push({t:Date.now(),e:name,v:APP_VERSION,s:send?1:0}); while(log.length>20) log.shift(); shared.set("sentLog",log);
+}
+function dailyUsage(){
+  const today=new Date().toDateString();
+  if(!shared.get("firstRunSent",false)){ shared.set("firstRunSent",true); if(!USAGE.first) USAGE.first=Date.now(); shared.set("usage",USAGE); track("first-run"); }
+  // "Days used" counts once per device per day; the daily count is sent once per day for each version opened.
+  if(shared.get("usage",{}).lastDay!==today){ bump("days"); USAGE.lastDay=today; shared.set("usage",USAGE); }
+  if(store.get("dailySent","")!==today){ store.set("dailySent",today); track("daily"); }
+}
+function renderUsage(){
+  $("usageEd").textContent=`${EDITION.name.replace(/^Service Route Planner\s*[–-]\s*/,"")} v${APP_VERSION}`;
+  const log=shared.get("sentLog",[]).slice().reverse();
+  $("sentLog").innerHTML = log.length ? log.map(x=>`${esc(new Date(x.t).toLocaleString())} – <b>${esc(x.e.split("/").pop())}</b> (${esc(x.e.split("/")[1])} v${esc(x.v)}, screen ${screen.width}×${screen.height})${x.s?"":" – not sent: offline or counting not set up yet"}`).join("<br>") : "Nothing yet.";
+  // Completed calls from every version used on this device (each keeps its own list).
+  const all={}; try{ for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(/^(rp|rpc|rp-[A-Z]{2})\.history$/.test(k)) Object.assign(all,JSON.parse(localStorage.getItem(k)||"{}")); } }catch(e){}
+  Object.assign(all,S.history||{});
+  const h=Object.values(all), cnt=(arr)=>{ const m={}; arr.forEach(k=>m[k]=(m[k]||0)+1); return Object.entries(m).sort((a,b)=>b[1]-a[1]); };
+  const byStore=cnt(h.map(x=>x.s)), byDay=cnt(h.map(x=>new Date(x.at).toDateString())), cities=new Set(h.map(x=>x.city).filter(Boolean));
+  const month=h.filter(x=>{ const d=new Date(x.at), n=new Date(); return d.getMonth()===n.getMonth()&&d.getFullYear()===n.getFullYear(); }).length;
+  const facts=[
+    [USAGE.days, `day${USAGE.days===1?"":"s"} used since ${new Date(USAGE.first).toLocaleDateString()}`],
+    [h.length, "calls completed"], [month, "completed this month"],
+    [byStore.length, "stores served"], [cities.size, `cit${cities.size===1?"y":"ies"} visited`],
+    [byStore[0]?byStore[0][0]:"—", byStore[0]?`your most-served store (${byStore[0][1]} calls)`:"most-served store"],
+    [byDay[0]?byDay[0][1]:"—", byDay[0]?`calls on your busiest day (${new Date(byDay[0][0]).toLocaleDateString()})`:"busiest day"],
+    [USAGE.routes, "routes opened in Google Maps"], [USAGE.imports, "call lists loaded"]];
+  $("facts").innerHTML=facts.map(([n,l])=>`<div class="fact"><b>${esc(String(n))}</b><span>${esc(l)}</span></div>`).join("");
+}
+
 // ---------- device details for feedback (shown to the user before sending) ----------
 function deviceDetails(){
   const ua=navigator.userAgent, m=(re)=>(ua.match(re)||[])[1];
@@ -1909,7 +1979,7 @@ function setupFeedback(){
     $("fbAlt").innerHTML = mobile
       ? `Outlook didn't open? Make sure the Outlook app is installed, or <a href="${web}" target="_blank" rel="noopener">use Outlook on the web</a>.`
       : `Outlook didn't open? Allow pop-ups for this page, or <a href="${web}" target="_blank" rel="noopener">open Outlook on the web</a>.`;
-    $("fbMsg").value=""; $("savedNote").textContent="Feedback ready in Outlook. Tap Send there.";
+    $("fbMsg").value=""; $("savedNote").textContent="Feedback ready in Outlook. Tap Send there."; bump("feedback"); track("feedback");
   };
 }
 
@@ -1994,6 +2064,7 @@ function setupSend(){
   const load=()=>new Promise((res,rej)=>{ if(window.RouteQR) return res(); const s=document.createElement("script"); s.src="../qr.js"; s.onload=res; s.onerror=rej; document.head.appendChild(s); });
   $("sendBtn").onclick=async()=>{
     try{ await load(); }catch(e){ $("savedNote").textContent="Send to phone couldn't start. Check your connection."; return; }
+    bump("sends"); track("send-to-phone");
     const d=sendDestinations();
     $("sendDest").innerHTML=d.map(s=>`<option value="${s}">${STATE_NAMES[s]}</option>`).join("");
     $("sendDestRow").style.display = EDITION_CODE==="ALL" ? "" : "none";
@@ -2247,7 +2318,7 @@ let tourI=0, tourSteps=[];
 function startTour(){
   tourSteps=TOUR.filter(([sel])=>{ const el=document.querySelector(sel); return el && el.offsetParent!==null; });
   if(!tourSteps.length) return;
-  tourI=0; $("tour").hidden=false; showTourStep();
+  tourI=0; $("tour").hidden=false; showTourStep(); track("tour");
   window.addEventListener("resize",placeTour); window.addEventListener("scroll",placeTour,true);
 }
 function endTour(){
@@ -2280,6 +2351,7 @@ $("tourNext").onclick=()=>{ if(tourI<tourSteps.length-1){ tourI++; showTourStep(
 $("tourBack").onclick=()=>{ if(tourI>0){ tourI--; showTourStep(); } };
 $("tourSkip").onclick=endTour;
 document.addEventListener("keydown",e=>{ if($("tour").hidden) return; if(e.key==="Escape") endTour(); else if(e.key==="ArrowRight") $("tourNext").click(); else if(e.key==="ArrowLeft") $("tourBack").click(); });
+dailyUsage();
 // Show automatically: after an update, or once for a first-time user. Not over a transfer being received.
 if(!/sync=/.test(location.hash)){
   if(S.wnPrev && newer(APP_VERSION,S.wnPrev)) showWhatsNew(S.wnPrev,false);
