@@ -24,13 +24,13 @@ body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 var(--body)}
 header{background:var(--road);color:var(--road-ink);padding:14px 20px;display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
 header h1{font:700 26px/1 var(--sign);margin:0;letter-spacing:.5px}
 header .sub{opacity:.85;font-size:14px}
-.layout{display:grid;grid-template-columns:300px minmax(0,1fr) 360px;gap:16px;padding:16px;align-items:start}
-@media (max-width:1150px){.layout{grid-template-columns:280px minmax(0,1fr)}.route{grid-column:1/-1}}
-@media (max-width:760px){.layout{grid-template-columns:1fr}}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:16px;padding:16px;align-items:start;max-width:1500px;margin:0 auto}
+@media (max-width:900px){.layout{grid-template-columns:1fr}}
+.maincol>*{margin-bottom:12px}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
 .panel h2{font:700 19px/1.2 var(--sign);margin:0 0 10px}
 .route{position:sticky;top:12px}
-@media (max-width:1150px){.route{position:static}}
+@media (max-width:900px){.route{position:static}}
 textarea{width:100%;min-height:130px;font:12px/1.4 ui-monospace,Consolas,monospace;border:1px solid var(--line);border-radius:6px;padding:8px;background:var(--soft);color:var(--ink);resize:vertical;white-space:pre;overflow:auto}
 button,select,input{font:inherit;color:inherit}
 button{border:1px solid var(--line);background:var(--soft);border-radius:6px;padding:6px 12px;cursor:pointer}
@@ -65,9 +65,21 @@ legend{font-weight:600;font-size:14px;margin-bottom:6px}
 .toolbar h2{margin:0}
 .store{border:1px solid var(--line);border-radius:10px;background:var(--panel);margin-bottom:12px;overflow:hidden}
 .store.excluded{opacity:.5}
-.store-head{display:flex;gap:12px;padding:12px 14px;align-items:flex-start}
+.store-head{display:flex;gap:10px;padding:8px 12px;align-items:center}
+.store-head .shield{width:26px;height:28px;font-size:15px;padding-top:4px;background:linear-gradient(var(--shield-top) 0 6px,var(--shield) 6px);border-width:1.5px}
+.store-name{background:none;border:0;padding:0;color:inherit;text-align:left;cursor:pointer}
+.store-name .more{font-size:12px;color:var(--muted);margin-left:6px}
+.addr{margin-top:2px}
+.incl.sm{font-size:13px;color:var(--muted)}
+.incl.sm input{width:18px;height:18px}
+.ordl{font-size:12px;white-space:nowrap}
+.calls td.due{white-space:nowrap;text-align:right}
+.calls{table-layout:fixed}
+.calls td:nth-child(2){width:118px}.calls td:nth-child(4){width:150px}.calls td:nth-child(5){width:64px}
+.calls td:nth-child(3){overflow-wrap:anywhere;overflow:hidden}
+@media (max-width:600px){.calls td:nth-child(2){width:86px}.calls td:nth-child(4){width:96px}.calls td:nth-child(5){display:none}.calls .pri{min-width:0;font-size:11px;padding:2px 5px}.calls .sn{display:block}.calls td.due{white-space:normal}.calls td.due .tier{white-space:normal;display:inline-block;line-height:1.25;text-align:center}}
 .store-head .info{flex:1;min-width:0}
-.store-name{font:700 20px/1.1 var(--sign)}
+.store-name{font:700 18px/1.15 var(--sign)}
 .store-name small{font:500 14px var(--body);color:var(--muted);margin-left:6px}
 .addr{color:var(--muted);font-size:14px}
 .addr a{color:inherit}
@@ -75,7 +87,7 @@ legend{font-weight:600;font-size:14px;margin-bottom:6px}
 .incl input{width:18px;height:18px;accent-color:var(--road)}
 .calls{width:100%;border-collapse:collapse;font-size:14px}
 .calls-wrap{overflow-x:auto;border-top:1px solid var(--line)}
-.calls td{padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+.calls td{padding:5px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
 .calls tr:last-child td{border-bottom:0}
 .calls tr.overdue td{background:var(--over)}
 .pri{display:inline-block;min-width:66px;text-align:center;border-radius:4px;padding:1px 6px;color:#fff;font-weight:600;font-size:12px;white-space:nowrap}
@@ -86,13 +98,43 @@ legend{font-weight:600;font-size:14px;margin-bottom:6px}
 .flag{color:var(--p2);font-weight:600;font-size:12px}
 .calls tr.done td{background:var(--soft)}
 .calls tr.done b,.calls tr.done .muted{text-decoration:line-through;color:var(--muted)}
-.calls td.chk{width:1%;white-space:nowrap}
+.calls td.chk{width:40px;padding:5px 6px;white-space:nowrap}
 .done-box{display:flex;align-items:center;gap:5px;cursor:pointer;font-size:13px}
 .done-box input{width:20px;height:20px;accent-color:var(--road)}
 .calls a.ord{color:var(--shield);font-weight:600}
 .changes{margin:6px 0 0;padding-left:18px;font-size:14px}
 .changes li{margin:2px 0}
 .saved{font-size:12px;opacity:.85;margin-left:auto}
+/* header menu */
+.menuwrap{position:relative}
+.menu{position:absolute;right:0;top:calc(100% + 6px);z-index:30;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.25);padding:6px;display:flex;flex-direction:column;gap:4px;min-width:230px}
+.menu[hidden]{display:none}
+.menu #modeActions{display:flex;flex-direction:column;gap:4px}
+.menu .hbtn,.menu #modeActions .hbtn{background:transparent;color:var(--ink);text-align:left;padding:9px 10px;font-size:14px;border-radius:6px;width:100%}
+.menu .hbtn:hover{background:var(--soft)}
+.menu .hlink{color:var(--shield);padding:9px 10px;font-size:14px;display:block}
+/* import card */
+.import h2{margin-top:0}
+.impsum{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;font-weight:600}
+.impsum button{font-weight:600}
+/* filters bar */
+details.filters{padding:0}
+details.filters>summary{cursor:pointer;padding:12px 14px;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.filters>summary::-webkit-details-marker{display:none}
+details.filters>summary::before{content:"▸";transition:transform .15s}
+details.filters[open]>summary::before{transform:rotate(90deg)}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:4px 18px;padding:0 14px 12px}
+.fgrid fieldset{margin:8px 0 0}
+/* route options */
+details.ropts{border:1px solid var(--line);border-radius:8px;padding:0 10px;margin-bottom:10px}
+details.ropts>summary{cursor:pointer;padding:9px 0;font-weight:600}
+details.ropts>summary .hint{font-weight:400;display:block}
+details.ropts[open]{padding-bottom:10px}
+/* settings dialog extras */
+#setDlg .box{max-width:620px}
+.setmore fieldset{margin:14px 0 0;border-top:1px solid var(--line);padding-top:10px}
+.setmore details.settings{margin:12px 0 0;padding:0}
+.setmore details.settings summary{font-size:16px}
 .modebar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;width:100%}
 .modebadge{display:inline-flex;align-items:center;gap:6px;font:700 13px/1 var(--body);letter-spacing:.4px;text-transform:uppercase;border-radius:999px;padding:5px 10px;background:rgba(255,255,255,.18);color:#fff}
 .modebadge::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
@@ -276,11 +318,16 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
   <h1><span id="appName">Service Route Planner</span> <span id="verTag" style="font-size:15px;opacity:.8"></span></h1>
   <span class="sub" id="summary">No calls loaded</span>
   <span class="saved" id="savedNote">Saved on this computer</span>
-  <button class="hbtn" id="setBtn" type="button">⚙ Settings</button>
-  <button class="hbtn" id="fbBtn" type="button">💬 Feedback</button>
+  <div class="menuwrap">
+    <button class="hbtn" id="menuBtn" type="button" aria-haspopup="true" aria-expanded="false">☰ Menu</button>
+    <div class="menu" id="menu" hidden>
+      <span id="modeActions"></span>
+      <button class="hbtn" id="setBtn" type="button">⚙ Settings</button>
+      <button class="hbtn" id="fbBtn" type="button">💬 Feedback</button>
+    </div>
+  </div>
   <div class="modebar">
     <span class="modebadge" id="modeBadge"></span>
-    <span id="modeActions"></span>
   </div>
   <div class="upd" id="updBar" role="status"></div>
 </header>
@@ -325,6 +372,51 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
     <h3 id="setTitle">Settings</h3>
     <p class="hint" style="margin:0 0 4px">Extra features start turned off to keep the screen simple. Turn on the ones you use; it's saved on this device.</p>
     <div id="setList"></div>
+    <div class="setmore">
+    <fieldset>
+      <legend>Order links</legend>
+      <label class="incl"><input type="checkbox" id="edgeLinks"> Open order links in Microsoft Edge</label>
+      <div class="hint">Turn this off if tapping an order number does nothing on this device.</div>
+    </fieldset>
+    <fieldset id="updSet">
+      <legend>Updates</legend>
+      <label class="incl"><input type="checkbox" id="autoUpd"> Check for new versions automatically</label>
+      <div class="hint">Only asks GitHub which version is newest. Your calls never leave this device.</div>
+      <div class="row"><button id="updNow">Check now</button></div>
+      <div class="msg" id="updMsg"></div>
+    </fieldset>
+    <fieldset>
+      <legend>Backup</legend>
+      <div class="hint">Everything saves automatically. A backup file lets you move your data to another browser or computer.</div>
+      <div class="row">
+        <button id="exportBtn">Save backup file</button>
+        <button id="importBackupBtn">Load backup file</button>
+        <input type="file" id="backupFile" accept=".json,application/json" hidden>
+      </div>
+      <div class="msg" id="backupMsg"></div>
+    </fieldset>
+<details class="settings" id="aboutBox">
+  <summary>Version history</summary>
+  <div id="changelog"></div>
+</details>
+
+<details class="settings" id="storeData">
+  <summary>Store data and groups</summary>
+  <p class="hint">Edit and save to change store info, groups, or map positions. Saved in this browser only. Mileage is straight-line × 1.25 at 45 mph, so treat it as a rough guide; the Google Maps link gives real directions.</p>
+  <div class="set-grid">
+    <div><label for="groupsInput">Store groups (store, group)</label><textarea id="groupsInput"></textarea></div>
+    <div><label for="storesInput">Store list (paste with the header row, or load a file)</label><textarea id="storesInput"></textarea>
+      <div class="row"><button id="storeFileBtn">Load store file (.csv, .txt, or .json)</button><input type="file" id="storeFile" accept=".csv,.txt,.tsv,.json,text/csv,text/plain,application/json" hidden></div>
+      <div class="hint">Recognized columns: Store number, Division, Shopping center, Address, City, State, Zip code, County, Phone, and optional Latitude, Longitude, and Group. From Excel, use Save As &gt; CSV, or copy and paste the cells.</div></div>
+    <div><label for="coordsInput">Map positions (store, lat, lng)</label><textarea id="coordsInput"></textarea></div>
+  </div>
+  <div class="row">
+    <button class="primary" id="saveSettings">Save store data</button>
+    <button id="resetSettings"></button>
+    <span class="msg" id="setMsg"></span>
+  </div>
+</details>
+    </div>
     <div class="row"><button class="primary" id="setClose">Done</button></div>
   </div>
 </div>
@@ -387,14 +479,17 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
 </div>
 
 <div class="layout">
-  <!-- Left: import + filters -->
-  <div class="panel import">
-    <h2>Import calls</h2>
+  <!-- Main: import, filters, stores and calls -->
+  <div class="maincol">
+    <div class="panel import" id="importCard">
+      <div class="impsum" id="impSum" hidden><span id="impSumText"></span><button id="impNew" type="button">Paste new export</button></div>
+      <div id="impBox"><h2>Import calls</h2>
     <textarea id="callsInput" placeholder="Paste service call rows from SAP, or paste dispatch text messages"></textarea>
     <div class="row">
       <button class="primary" id="loadBtn">Load calls</button>
       <button id="clearBtn">Clear</button>
     </div>
+      </div>
     <div class="msg" id="importMsg"></div>
     <div class="chg" id="chgBox" hidden></div>
     <div class="row" id="pasteRow"><button id="pasteBtn2" type="button">📥 Paste a handoff or transfer</button></div>
@@ -416,7 +511,10 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
         <p class="hint" style="margin:4px 0 0">The header row is optional. If your columns are in a different order, change the report layout in SAP (<kbd>Ctrl</kbd>+<kbd>F8</kbd>) and save it with your variant. The planner will warn you if something looks out of order.</p>
       </div>
     </details>
-
+    </div>
+    <details class="panel filters" id="filterBar">
+      <summary><b>Filters</b> <span id="filterSum" class="hint"></span></summary>
+      <div class="fgrid">
     <fieldset>
       <legend>Days past due</legend>
       <div class="pastq" id="pastQuick" role="group" aria-label="Days past due levels"></div>
@@ -435,36 +533,6 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
       <div class="dateshead"><span class="hint" id="datesHint">Tap dates to show only those calls.</span><button id="datesAll">All dates</button></div>
       <div class="dates" id="dateChips" role="group" aria-label="Due dates"></div>
     </fieldset>
-
-    <fieldset>
-      <legend>Completed calls</legend>
-      <label class="incl"><input type="checkbox" id="showDone"> Show completed calls</label>
-      <div class="row"><button id="clearDone">Clear completed list</button></div>
-      <div class="msg" id="doneMsg"></div>
-    </fieldset>
-    <fieldset>
-      <legend>Order links</legend>
-      <label class="incl"><input type="checkbox" id="edgeLinks"> Open order links in Microsoft Edge</label>
-      <div class="hint">Turn this off if tapping an order number does nothing on this device.</div>
-    </fieldset>
-    <fieldset id="updSet">
-      <legend>Updates</legend>
-      <label class="incl"><input type="checkbox" id="autoUpd"> Check for new versions automatically</label>
-      <div class="hint">Only asks GitHub which version is newest. Your calls never leave this device.</div>
-      <div class="row"><button id="updNow">Check now</button></div>
-      <div class="msg" id="updMsg"></div>
-    </fieldset>
-    <fieldset>
-      <legend>Backup</legend>
-      <div class="hint">Everything saves automatically. A backup file lets you move your data to another browser or computer.</div>
-      <div class="row">
-        <button id="exportBtn">Save backup file</button>
-        <button id="importBackupBtn">Load backup file</button>
-        <input type="file" id="backupFile" accept=".json,application/json" hidden>
-      </div>
-      <div class="msg" id="backupMsg"></div>
-    </fieldset>
-
     <fieldset><legend>Groups</legend><div class="chips" id="fGroups"></div></fieldset>
     <fieldset><legend>Priority</legend><div class="chips" id="fPrio"></div></fieldset>
     <fieldset><legend>Status</legend><div class="chips" id="fStatus"></div></fieldset>
@@ -475,10 +543,14 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
         <button id="fDueClear">Any date</button>
       </div>
     </fieldset>
-  </div>
-
-  <!-- Middle: stores and calls -->
-  <div>
+    <fieldset>
+      <legend>Completed calls</legend>
+      <label class="incl"><input type="checkbox" id="showDone"> Show completed calls</label>
+      <div class="row"><button id="clearDone">Clear completed list</button></div>
+      <div class="msg" id="doneMsg"></div>
+    </fieldset>
+      </div>
+    </details>
     <div class="toolbar">
       <h2 style="font:700 19px var(--sign)">Stores with open calls</h2>
       <div class="row" style="margin:0">
@@ -490,8 +562,6 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
         </select>
         <button id="copyList">📋 Copy list</button>
         <button id="histBtn">🗓 History</button>
-        <button id="allIn">Include all</button>
-        <button id="allOut">Exclude all</button>
       </div>
     </div>
     <div id="storeList"></div>
@@ -500,6 +570,7 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
   <!-- Right: route -->
   <div class="panel route">
     <h2>Route</h2>
+    <details class="ropts" id="routeOpts"><summary>Route options <span class="hint" id="routeSum"></span></summary>
     <label class="hint" for="startSel">Start from</label>
     <select id="startSel"></select>
     <div id="storeStart" style="display:none">
@@ -525,10 +596,13 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
       <option value="manual">Manual (use arrows)</option>
     </select>
     <label class="incl" style="margin-top:10px"><input type="checkbox" id="roundTrip"> Return to start</label>
+    <div class="row"><button id="allIn">Include all stores</button><button id="allOut">Exclude all</button></div>
+    </details>
 
     <button class="dvbtn" id="dvBtn" type="button">▶ Day view: go stop by stop</button>
     <div class="row"><button id="replanBtn" type="button">📍 Re-plan from here</button><button id="eodBtn" type="button">📊 End-of-day summary</button></div>
     <div class="totals" id="totals"></div>
+    <div class="links" id="links"></div>
     <ol class="stops" id="stops"></ol>
     <div class="share">
       <button class="primary" id="copyBtn">Copy route for team</button>
@@ -545,39 +619,19 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
       <div class="msg" id="routeMsg"></div>
       <textarea id="sharePreview" readonly aria-label="Route text"></textarea>
     </div>
-    <div class="links" id="links"></div>
   </div>
 </div>
 
-<details class="settings panel" id="aboutBox">
-  <summary>Version history</summary>
-  <div id="changelog"></div>
-</details>
 
-<details class="settings panel" id="storeData">
-  <summary>Store data and groups</summary>
-  <p class="hint">Edit and save to change store info, groups, or map positions. Saved in this browser only. Mileage is straight-line × 1.25 at 45 mph, so treat it as a rough guide; the Google Maps link gives real directions.</p>
-  <div class="set-grid">
-    <div><label for="groupsInput">Store groups (store, group)</label><textarea id="groupsInput"></textarea></div>
-    <div><label for="storesInput">Store list (paste with the header row, or load a file)</label><textarea id="storesInput"></textarea>
-      <div class="row"><button id="storeFileBtn">Load store file (.csv, .txt, or .json)</button><input type="file" id="storeFile" accept=".csv,.txt,.tsv,.json,text/csv,text/plain,application/json" hidden></div>
-      <div class="hint">Recognized columns: Store number, Division, Shopping center, Address, City, State, Zip code, County, Phone, and optional Latitude, Longitude, and Group. From Excel, use Save As &gt; CSV, or copy and paste the cells.</div></div>
-    <div><label for="coordsInput">Map positions (store, lat, lng)</label><textarea id="coordsInput"></textarea></div>
-  </div>
-  <div class="row">
-    <button class="primary" id="saveSettings">Save store data</button>
-    <button id="resetSettings"></button>
-    <span class="msg" id="setMsg"></span>
-  </div>
-</details>
 
 <script>
 // ---------- version ----------
-const APP_VERSION = "3.12";
+const APP_VERSION = "4.0";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["4.0", "Simpler screen: one ☰ Menu for Install, Send to phone, Bookmark, Download, Settings and Feedback; the paste box shrinks to one line after loading; all filters in one Filters bar with a summary; tighter store cards (tap a store for address and phone); route options folded away with the stop list on top; version history and store data moved into Settings."],
   ["3.12", "Optional features now start turned off for a simpler screen: What changed, Repeat-issue alerts, Due soon, Re-plan from here, End-of-day summary, Hand off, Day view, and Send to phone. Turn on the ones you want in Settings."],
   ["3.11", "Send to phone fits a typical day in one QR code: calls are packed tighter and shown as one larger code. Check Smaller codes if your phone has trouble scanning."],
   ["3.10", "Calls sent from the Companion app (or a transfer link) are picked up even when the planner is already open."],
@@ -615,71 +669,106 @@ const CHANGELOG = [
   ["1.0", "Import calls, group by store, filters, route ordering, Google Maps directions."]
 ];
 // ===EDITION-START===
-const EDITION = {id:"state-TN", name:"Service Route Planner \u2013 Tennessee", key:"rp-TN.", resetLabel:"Restore Tennessee store list", groupBy:"city"};
+const EDITION = {id:"state-AL", name:"Service Route Planner \u2013 Alabama", key:"rp-AL.", resetLabel:"Restore Alabama store list", groupBy:"city"};
 const DEFAULT_GROUPS = ``;
 const DEFAULT_STORES = `Store #	Shopping Center	Address	City	State	Zip	Phone	Latitude	Longitude
-119	Indian Lake Marketplace	110 Indian Lake Blvd	Hendersonville	TN	37075-6206	(615) 264-1350	36.310326	-86.60525
-123	Bellevue Center	7604 Highway 70 S	Nashville	TN	37221-1852	(615) 646-1870	36.07842	-86.94549
-142	Cool Springs Festival	8105 Moores Ln	Brentwood	TN	37027-8020	(615) 221-9880	35.963474	-86.80216
-160	Harpeth Village	2020 Fieldstone Pkwy	Franklin	TN	37069-4337	(615) 599-1825	35.964565	-86.883
-176	Franklin Marketplace	1021 Riverside Dr	Franklin	TN	37064-6500	(615) 591-3285	35.912518	-86.82829
-182	Oakwood Commons	4670 Lebanon Pike	Hermitage	TN	37076-1314	(615) 874-0898	36.217186	-86.59337
-1016	Parkway Town Centre	661 President Pl	Smyrna	TN	37167-5671	(615) 220-1919	35.97982	-86.55493
-1021	Marketplace at Maryland Farms	101 Creekside Xing	Brentwood	TN	37027-1062	(615) 507-1505	36.0369	-86.798805
-1031	McKay's Mill Village Center	1400 Liberty Pike Ste 200	Franklin	TN	37067-8628	(615) 591-4061	35.92483	-86.795746
-1033	Greensboro Village	1483 Nashville Pike	Gallatin	TN	37066-7144	(615) 451-6285	36.359604	-86.49569
-1047	Spring Hill Village	4935 Main St	Spring Hill	TN	37174-2735	(615) 302-4068	35.775105	-86.91837
-1057	Concord Village	10638 Concord Rd	Brentwood	TN	37027-8811	(615) 941-8871	35.997143	-86.69183
-1116	Nippers Corner	15544 Old Hickory Blvd	Nashville	TN	37211-7329	(615) 331-4912	36.04101	-86.74143
-1133	Publix at Harpeth Village	8028 Highway 100	Nashville	TN	37221-4212	(615) 673-2347	36.04716	-86.95227
-1141	Caldwell Square	460 Long Hollow Pike	Goodlettsville	TN	37072-3480	(615) 851-7180	36.3315	-86.69917
-1163	Kensington Place Shopping Center	1731 S Rutherford Blvd Ste S	Murfreesboro	TN	37130-5957	(615) 849-4290	35.81333	-86.36847
-1164	Publix at North Murfreesboro	3415 Memorial Blvd	Murfreesboro	TN	37129-3640	(615) 849-6254	35.912144	-86.386
-1165	Hurricane Creek	8644 E Brainerd Rd	Chattanooga	TN	37421-8325	(423) 296-1903	34.999165	-85.13403
-1166	Creek Plantation Village	5928 Hixson Pike Ste 112	Hixson	TN	37343-4839	(423) 847-8461	35.147335	-85.20735
-1172	Market at Victory Village	4175 Franklin Rd	Murfreesboro	TN	37128-4119	(615) 494-3196	35.84199	-86.471825
-1175	Lebanon Center	1703 W Main St	Lebanon	TN	37087-3193	(615) 444-2581	36.223503	-86.34521
-1211	Hill Center at Belle Meade	4324 Harding Pike	Nashville	TN	37205-2202	(615) 279-2038	36.126785	-86.84753
-1220	Mt Juliet Village	11207 Lebanon Rd	Mount Juliet	TN	37122-5545	(615) 758-4200	36.233017	-86.5144
-1234	Market at Salem Cove	2650 New Salem Hwy	Murfreesboro	TN	37128-5265	(615) 895-7096	35.812706	-86.45771
-1235	Mt View Marketplace	3532 Murfreesboro Pike	Antioch	TN	37013-2210	(615) 501-8250	36.05345	-86.614914
-1238	The Shops of Lee Village	1640 Lee Victory Pkwy	Smyrna	TN	37167-6529	(615) 223-9101	35.941505	-86.52754
-1244	Snow Hill Village	5958 Snow Hill Rd Ste 168	Ooltewah	TN	37363-7834	(423) 238-1032	35.09058	-85.0643
-1268	Providence Commons	665 S Mount Juliet Rd	Mount Juliet	TN	37122-6483	(615) 773-0250	36.161266	-86.51256
-1298	Hill Center at Nashville West	6614 Charlotte Pike	Nashville	TN	37209-4202	(615) 352-1055	36.140236	-86.88297
-1356	Publix at Mouse Creek	635 Paul Huff Pkwy NW	Cleveland	TN	37312-2970	(423) 476-4022	35.209568	-84.86069
-1360	Bowie Commons	7014 City Center Way	Fairview	TN	37062-6004	(615) 799-3474	35.97349	-87.13114
-1392	Madison Street Commons	1771 Madison St	Clarksville	TN	37043-4990	(931) 551-7031	36.51563	-87.3132
-1415	Publix at Turkey Creek	11656 Parkside Dr	Knoxville	TN	37934-2659	(865) 675-3018	35.89353	-84.17003
-1416	Northshore Town Center	2010 Town Center Blvd	Knoxville	TN	37922-6677	(865) 470-0720	35.860603	-84.07646
-1418	University Commons	2429 University Commons Way	Knoxville	TN	37919	(865) 522-6313	35.94992	-83.93972
-1425	Shoppes at Peachers Mill	1490 Tiny Town Rd	Clarksville	TN	37042-7201	(931) 503-2551	36.625175	-87.37263
-1426	The Crossings	2324 Lebanon Pike	Nashville	TN	37214-2411	(615) 884-2665	36.170834	-86.68387
-1460	Publix on North Market Street	400 N Market St	Chattanooga	TN	37405-4433	(423) 755-7901	35.065063	-85.30836
-1515	Valley Forge Shopping Center	2656 Parkway	Pigeon Forge	TN	37863-3246	(865) 774-2030	35.802597	-83.57625
-1529	Berry Farms Town Center	5021 Hughes Crossing Blvd	Franklin	TN	37064	(615) 595-2021	35.863697	-86.8431
-1543	Fairgrounds Plaza	2321 E Andrew Johnson Hwy	Greeneville	TN	37745	(423) 636-1478	36.18022	-82.78244
-1613	Northgate Mall	1600 N Jackson St Ste 340	Tullahoma	TN	37388	(931) 455-6032	35.380245	-86.22652
-1621	Village at Waterside	7326 McCutcheon Rd	Chattanooga	TN	37421	(423) 855-1376	35.043793	-85.15007
-1633	Markets West at Franklin	509 N State of Franklin Rd Ste 20	Johnson City	TN	37604	(423) 926-1260	36.313084	-82.38906
-1634	The Shoppes at Eagle Point	1265 Interstate Dr Ste 111	Cookeville	TN	38501-4135	(931) 526-8830	36.1385	-85.50757
-1648	Sango Square	920 Hwy 76	Clarksville	TN	37043	(931) 358-2257	36.52266	-87.23441
-1665	Publix at Melrose	2223 8th Ave S	Nashville	TN	37204	(615) 279-9470	36.128822	-86.77856
-1680	Capitol View	1010 Dr Martin L King Jr Blvd	Nashville	TN	37203	(615) 259-6072	36.16331	-86.789734
-1713	Smoky Mountain Gateway	750 Winfield Dunn Pkwy Ste 100	Sevierville	TN	37876	(865) 429-1734	35.88291	-83.57406
-1731	Publix at Mount Vernon Point	3535 Broad St	Chattanooga	TN	37409	(423) 668-5233	35.015038	-85.32541
-1732	Hill Center Greenwood	1111 Gallatin Ave	Nashville	TN	37206	(615) 226-7100	36.1898	-86.7449
-1739	The Shops at Windsong	211 Maharris Dr	Gallatin	TN	37066	(615) 989-9989	36.364582	-86.44221
-1778	Westlawn	5229 Veterans Pkwy	Murfreesboro	TN	37128-4377	(615) 995-7914	35.860924	-86.50897
-1779	Foothills Mall	198 Foothills Mall	Maryville	TN	37801-2310	(865) 518-0971	35.744446	-83.99438
-1780	Newman's Crossing	1931 Long Hollow Pike	Gallatin	TN	37066-8591	(615) 230-7647	36.382328	-86.54891
-1801	Hickory Ridge Shopping Center	445 Hwy 109 N	Lebanon	TN	37090	(615) 443-4349	36.19268	-86.410095
-1802	Walker Farms Shopping Center	2300 Trenton Rd	Clarksville	TN	37040	(931) 553-5067	36.577137	-87.31543
-1863	Shops at Enclave	1688 Ooltewah Ringgold Rd Ste 100	Ooltewah	TN	37363	(423) 508-6834	34.999672	-85.09461
-2009	Village Green	7344 Nolensville Rd	Nolensville	TN	37135	(629) 529-8036	35.949902	-86.664896
-2020	White House Shops	453 Hwy 76	White House	TN	37188	(615) 581-6132	36.46734	-86.66399
-2036	Spring Hill Towne Crossing	1021 Jim Warren Pkwy	Spring Hill	TN	37174	(931) 487-5038	35.732	-86.89
-2106	Westerly Commons	13123 Kingston Pike	Farragut	TN	37934	(865) 672-5008	35.862803	-84.223535`;
+45	Decatur Commons	1605 Beltline Rd SW	Decatur	AL	35601-5591	(256) 301-0023	34.5651	-87.013084
+75	The Shops of Lake Tuscaloosa	4851 Rice Mine Rd NE Ste 200	Tuscaloosa	AL	35406-3571	(205) 247-7666	33.263107	-87.51333
+165	Edgemont Town Center	411 Green Springs Hwy	Homewood	AL	35209-4909	(205) 944-1101	33.465294	-86.81963
+209	Mountain Cove Crossing	12796 Bailey Cove Rd SE	Huntsville	AL	35803-2659	(256) 885-0002	34.622765	-86.538506
+573	Hampton Cove Center	6707 Highway 431 S	Owens Cross Roads	AL	35763-9204	(256) 512-0990	34.6589	-86.481
+574	Piedmont Point Shopping Center	4851 Whitesburg Dr SE Ste B	Huntsville	AL	35802-1626	(256) 650-2390	34.692776	-86.56597
+598	Madison Centre	8000 Madison Blvd Ste A	Madison	AL	35758-2035	(256) 461-1860	34.691734	-86.71839
+838	Valleydale Village	5188 Caldwell Mill Rd	Hoover	AL	35244-1915	(205) 980-7500	33.385883	-86.7406
+839	Trace Crossings	2543 John Hawkins Pkwy	Hoover	AL	35244-3533	(205) 982-8506	33.35582	-86.84268
+841	Southgate Village	1944 Montgomery Hwy S	Birmingham	AL	35244-1141	(205) 987-3401	33.347034	-86.797356
+842	Vestavia Hills City Center	784 Montgomery Hwy	Vestavia Hills	AL	35216-1800	(205) 824-6005	33.444695	-86.793365
+882	The Village at Lee Branch	410 Doug Baker Blvd	Hoover	AL	35242-2682	(205) 981-7415	33.408936	-86.66846
+1024	Taylor Junction	7076 Atlanta Hwy	Montgomery	AL	36117-4242	(334) 290-4501	32.381226	-86.171616
+1025	Dalraida Commons	4045 Atlanta Hwy	Montgomery	AL	36109-2920	(334) 260-7782	32.38358	-86.24181
+1026	Cornerstone	7700 Vaughn Rd	Montgomery	AL	36116-1337	(334) 290-4920	32.33679	-86.18278
+1027	Zelda Place	3026 Zelda Rd	Montgomery	AL	36106-2700	(334) 244-4481	32.35555	-86.26592
+1059	Montclair Place	1325 Montclair Rd	Birmingham	AL	35210-2205	(205) 951-6626	33.52109	-86.73115
+1065	Allison-Bonnett Plaza	3014 Allison Bonnett Memorial Dr Ste 130	Hueytown	AL	35023-2395	(205) 497-5366	33.453255	-86.97826
+1069	Clay Marketplace	5150 Old Springville Rd	Pinson	AL	35126-3635	(205) 815-5224	33.65588	-86.646996
+1073	White Stone Center	9200 Highway 119 Ste 1400	Alabaster	AL	35007-5344	(205) 663-3443	33.212715	-86.825676
+1074	Crow's Corner	4730 Highway 17	Helena	AL	35080-3570	(205) 620-0199	33.279976	-86.854065
+1075	Northwood Crossings	2300 McFarland Blvd	Northport	AL	35476-2927	(205) 339-4232	33.241905	-87.57779
+1082	The Shoppes at Deerfoot	7272 Gadsden Hwy	Trussville	AL	35173-1687	(205) 661-1415	33.641434	-86.57991
+1083	Publix At University Town Center	1190 University Blvd	Tuscaloosa	AL	35401-1601	(205) 247-5044	33.212097	-87.55358
+1085	Publix On Overton	3141 Overton Rd	Mountain Brook	AL	35223-2846	(205) 967-2188	33.46575	-86.73279
+1086	Phenix Crossing	5408 Summerville Rd Ste 200	Phenix City	AL	36867-7481	(334) 291-8525	32.521423	-85.0282
+1126	Winchester Plaza	2246 Winchester Rd NE	Huntsville	AL	35811-6800	(256) 851-5807	34.816174	-86.48965
+1185	Village Shoppes of Madison	12070 County Line Rd Ste C	Madison	AL	35756-2000	(256) 230-2626	34.730225	-86.7882
+1200	Colonial Promenade Tannehill	4965 Promenade Pkwy	Bessemer	AL	35022-7304	(205) 426-7100	33.33517	-86.9934
+1202	Pelham Towne Center	365 Huntley Pkwy	Pelham	AL	35124-6164	(205) 620-0102	33.274746	-86.79236
+1203	Eastside Junction	22031 US Highway 72	Athens	AL	35613-2614	(256) 230-2076	34.78381	-86.92976
+1206	Magnolia City Place	655 Fieldstown Rd	Gardendale	AL	35071-2411	(205) 608-4677	33.65124	-86.82223
+1207	Hoover Place	1584 Montgomery Hwy	Hoover	AL	35216-4524	(205) 824-7218	33.403557	-86.80838
+1213	The Shoppes at Palm Pointe	25771 Perdido Beach Blvd	Orange Beach	AL	36561-6107	(251) 980-1400	30.271769	-87.58804
+1218	Harvest Square	5850 Highway 53	Harvest	AL	35749-4301	(256) 851-5958	34.846462	-86.7103
+1228	High Point Town Center	2451 Cobbs Ford Rd	Prattville	AL	36066-7763	(334) 285-0227	32.461422	-86.39835
+1253	Capital Market Center	1101 Southview Ln	Tuscaloosa	AL	35405-6389	(205) 247-7710	33.123127	-87.55273
+1265	The Shoppes at Fairhope Village	22530 US Highway 98 Ste 100	Fairhope	AL	36532-6398	(251) 929-7355	30.555693	-87.890915
+1281	Calera Crossings	90 Marketplace Cir	Calera	AL	35040-8200	(205) 668-3585	33.15549	-86.74836
+1292	Colonial Promenade at Craft Farms	160 Cotton Creek Dr Ste 100	Gulf Shores	AL	36542-2850	(251) 948-1281	30.298656	-87.681404
+1294	Hamilton Place	2415 Moores Mill Rd	Auburn	AL	36830-8480	(334) 502-8667	32.585373	-85.43644
+1355	The Shoppes at Cary Creek	2900 E University Dr	Auburn	AL	36830-7720	(334) 502-2416	32.63822	-85.48016
+1362	Magnolia Place	27955 US Highway 98 Ste 1	Daphne	AL	36526-4700	(251) 626-1305	30.630938	-87.912575
+1369	Northside Mall	3525 Ross Clark Cir Ste 100	Dothan	AL	36303-5935	(334) 792-4281	31.248392	-85.42902
+1370	Chelsea Crossroads	501 Chelsea Xrds	Chelsea	AL	35043-3900	(205) 678-5600	33.353226	-86.608795
+1375	Cottonwood Corners	1620 Ross Clark Cir	Dothan	AL	36301-5439	(334) 673-1200	31.197466	-85.37453
+1377	Westway	4650 W Main St Ste 700	Dothan	AL	36305-9421	(334) 792-6801	31.239414	-85.46214
+1391	South Park Center	2040 Martin St S	Pell City	AL	35128-2326	(205) 338-3472	33.563824	-86.2677
+1400	Eastern Shore Commons	10179 Eastern Shore Dr	Spanish Fort	AL	36527-5801	(251) 621-9065	30.674051	-87.848
+1402	Park Place	847 Boll Weevil Cir Ste 112	Enterprise	AL	36330-2476	(334) 348-1489	31.326006	-85.838264
+1404	Publix at Sunset Point	4628 Airport Blvd	Mobile	AL	36608-2223	(251) 341-5727	30.676668	-88.16773
+1409	Renaissance City Center	322 Cox Creek Pkwy	Florence	AL	35630-1540	(256) 718-1790	34.837173	-87.62942
+1420	Oxford Commons	115 Commons Way	Oxford	AL	36203-3483	(256) 835-4075	33.607628	-85.78837
+1436	Hillwood Shopping Center	2370 Hillcrest Rd, Unit J	Mobile	AL	36695-3838	(251) 661-5361	30.641775	-88.19231
+1451	Twickenham Square	310 Pelham Ave SW	Huntsville	AL	35801-5016	(256) 534-2330	34.723385	-86.58394
+1462	Guntersville Landing	2300 Gunter Ave	Guntersville	AL	35976-2238	(256) 571-2501	34.333763	-86.316414
+1476	Shoppes at Rainbow Landing	128 W Grand Ave	Rainbow City	AL	35906-3238	(256) 442-2509	33.955227	-86.04394
+1503	Cullman Shopping Center	1104 Cullman Shopping Ctr NW	Cullman	AL	35055-2855	(256) 736-7000	34.181503	-86.84922
+1508	The Village at Moody	2200 Village Dr	Moody	AL	35004-3241	(205) 640-3230	33.570053	-86.51761
+1512	20 Midtown	230 20th St S	Birmingham	AL	35233	(205) 250-7170	33.51	-86.80339
+1525	Park Place	1147 US Hwy 231 S	Troy	AL	36081	(334) 807-5761	31.780548	-85.95472
+1532	Muscle Shoals Commons	3220 Woodward Ave	Muscle Shoals	AL	35661-3322	(256) 389-0080	34.731277	-87.66976
+1545	Patchwork Farms  Shopping Center	3040 Healthy Way	Vestavia Hills	AL	35243	(205) 970-7501	33.42937	-86.737595
+1604	Midtown Center	100 N Florida St	Mobile	AL	36607	(251) 471-4860	30.69239	-88.09899
+1609	Point Mallard Centre	2934 Point Mallard Pkwy SE	Decatur	AL	35603	(256) 351-5261	34.542683	-86.9204
+1612	The Pinnacle at Providence	1660 Old Monrovia Rd NW	Huntsville	AL	35806	(256) 430-5443	34.75842	-86.6803
+1627	Lakeshore Pavilion	2860 Lakeshore Pkwy	Birmingham	AL	35211	(205) 945-2741	33.423016	-86.88869
+1629	The Shoppes at Redstone Square	2286 Zierdt Rd	Huntsville	AL	35824	(256) 774-3888	34.64777	-86.71972
+1638	Madison Commons Shopping Center	350 Hughes Rd	Madison	AL	35758	(256) 464-3422	34.708176	-86.743774
+1642	The Shops at Pine Grove	7129 Wall Triana Hwy	Madison	AL	35757	(256) 722-3786	34.7932	-86.74669
+1650	Saraland Crossing	21 Shell St	Saraland	AL	36571	(251) 679-2995	30.805569	-88.11064
+1672	Paradise Isle Shopping Center	1720 Gulf Shores Pkwy Ste 2	Gulf Shores	AL	36542-3438	(251) 240-3003	30.27005	-87.68654
+1673	Riviera Square	2614 S McKenzie St	Foley	AL	36535	(251) 943-3329	30.377172	-87.68633
+1675	Rocky Ridge Square	3350 Morgan Dr	Vestavia Hills	AL	35216	(205) 978-9842	33.42661	-86.77439
+1676	Lane Parke	1000 Jemison Ln	Mountain Brook	AL	35223	(205) 802-9189	33.486256	-86.77304
+1687	Publix at Tattersall Park	6219 Tattersall Blvd	Hoover	AL	35242	(205) 981-3995	33.41998	-86.667656
+1691	Publix at Bristol Park	13556 Hwy 69 N	Northport	AL	35475	(205) 330-7653	33.303192	-87.570305
+1692	The Market Place at The Bray	3201 Endeavor Ln	Vestavia Hills	AL	35242	(205) 967-5998	33.47266	-86.70333
+1726	Clift Farm	417 John Henry Way	Madison	AL	35757	(256) 325-0540	34.75281	-86.76138
+1728	Morgan Road Plaza	4293 S Shades Crest Rd	Hoover	AL	35244	(205) 428-4923	33.308758	-86.90357
+1756	Shops at Pike Road	9515 Vaughn Rd	Pike Road	AL	36064	(334) 694-5802	32.34635	-86.09324
+1785	Market at Hays Farm	9040 Memorial Pkwy SW	Huntsville	AL	35802	(256) 650-6086	34.64807	-86.56769
+1790	Midtown Centre	165 US Hwy 31 N	Athens	AL	35611	(256) 771-5662	34.804874	-86.9508
+1794	Marble City Square	165 MCS Blvd	Sylacauga	AL	35150-1138	(256) 487-0098	33.17279	-86.283325
+1796	Bickley Station	9124 Cottage Hill Rd	Mobile	AL	36695	(251) 634-5141	30.640327	-88.258064
+1799	Planters Pointe Shopping Center	9867 State Hwy 104	Fairhope	AL	36532-4392	(251) 279-6001	30.54868	-87.8558
+1809	The Shops at Point Clear	18125 Wright Blvd	Fairhope	AL	36532-7335	(251) 279-6442	30.488304	-87.8875
+1822	Shops on Gay Street	138 S Gay St	Auburn	AL	36830	(334) 502-3616	32.605694	-85.48019
+1830	Publix at Scottsboro	24540 John T Reid Pkwy	Scottsboro	AL	35768	(256) 672-6056	34.665695	-86.01539
+1831	Cahaba Crossing	1288 Grants Mill Rd	Irondale	AL	35210-2112	(205) 905-3598	33.535587	-86.674644
+1878	The Gateway at Lake Martin	4812 Hwy 280	Alexander City	AL	35010	(256) 414-6016	32.91492	-85.953384
+2002	Camp Grandview Plaza	1400 AL Hwy 14	Millbrook	AL	36054	(334) 604-4819	32.493607	-86.402794
+2010	The Shoppes at Fort Toulouse	5039 US Hwy 231	Wetumpka	AL	36092	(334) 478-6185	32.514515	-86.214165
+2027	Semmes Village Shopping Center	2035 Schillinger Rd N Ste 100	Semmes	AL	36575-7417	(251) 264-6020	30.732477	-88.227905
+2042	Flint Crossing Market Place	12290 Hwy 231/431 N	Meridianville	AL	35759-1200	(256) 804-4042	34.870956	-86.569336
+2098	The Village at Foley Crossroads	9913 Foley-Beach Express	Foley	AL	36535	(251) 240-3043	30.368826	-87.65549
+2145	French Mill Crossing	14210 Mooresville Rd	Athens	AL	35613	(256) 867-6148	34.764635	-86.876485`;
 const DEFAULT_COORDS = ``;
 // ===EDITION-END===
 
@@ -949,8 +1038,8 @@ function addExtras(groups, shown){
 }
 function renderStores(groups){
   const host=$("storeList");
-  if(!Object.keys(S.stores).length){ host.innerHTML='<div class="empty">Your store list is empty. Open <b>Store data and groups</b> at the bottom of the page and load your company store file.</div>'; return; }
-  if(!S.calls.length){ host.innerHTML='<div class="empty">Paste your service call rows on the left and select <b>Load calls</b>.</div>'; return; }
+  if(!Object.keys(S.stores).length){ host.innerHTML='<div class="empty">Your store list is empty. Open <b>☰ Menu → Settings → Store data</b> and load your company store file.</div>'; return; }
+  if(!S.calls.length){ host.innerHTML='<div class="empty">Paste your service call rows above and select <b>Load calls</b>.</div>'; return; }
   if(!groups.length){ host.innerHTML='<div class="empty">No calls match the current filters.</div>'; return; }
   const now=new Date();
   host.innerHTML = groups.map(g=>{
@@ -961,10 +1050,10 @@ function renderStores(groups){
       const dn=isDone(c);
       const t=tierOf(c);
       return `<tr class="${dn?"done":t?"t"+t:""}${extra?" extra":""}">
-        <td class="chk"><label class="done-box" title="Mark call complete"><input type="checkbox" data-done="${esc(c.order)}" ${dn?"checked":""}> Done</label></td>
+        <td class="chk"><label class="done-box" title="Mark call done"><input type="checkbox" data-done="${esc(c.order)}" ${dn?"checked":""} aria-label="Done: ${esc(c.desc)}"></label></td>
         <td><span class="pri p${c.prio}">${esc(c.prioLabel)}</span></td>
-        <td><b>${esc(c.desc)}</b>${locNote}${callTags(c)}<div class="muted">Order <a class="ord" href="${ORDER_HREF(c.order)}"${orderTarget()} title="Opens in Microsoft Edge">${esc(c.order)}</a>${dn?" · completed "+new Date(S.done[c.order]).toLocaleDateString():""}${c.serial?" · SN "+esc(c.serial):""}${c.wc?" · "+esc(c.wc):""}${F("handoff")&&!dn?` <button class="hand" type="button" data-hand="${esc(c.order)}">↗ Hand off</button>`:""}</div></td>
-        <td class="due">${fmtDue(c.due)}${t&&!dn?`<div style="margin-top:2px"><span class="tier t${t}">${fmtPast(c)}</span></div>`:""}</td>
+        <td><b>${esc(c.desc)}</b> <span class="muted ordl"><a class="ord" href="${ORDER_HREF(c.order)}"${orderTarget()} title="Opens in Microsoft Edge">${esc(c.order)}</a>${dn?" · completed "+new Date(S.done[c.order]).toLocaleDateString():""}${c.serial?` <span class="sn" title="Serial number">· SN ${esc(c.serial)}</span>`:""}${F("handoff")&&!dn?` <button class="hand" type="button" data-hand="${esc(c.order)}">↗ Hand off</button>`:""}</span>${locNote}${callTags(c)}</td>
+        <td class="due">${t&&!dn?`<span class="tier t${t}" title="Due ${esc(fmtDue(c.due))}">${fmtPast(c)}</span>`:`<span class="muted">${c.due?c.due.toLocaleDateString(undefined,{month:"numeric",day:"numeric"}):"—"}</span>`}</td>
         <td><span class="status">${esc(c.status)}</span></td></tr>`;
     };
     const ex=g.extra||[];
@@ -974,15 +1063,16 @@ function renderStores(groups){
       <div class="store-head">
         ${shieldHTML(groupOf(g.num))}
         <div class="info">
-          <div class="store-name">${esc(g.num)}<small>${esc(s?s.center:"Store not in list")}</small></div>
-          <div class="addr">${s?`<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddr(g.num))}" target="_blank" rel="noopener">${esc(fullAddr(g.num))}</a> · <a href="tel:${esc(s.phone)}">${esc(s.phone)}</a>`:"Add this store under Store data to get an address"}</div>
-          <div class="muted" style="font-size:13px">${storeRepeat(g.num)}${g.calls.length} call${g.calls.length>1?"s":""}${ex.length?` + ${ex.length} more open`:""}${(()=>{const o=g.calls.concat(ex).filter(c=>!isDone(c)&&pastDays(c)>0); if(!o.length) return ""; const old=o.reduce((m,c)=>c.due<m.due?c:m); return `<span class="tier t${tierOf(old)} pastbadge">Oldest ${fmtPast(old)}</span>`;})()}</div>
+          <button class="store-name" type="button" data-more="${esc(g.num)}" aria-expanded="false" title="Show address and phone">${esc(g.num)}<small>${esc(s?s.center:"Store not in list")}${s&&s.city?" · "+esc(s.city):""}</small><span class="more">▾</span></button>
+          <div class="addr" hidden>${s?`<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddr(g.num))}" target="_blank" rel="noopener">${esc(fullAddr(g.num))}</a> · <a href="tel:${esc(s.phone)}">${esc(s.phone)}</a>`:"Add this store under Store data to get an address"}</div>
+          <div class="muted" style="font-size:13px">${storeRepeat(g.num)}${g.calls.length>1?g.calls.length+" calls":""}${ex.length?` + ${ex.length} more open`:""}${(()=>{const o=g.calls.concat(ex).filter(c=>!isDone(c)&&pastDays(c)>0); if(o.length<2 && g.calls.length+ex.length<2) return ""; if(!o.length) return ""; const old=o.reduce((m,c)=>c.due<m.due?c:m); return `<span class="tier t${tierOf(old)} pastbadge">Oldest ${fmtPast(old)}</span>`;})()}</div>
         </div>
-        <label class="incl"><input type="checkbox" data-store="${esc(g.num)}" ${inc?"checked":""}> In route</label>
+        <label class="incl sm" title="Include this store in the route"><input type="checkbox" data-store="${esc(g.num)}" ${inc?"checked":""}> Route</label>
       </div>
       <div class="calls-wrap"><table class="calls">${rows}</table></div>
     </div>`;
   }).join("");
+  host.querySelectorAll("[data-more]").forEach(b=>b.onclick=()=>{ const a=b.parentElement.querySelector(".addr"); a.hidden=!a.hidden; b.setAttribute("aria-expanded",String(!a.hidden)); });
   host.querySelectorAll("input[data-store]").forEach(cb=>cb.onchange=()=>{
     const n=cb.dataset.store; cb.checked?S.excluded.delete(n):S.excluded.add(n);
     store.set("excluded",[...S.excluded]); render();
@@ -1141,6 +1231,7 @@ function render(){
   const openVis=vis.filter(c=>!isDone(c));
   renderRoute(addExtras(storeGroups(openVis), openVis)); dvToggle();
   if(S.initDone) renderChanges();
+  layoutSummaries();
   if($("sharePreview").classList.contains("open")) $("sharePreview").value=buildShareText();
   const doneN=S.calls.filter(isDone).length;
   $("doneMsg").textContent = doneN ? `${doneN} completed call${doneN>1?"s":""}${S.showDone?" shown, crossed off":" hidden"}.` : "Check Done on a call to cross it off.";
@@ -1253,6 +1344,7 @@ $("loadBtn").onclick=()=>{
     render(); return;
   }
   if(S.initDone) compareImport(prevCalls, calls);
+  if(S.initDone && calls.length){ S.impOpen=false; store.set("loadedAt",Date.now()); $("sapHelp").open=false; }
   render();
 };
 $("clearBtn").onclick=()=>{ $("callsInput").value=""; S.calls=[]; store.set("callsText",""); $("importMsg").textContent=""; render(); };
@@ -2030,6 +2122,36 @@ async function checkUpdate(manual){
       bar.classList.add("show"); m.textContent=`Version ${v} is available.`;
     } else { bar.classList.remove("show"); m.textContent=`You have the newest version (${APP_VERSION}). Checked ${new Date().toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}.`; }
   }catch(e){ if(manual) m.textContent="Couldn't reach GitHub. Check your connection and try again."; }
+}
+
+// ---------- simpler layout: menu, import summary, filter and route summaries ----------
+(function(){
+  const btn=$("menuBtn"), m=$("menu");
+  const close=()=>{ m.hidden=true; btn.setAttribute("aria-expanded","false"); };
+  btn.onclick=e=>{ e.stopPropagation(); m.hidden=!m.hidden; btn.setAttribute("aria-expanded",String(!m.hidden)); };
+  m.addEventListener("click",e=>{ if(e.target.closest("button,a")) setTimeout(close,0); });
+  document.addEventListener("click",e=>{ if(!m.hidden && !e.target.closest(".menuwrap")) close(); });
+  document.addEventListener("keydown",e=>{ if(e.key==="Escape") close(); });
+  $("impNew").onclick=()=>{ S.impOpen=true; $("callsInput").value=""; layoutSummaries(); $("callsInput").focus(); };
+})();
+function layoutSummaries(){
+  // Import: once calls are loaded, show one line instead of the paste box.
+  const loaded=S.calls.length>0 && !S.impOpen;
+  $("impSum").hidden=!loaded; $("impBox").hidden=loaded; $("sapHelp").hidden=loaded;
+  if(loaded && !$("importMsg").classList.contains("err")) $("importMsg").textContent="";
+  if(loaded){ const t=store.get("loadedAt",null); $("impSumText").textContent=`${S.calls.length} call${S.calls.length===1?"":"s"} loaded`+(t?` · ${new Date(t).toLocaleString([], {weekday:"short",hour:"numeric",minute:"2-digit"})}`:""); }
+  // Filters: one-line summary of what's narrowing the list.
+  const parts=[];
+  if(S.pastTiers.size||customRange()) parts.push("past due: "+(customRange()?"custom range":TIERS.filter(x=>S.pastTiers.has(x.k)).map(x=>x.label).join(", ")));
+  if(S.fDates.size) parts.push(`${S.fDates.size} date${S.fDates.size>1?"s":""}`);
+  const offG=[...S.known.groups].filter(g=>!S.fGroups.has(g)), offP=[...S.known.prio].filter(x=>!S.fPrio.has(x)), offS=[...S.known.status].filter(x=>!S.fStatus.has(x));
+  if(offG.length) parts.push("groups: "+[...S.fGroups].sort().join(", ")); if(offP.length) parts.push("some priorities"); if(offS.length) parts.push("status: "+[...S.fStatus].join(", "));
+  if(S.fDue) parts.push("due by "+S.fDue); if(S.showDone) parts.push("showing completed");
+  const vis=visibleCalls().length;
+  $("filterSum").textContent = parts.length ? `Showing ${vis} of ${S.calls.length} · ${parts.join(" · ")}` : (S.calls.length?`Showing all ${S.calls.length} calls · tap to filter`:"Tap to filter");
+  // Route options: one-line summary.
+  const ss=$("startSel"), ms=$("modeSel");
+  $("routeSum").textContent=`From: ${ss.options[ss.selectedIndex]?ss.options[ss.selectedIndex].text.replace("…",""):"first stop"} · ${ms.options[ms.selectedIndex].text}${$("roundTrip").checked?" · return to start":""}`;
 }
 
 // ---------- init ----------

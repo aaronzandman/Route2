@@ -24,13 +24,13 @@ body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 var(--body)}
 header{background:var(--road);color:var(--road-ink);padding:14px 20px;display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
 header h1{font:700 26px/1 var(--sign);margin:0;letter-spacing:.5px}
 header .sub{opacity:.85;font-size:14px}
-.layout{display:grid;grid-template-columns:300px minmax(0,1fr) 360px;gap:16px;padding:16px;align-items:start}
-@media (max-width:1150px){.layout{grid-template-columns:280px minmax(0,1fr)}.route{grid-column:1/-1}}
-@media (max-width:760px){.layout{grid-template-columns:1fr}}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:16px;padding:16px;align-items:start;max-width:1500px;margin:0 auto}
+@media (max-width:900px){.layout{grid-template-columns:1fr}}
+.maincol>*{margin-bottom:12px}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
 .panel h2{font:700 19px/1.2 var(--sign);margin:0 0 10px}
 .route{position:sticky;top:12px}
-@media (max-width:1150px){.route{position:static}}
+@media (max-width:900px){.route{position:static}}
 textarea{width:100%;min-height:130px;font:12px/1.4 ui-monospace,Consolas,monospace;border:1px solid var(--line);border-radius:6px;padding:8px;background:var(--soft);color:var(--ink);resize:vertical;white-space:pre;overflow:auto}
 button,select,input{font:inherit;color:inherit}
 button{border:1px solid var(--line);background:var(--soft);border-radius:6px;padding:6px 12px;cursor:pointer}
@@ -65,9 +65,21 @@ legend{font-weight:600;font-size:14px;margin-bottom:6px}
 .toolbar h2{margin:0}
 .store{border:1px solid var(--line);border-radius:10px;background:var(--panel);margin-bottom:12px;overflow:hidden}
 .store.excluded{opacity:.5}
-.store-head{display:flex;gap:12px;padding:12px 14px;align-items:flex-start}
+.store-head{display:flex;gap:10px;padding:8px 12px;align-items:center}
+.store-head .shield{width:26px;height:28px;font-size:15px;padding-top:4px;background:linear-gradient(var(--shield-top) 0 6px,var(--shield) 6px);border-width:1.5px}
+.store-name{background:none;border:0;padding:0;color:inherit;text-align:left;cursor:pointer}
+.store-name .more{font-size:12px;color:var(--muted);margin-left:6px}
+.addr{margin-top:2px}
+.incl.sm{font-size:13px;color:var(--muted)}
+.incl.sm input{width:18px;height:18px}
+.ordl{font-size:12px;white-space:nowrap}
+.calls td.due{white-space:nowrap;text-align:right}
+.calls{table-layout:fixed}
+.calls td:nth-child(2){width:118px}.calls td:nth-child(4){width:150px}.calls td:nth-child(5){width:64px}
+.calls td:nth-child(3){overflow-wrap:anywhere;overflow:hidden}
+@media (max-width:600px){.calls td:nth-child(2){width:86px}.calls td:nth-child(4){width:96px}.calls td:nth-child(5){display:none}.calls .pri{min-width:0;font-size:11px;padding:2px 5px}.calls .sn{display:block}.calls td.due{white-space:normal}.calls td.due .tier{white-space:normal;display:inline-block;line-height:1.25;text-align:center}}
 .store-head .info{flex:1;min-width:0}
-.store-name{font:700 20px/1.1 var(--sign)}
+.store-name{font:700 18px/1.15 var(--sign)}
 .store-name small{font:500 14px var(--body);color:var(--muted);margin-left:6px}
 .addr{color:var(--muted);font-size:14px}
 .addr a{color:inherit}
@@ -75,7 +87,7 @@ legend{font-weight:600;font-size:14px;margin-bottom:6px}
 .incl input{width:18px;height:18px;accent-color:var(--road)}
 .calls{width:100%;border-collapse:collapse;font-size:14px}
 .calls-wrap{overflow-x:auto;border-top:1px solid var(--line)}
-.calls td{padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+.calls td{padding:5px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
 .calls tr:last-child td{border-bottom:0}
 .calls tr.overdue td{background:var(--over)}
 .pri{display:inline-block;min-width:66px;text-align:center;border-radius:4px;padding:1px 6px;color:#fff;font-weight:600;font-size:12px;white-space:nowrap}
@@ -86,13 +98,43 @@ legend{font-weight:600;font-size:14px;margin-bottom:6px}
 .flag{color:var(--p2);font-weight:600;font-size:12px}
 .calls tr.done td{background:var(--soft)}
 .calls tr.done b,.calls tr.done .muted{text-decoration:line-through;color:var(--muted)}
-.calls td.chk{width:1%;white-space:nowrap}
+.calls td.chk{width:40px;padding:5px 6px;white-space:nowrap}
 .done-box{display:flex;align-items:center;gap:5px;cursor:pointer;font-size:13px}
 .done-box input{width:20px;height:20px;accent-color:var(--road)}
 .calls a.ord{color:var(--shield);font-weight:600}
 .changes{margin:6px 0 0;padding-left:18px;font-size:14px}
 .changes li{margin:2px 0}
 .saved{font-size:12px;opacity:.85;margin-left:auto}
+/* header menu */
+.menuwrap{position:relative}
+.menu{position:absolute;right:0;top:calc(100% + 6px);z-index:30;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.25);padding:6px;display:flex;flex-direction:column;gap:4px;min-width:230px}
+.menu[hidden]{display:none}
+.menu #modeActions{display:flex;flex-direction:column;gap:4px}
+.menu .hbtn,.menu #modeActions .hbtn{background:transparent;color:var(--ink);text-align:left;padding:9px 10px;font-size:14px;border-radius:6px;width:100%}
+.menu .hbtn:hover{background:var(--soft)}
+.menu .hlink{color:var(--shield);padding:9px 10px;font-size:14px;display:block}
+/* import card */
+.import h2{margin-top:0}
+.impsum{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;font-weight:600}
+.impsum button{font-weight:600}
+/* filters bar */
+details.filters{padding:0}
+details.filters>summary{cursor:pointer;padding:12px 14px;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.filters>summary::-webkit-details-marker{display:none}
+details.filters>summary::before{content:"▸";transition:transform .15s}
+details.filters[open]>summary::before{transform:rotate(90deg)}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:4px 18px;padding:0 14px 12px}
+.fgrid fieldset{margin:8px 0 0}
+/* route options */
+details.ropts{border:1px solid var(--line);border-radius:8px;padding:0 10px;margin-bottom:10px}
+details.ropts>summary{cursor:pointer;padding:9px 0;font-weight:600}
+details.ropts>summary .hint{font-weight:400;display:block}
+details.ropts[open]{padding-bottom:10px}
+/* settings dialog extras */
+#setDlg .box{max-width:620px}
+.setmore fieldset{margin:14px 0 0;border-top:1px solid var(--line);padding-top:10px}
+.setmore details.settings{margin:12px 0 0;padding:0}
+.setmore details.settings summary{font-size:16px}
 .modebar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;width:100%}
 .modebadge{display:inline-flex;align-items:center;gap:6px;font:700 13px/1 var(--body);letter-spacing:.4px;text-transform:uppercase;border-radius:999px;padding:5px 10px;background:rgba(255,255,255,.18);color:#fff}
 .modebadge::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
@@ -276,11 +318,16 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
   <h1><span id="appName">Service Route Planner</span> <span id="verTag" style="font-size:15px;opacity:.8"></span></h1>
   <span class="sub" id="summary">No calls loaded</span>
   <span class="saved" id="savedNote">Saved on this computer</span>
-  <button class="hbtn" id="setBtn" type="button">⚙ Settings</button>
-  <button class="hbtn" id="fbBtn" type="button">💬 Feedback</button>
+  <div class="menuwrap">
+    <button class="hbtn" id="menuBtn" type="button" aria-haspopup="true" aria-expanded="false">☰ Menu</button>
+    <div class="menu" id="menu" hidden>
+      <span id="modeActions"></span>
+      <button class="hbtn" id="setBtn" type="button">⚙ Settings</button>
+      <button class="hbtn" id="fbBtn" type="button">💬 Feedback</button>
+    </div>
+  </div>
   <div class="modebar">
     <span class="modebadge" id="modeBadge"></span>
-    <span id="modeActions"></span>
   </div>
   <div class="upd" id="updBar" role="status"></div>
 </header>
@@ -325,6 +372,51 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
     <h3 id="setTitle">Settings</h3>
     <p class="hint" style="margin:0 0 4px">Extra features start turned off to keep the screen simple. Turn on the ones you use; it's saved on this device.</p>
     <div id="setList"></div>
+    <div class="setmore">
+    <fieldset>
+      <legend>Order links</legend>
+      <label class="incl"><input type="checkbox" id="edgeLinks"> Open order links in Microsoft Edge</label>
+      <div class="hint">Turn this off if tapping an order number does nothing on this device.</div>
+    </fieldset>
+    <fieldset id="updSet">
+      <legend>Updates</legend>
+      <label class="incl"><input type="checkbox" id="autoUpd"> Check for new versions automatically</label>
+      <div class="hint">Only asks GitHub which version is newest. Your calls never leave this device.</div>
+      <div class="row"><button id="updNow">Check now</button></div>
+      <div class="msg" id="updMsg"></div>
+    </fieldset>
+    <fieldset>
+      <legend>Backup</legend>
+      <div class="hint">Everything saves automatically. A backup file lets you move your data to another browser or computer.</div>
+      <div class="row">
+        <button id="exportBtn">Save backup file</button>
+        <button id="importBackupBtn">Load backup file</button>
+        <input type="file" id="backupFile" accept=".json,application/json" hidden>
+      </div>
+      <div class="msg" id="backupMsg"></div>
+    </fieldset>
+<details class="settings" id="aboutBox">
+  <summary>Version history</summary>
+  <div id="changelog"></div>
+</details>
+
+<details class="settings" id="storeData">
+  <summary>Store data and groups</summary>
+  <p class="hint">Edit and save to change store info, groups, or map positions. Saved in this browser only. Mileage is straight-line × 1.25 at 45 mph, so treat it as a rough guide; the Google Maps link gives real directions.</p>
+  <div class="set-grid">
+    <div><label for="groupsInput">Store groups (store, group)</label><textarea id="groupsInput"></textarea></div>
+    <div><label for="storesInput">Store list (paste with the header row, or load a file)</label><textarea id="storesInput"></textarea>
+      <div class="row"><button id="storeFileBtn">Load store file (.csv, .txt, or .json)</button><input type="file" id="storeFile" accept=".csv,.txt,.tsv,.json,text/csv,text/plain,application/json" hidden></div>
+      <div class="hint">Recognized columns: Store number, Division, Shopping center, Address, City, State, Zip code, County, Phone, and optional Latitude, Longitude, and Group. From Excel, use Save As &gt; CSV, or copy and paste the cells.</div></div>
+    <div><label for="coordsInput">Map positions (store, lat, lng)</label><textarea id="coordsInput"></textarea></div>
+  </div>
+  <div class="row">
+    <button class="primary" id="saveSettings">Save store data</button>
+    <button id="resetSettings"></button>
+    <span class="msg" id="setMsg"></span>
+  </div>
+</details>
+    </div>
     <div class="row"><button class="primary" id="setClose">Done</button></div>
   </div>
 </div>
@@ -387,14 +479,17 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
 </div>
 
 <div class="layout">
-  <!-- Left: import + filters -->
-  <div class="panel import">
-    <h2>Import calls</h2>
+  <!-- Main: import, filters, stores and calls -->
+  <div class="maincol">
+    <div class="panel import" id="importCard">
+      <div class="impsum" id="impSum" hidden><span id="impSumText"></span><button id="impNew" type="button">Paste new export</button></div>
+      <div id="impBox"><h2>Import calls</h2>
     <textarea id="callsInput" placeholder="Paste service call rows from SAP, or paste dispatch text messages"></textarea>
     <div class="row">
       <button class="primary" id="loadBtn">Load calls</button>
       <button id="clearBtn">Clear</button>
     </div>
+      </div>
     <div class="msg" id="importMsg"></div>
     <div class="chg" id="chgBox" hidden></div>
     <div class="row" id="pasteRow"><button id="pasteBtn2" type="button">📥 Paste a handoff or transfer</button></div>
@@ -416,7 +511,10 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
         <p class="hint" style="margin:4px 0 0">The header row is optional. If your columns are in a different order, change the report layout in SAP (<kbd>Ctrl</kbd>+<kbd>F8</kbd>) and save it with your variant. The planner will warn you if something looks out of order.</p>
       </div>
     </details>
-
+    </div>
+    <details class="panel filters" id="filterBar">
+      <summary><b>Filters</b> <span id="filterSum" class="hint"></span></summary>
+      <div class="fgrid">
     <fieldset>
       <legend>Days past due</legend>
       <div class="pastq" id="pastQuick" role="group" aria-label="Days past due levels"></div>
@@ -435,36 +533,6 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
       <div class="dateshead"><span class="hint" id="datesHint">Tap dates to show only those calls.</span><button id="datesAll">All dates</button></div>
       <div class="dates" id="dateChips" role="group" aria-label="Due dates"></div>
     </fieldset>
-
-    <fieldset>
-      <legend>Completed calls</legend>
-      <label class="incl"><input type="checkbox" id="showDone"> Show completed calls</label>
-      <div class="row"><button id="clearDone">Clear completed list</button></div>
-      <div class="msg" id="doneMsg"></div>
-    </fieldset>
-    <fieldset>
-      <legend>Order links</legend>
-      <label class="incl"><input type="checkbox" id="edgeLinks"> Open order links in Microsoft Edge</label>
-      <div class="hint">Turn this off if tapping an order number does nothing on this device.</div>
-    </fieldset>
-    <fieldset id="updSet">
-      <legend>Updates</legend>
-      <label class="incl"><input type="checkbox" id="autoUpd"> Check for new versions automatically</label>
-      <div class="hint">Only asks GitHub which version is newest. Your calls never leave this device.</div>
-      <div class="row"><button id="updNow">Check now</button></div>
-      <div class="msg" id="updMsg"></div>
-    </fieldset>
-    <fieldset>
-      <legend>Backup</legend>
-      <div class="hint">Everything saves automatically. A backup file lets you move your data to another browser or computer.</div>
-      <div class="row">
-        <button id="exportBtn">Save backup file</button>
-        <button id="importBackupBtn">Load backup file</button>
-        <input type="file" id="backupFile" accept=".json,application/json" hidden>
-      </div>
-      <div class="msg" id="backupMsg"></div>
-    </fieldset>
-
     <fieldset><legend>Groups</legend><div class="chips" id="fGroups"></div></fieldset>
     <fieldset><legend>Priority</legend><div class="chips" id="fPrio"></div></fieldset>
     <fieldset><legend>Status</legend><div class="chips" id="fStatus"></div></fieldset>
@@ -475,10 +543,14 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
         <button id="fDueClear">Any date</button>
       </div>
     </fieldset>
-  </div>
-
-  <!-- Middle: stores and calls -->
-  <div>
+    <fieldset>
+      <legend>Completed calls</legend>
+      <label class="incl"><input type="checkbox" id="showDone"> Show completed calls</label>
+      <div class="row"><button id="clearDone">Clear completed list</button></div>
+      <div class="msg" id="doneMsg"></div>
+    </fieldset>
+      </div>
+    </details>
     <div class="toolbar">
       <h2 style="font:700 19px var(--sign)">Stores with open calls</h2>
       <div class="row" style="margin:0">
@@ -490,8 +562,6 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
         </select>
         <button id="copyList">📋 Copy list</button>
         <button id="histBtn">🗓 History</button>
-        <button id="allIn">Include all</button>
-        <button id="allOut">Exclude all</button>
       </div>
     </div>
     <div id="storeList"></div>
@@ -500,6 +570,7 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
   <!-- Right: route -->
   <div class="panel route">
     <h2>Route</h2>
+    <details class="ropts" id="routeOpts"><summary>Route options <span class="hint" id="routeSum"></span></summary>
     <label class="hint" for="startSel">Start from</label>
     <select id="startSel"></select>
     <div id="storeStart" style="display:none">
@@ -525,10 +596,13 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
       <option value="manual">Manual (use arrows)</option>
     </select>
     <label class="incl" style="margin-top:10px"><input type="checkbox" id="roundTrip"> Return to start</label>
+    <div class="row"><button id="allIn">Include all stores</button><button id="allOut">Exclude all</button></div>
+    </details>
 
     <button class="dvbtn" id="dvBtn" type="button">▶ Day view: go stop by stop</button>
     <div class="row"><button id="replanBtn" type="button">📍 Re-plan from here</button><button id="eodBtn" type="button">📊 End-of-day summary</button></div>
     <div class="totals" id="totals"></div>
+    <div class="links" id="links"></div>
     <ol class="stops" id="stops"></ol>
     <div class="share">
       <button class="primary" id="copyBtn">Copy route for team</button>
@@ -545,39 +619,19 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
       <div class="msg" id="routeMsg"></div>
       <textarea id="sharePreview" readonly aria-label="Route text"></textarea>
     </div>
-    <div class="links" id="links"></div>
   </div>
 </div>
 
-<details class="settings panel" id="aboutBox">
-  <summary>Version history</summary>
-  <div id="changelog"></div>
-</details>
 
-<details class="settings panel" id="storeData">
-  <summary>Store data and groups</summary>
-  <p class="hint">Edit and save to change store info, groups, or map positions. Saved in this browser only. Mileage is straight-line × 1.25 at 45 mph, so treat it as a rough guide; the Google Maps link gives real directions.</p>
-  <div class="set-grid">
-    <div><label for="groupsInput">Store groups (store, group)</label><textarea id="groupsInput"></textarea></div>
-    <div><label for="storesInput">Store list (paste with the header row, or load a file)</label><textarea id="storesInput"></textarea>
-      <div class="row"><button id="storeFileBtn">Load store file (.csv, .txt, or .json)</button><input type="file" id="storeFile" accept=".csv,.txt,.tsv,.json,text/csv,text/plain,application/json" hidden></div>
-      <div class="hint">Recognized columns: Store number, Division, Shopping center, Address, City, State, Zip code, County, Phone, and optional Latitude, Longitude, and Group. From Excel, use Save As &gt; CSV, or copy and paste the cells.</div></div>
-    <div><label for="coordsInput">Map positions (store, lat, lng)</label><textarea id="coordsInput"></textarea></div>
-  </div>
-  <div class="row">
-    <button class="primary" id="saveSettings">Save store data</button>
-    <button id="resetSettings"></button>
-    <span class="msg" id="setMsg"></span>
-  </div>
-</details>
 
 <script>
 // ---------- version ----------
-const APP_VERSION = "3.12";
+const APP_VERSION = "4.0";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["4.0", "Simpler screen: one ☰ Menu for Install, Send to phone, Bookmark, Download, Settings and Feedback; the paste box shrinks to one line after loading; all filters in one Filters bar with a summary; tighter store cards (tap a store for address and phone); route options folded away with the stop list on top; version history and store data moved into Settings."],
   ["3.12", "Optional features now start turned off for a simpler screen: What changed, Repeat-issue alerts, Due soon, Re-plan from here, End-of-day summary, Hand off, Day view, and Send to phone. Turn on the ones you want in Settings."],
   ["3.11", "Send to phone fits a typical day in one QR code: calls are packed tighter and shown as one larger code. Check Smaller codes if your phone has trouble scanning."],
   ["3.10", "Calls sent from the Companion app (or a transfer link) are picked up even when the planner is already open."],
@@ -964,8 +1018,8 @@ function addExtras(groups, shown){
 }
 function renderStores(groups){
   const host=$("storeList");
-  if(!Object.keys(S.stores).length){ host.innerHTML='<div class="empty">Your store list is empty. Open <b>Store data and groups</b> at the bottom of the page and load your company store file.</div>'; return; }
-  if(!S.calls.length){ host.innerHTML='<div class="empty">Paste your service call rows on the left and select <b>Load calls</b>.</div>'; return; }
+  if(!Object.keys(S.stores).length){ host.innerHTML='<div class="empty">Your store list is empty. Open <b>☰ Menu → Settings → Store data</b> and load your company store file.</div>'; return; }
+  if(!S.calls.length){ host.innerHTML='<div class="empty">Paste your service call rows above and select <b>Load calls</b>.</div>'; return; }
   if(!groups.length){ host.innerHTML='<div class="empty">No calls match the current filters.</div>'; return; }
   const now=new Date();
   host.innerHTML = groups.map(g=>{
@@ -976,10 +1030,10 @@ function renderStores(groups){
       const dn=isDone(c);
       const t=tierOf(c);
       return `<tr class="${dn?"done":t?"t"+t:""}${extra?" extra":""}">
-        <td class="chk"><label class="done-box" title="Mark call complete"><input type="checkbox" data-done="${esc(c.order)}" ${dn?"checked":""}> Done</label></td>
+        <td class="chk"><label class="done-box" title="Mark call done"><input type="checkbox" data-done="${esc(c.order)}" ${dn?"checked":""} aria-label="Done: ${esc(c.desc)}"></label></td>
         <td><span class="pri p${c.prio}">${esc(c.prioLabel)}</span></td>
-        <td><b>${esc(c.desc)}</b>${locNote}${callTags(c)}<div class="muted">Order <a class="ord" href="${ORDER_HREF(c.order)}"${orderTarget()} title="Opens in Microsoft Edge">${esc(c.order)}</a>${dn?" · completed "+new Date(S.done[c.order]).toLocaleDateString():""}${c.serial?" · SN "+esc(c.serial):""}${c.wc?" · "+esc(c.wc):""}${F("handoff")&&!dn?` <button class="hand" type="button" data-hand="${esc(c.order)}">↗ Hand off</button>`:""}</div></td>
-        <td class="due">${fmtDue(c.due)}${t&&!dn?`<div style="margin-top:2px"><span class="tier t${t}">${fmtPast(c)}</span></div>`:""}</td>
+        <td><b>${esc(c.desc)}</b> <span class="muted ordl"><a class="ord" href="${ORDER_HREF(c.order)}"${orderTarget()} title="Opens in Microsoft Edge">${esc(c.order)}</a>${dn?" · completed "+new Date(S.done[c.order]).toLocaleDateString():""}${c.serial?` <span class="sn" title="Serial number">· SN ${esc(c.serial)}</span>`:""}${F("handoff")&&!dn?` <button class="hand" type="button" data-hand="${esc(c.order)}">↗ Hand off</button>`:""}</span>${locNote}${callTags(c)}</td>
+        <td class="due">${t&&!dn?`<span class="tier t${t}" title="Due ${esc(fmtDue(c.due))}">${fmtPast(c)}</span>`:`<span class="muted">${c.due?c.due.toLocaleDateString(undefined,{month:"numeric",day:"numeric"}):"—"}</span>`}</td>
         <td><span class="status">${esc(c.status)}</span></td></tr>`;
     };
     const ex=g.extra||[];
@@ -989,15 +1043,16 @@ function renderStores(groups){
       <div class="store-head">
         ${shieldHTML(groupOf(g.num))}
         <div class="info">
-          <div class="store-name">${esc(g.num)}<small>${esc(s?s.center:"Store not in list")}</small></div>
-          <div class="addr">${s?`<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddr(g.num))}" target="_blank" rel="noopener">${esc(fullAddr(g.num))}</a> · <a href="tel:${esc(s.phone)}">${esc(s.phone)}</a>`:"Add this store under Store data to get an address"}</div>
-          <div class="muted" style="font-size:13px">${storeRepeat(g.num)}${g.calls.length} call${g.calls.length>1?"s":""}${ex.length?` + ${ex.length} more open`:""}${(()=>{const o=g.calls.concat(ex).filter(c=>!isDone(c)&&pastDays(c)>0); if(!o.length) return ""; const old=o.reduce((m,c)=>c.due<m.due?c:m); return `<span class="tier t${tierOf(old)} pastbadge">Oldest ${fmtPast(old)}</span>`;})()}</div>
+          <button class="store-name" type="button" data-more="${esc(g.num)}" aria-expanded="false" title="Show address and phone">${esc(g.num)}<small>${esc(s?s.center:"Store not in list")}${s&&s.city?" · "+esc(s.city):""}</small><span class="more">▾</span></button>
+          <div class="addr" hidden>${s?`<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddr(g.num))}" target="_blank" rel="noopener">${esc(fullAddr(g.num))}</a> · <a href="tel:${esc(s.phone)}">${esc(s.phone)}</a>`:"Add this store under Store data to get an address"}</div>
+          <div class="muted" style="font-size:13px">${storeRepeat(g.num)}${g.calls.length>1?g.calls.length+" calls":""}${ex.length?` + ${ex.length} more open`:""}${(()=>{const o=g.calls.concat(ex).filter(c=>!isDone(c)&&pastDays(c)>0); if(o.length<2 && g.calls.length+ex.length<2) return ""; if(!o.length) return ""; const old=o.reduce((m,c)=>c.due<m.due?c:m); return `<span class="tier t${tierOf(old)} pastbadge">Oldest ${fmtPast(old)}</span>`;})()}</div>
         </div>
-        <label class="incl"><input type="checkbox" data-store="${esc(g.num)}" ${inc?"checked":""}> In route</label>
+        <label class="incl sm" title="Include this store in the route"><input type="checkbox" data-store="${esc(g.num)}" ${inc?"checked":""}> Route</label>
       </div>
       <div class="calls-wrap"><table class="calls">${rows}</table></div>
     </div>`;
   }).join("");
+  host.querySelectorAll("[data-more]").forEach(b=>b.onclick=()=>{ const a=b.parentElement.querySelector(".addr"); a.hidden=!a.hidden; b.setAttribute("aria-expanded",String(!a.hidden)); });
   host.querySelectorAll("input[data-store]").forEach(cb=>cb.onchange=()=>{
     const n=cb.dataset.store; cb.checked?S.excluded.delete(n):S.excluded.add(n);
     store.set("excluded",[...S.excluded]); render();
@@ -1156,6 +1211,7 @@ function render(){
   const openVis=vis.filter(c=>!isDone(c));
   renderRoute(addExtras(storeGroups(openVis), openVis)); dvToggle();
   if(S.initDone) renderChanges();
+  layoutSummaries();
   if($("sharePreview").classList.contains("open")) $("sharePreview").value=buildShareText();
   const doneN=S.calls.filter(isDone).length;
   $("doneMsg").textContent = doneN ? `${doneN} completed call${doneN>1?"s":""}${S.showDone?" shown, crossed off":" hidden"}.` : "Check Done on a call to cross it off.";
@@ -1268,6 +1324,7 @@ $("loadBtn").onclick=()=>{
     render(); return;
   }
   if(S.initDone) compareImport(prevCalls, calls);
+  if(S.initDone && calls.length){ S.impOpen=false; store.set("loadedAt",Date.now()); $("sapHelp").open=false; }
   render();
 };
 $("clearBtn").onclick=()=>{ $("callsInput").value=""; S.calls=[]; store.set("callsText",""); $("importMsg").textContent=""; render(); };
@@ -2045,6 +2102,36 @@ async function checkUpdate(manual){
       bar.classList.add("show"); m.textContent=`Version ${v} is available.`;
     } else { bar.classList.remove("show"); m.textContent=`You have the newest version (${APP_VERSION}). Checked ${new Date().toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}.`; }
   }catch(e){ if(manual) m.textContent="Couldn't reach GitHub. Check your connection and try again."; }
+}
+
+// ---------- simpler layout: menu, import summary, filter and route summaries ----------
+(function(){
+  const btn=$("menuBtn"), m=$("menu");
+  const close=()=>{ m.hidden=true; btn.setAttribute("aria-expanded","false"); };
+  btn.onclick=e=>{ e.stopPropagation(); m.hidden=!m.hidden; btn.setAttribute("aria-expanded",String(!m.hidden)); };
+  m.addEventListener("click",e=>{ if(e.target.closest("button,a")) setTimeout(close,0); });
+  document.addEventListener("click",e=>{ if(!m.hidden && !e.target.closest(".menuwrap")) close(); });
+  document.addEventListener("keydown",e=>{ if(e.key==="Escape") close(); });
+  $("impNew").onclick=()=>{ S.impOpen=true; $("callsInput").value=""; layoutSummaries(); $("callsInput").focus(); };
+})();
+function layoutSummaries(){
+  // Import: once calls are loaded, show one line instead of the paste box.
+  const loaded=S.calls.length>0 && !S.impOpen;
+  $("impSum").hidden=!loaded; $("impBox").hidden=loaded; $("sapHelp").hidden=loaded;
+  if(loaded && !$("importMsg").classList.contains("err")) $("importMsg").textContent="";
+  if(loaded){ const t=store.get("loadedAt",null); $("impSumText").textContent=`${S.calls.length} call${S.calls.length===1?"":"s"} loaded`+(t?` · ${new Date(t).toLocaleString([], {weekday:"short",hour:"numeric",minute:"2-digit"})}`:""); }
+  // Filters: one-line summary of what's narrowing the list.
+  const parts=[];
+  if(S.pastTiers.size||customRange()) parts.push("past due: "+(customRange()?"custom range":TIERS.filter(x=>S.pastTiers.has(x.k)).map(x=>x.label).join(", ")));
+  if(S.fDates.size) parts.push(`${S.fDates.size} date${S.fDates.size>1?"s":""}`);
+  const offG=[...S.known.groups].filter(g=>!S.fGroups.has(g)), offP=[...S.known.prio].filter(x=>!S.fPrio.has(x)), offS=[...S.known.status].filter(x=>!S.fStatus.has(x));
+  if(offG.length) parts.push("groups: "+[...S.fGroups].sort().join(", ")); if(offP.length) parts.push("some priorities"); if(offS.length) parts.push("status: "+[...S.fStatus].join(", "));
+  if(S.fDue) parts.push("due by "+S.fDue); if(S.showDone) parts.push("showing completed");
+  const vis=visibleCalls().length;
+  $("filterSum").textContent = parts.length ? `Showing ${vis} of ${S.calls.length} · ${parts.join(" · ")}` : (S.calls.length?`Showing all ${S.calls.length} calls · tap to filter`:"Tap to filter");
+  // Route options: one-line summary.
+  const ss=$("startSel"), ms=$("modeSel");
+  $("routeSum").textContent=`From: ${ss.options[ss.selectedIndex]?ss.options[ss.selectedIndex].text.replace("…",""):"first stop"} · ${ms.options[ms.selectedIndex].text}${$("roundTrip").checked?" · return to start":""}`;
 }
 
 // ---------- init ----------
