@@ -108,6 +108,20 @@ legend{font-weight:600;font-size:14px;margin-bottom:6px}
 .bmk ol{padding-left:20px;margin:8px 0}
 .bmk li{margin:6px 0}
 .bmk .row{justify-content:flex-end}
+.fb label.lbl{display:block;font-weight:600;font-size:14px;margin:10px 0 4px}
+.fb .types{display:flex;gap:6px;flex-wrap:wrap}
+.fb .types label{display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--line);border-radius:999px;padding:5px 12px;cursor:pointer;font-size:14px}
+.fb .types input{accent-color:var(--road)}
+.fb .types label:has(input:checked){border-color:var(--ink);background:var(--soft);font-weight:600}
+.fb input[type=text],.fb textarea{width:100%;border:1px solid var(--line);border-radius:6px;padding:8px;background:var(--panel);color:var(--ink);font:inherit}
+.fb textarea{min-height:110px;resize:vertical}
+.pnum{display:flex;align-items:stretch;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--panel)}
+.pnum span{display:grid;place-items:center;padding:0 10px;background:var(--soft);font-weight:700;border-right:1px solid var(--line);user-select:none}
+.pnum input{border:0!important;border-radius:0!important;letter-spacing:.5px}
+.fb .warn{background:#FFF3C4;color:#3A2E00;border-radius:8px;padding:8px 10px;font-size:13px;margin-top:10px}
+.fb .ack{display:flex;gap:8px;align-items:flex-start;margin-top:8px;font-size:14px;cursor:pointer}
+.fb .ack input{width:20px;height:20px;flex:none;margin-top:1px;accent-color:var(--road)}
+.fb .err{color:var(--p2);font-size:13px;min-height:1em;margin-top:6px}
 .upd{display:none;width:100%;background:#FFF3C4;color:#3A2E00;border-radius:8px;padding:8px 12px;font-size:14px;align-items:center;gap:10px;flex-wrap:wrap}
 .upd.show{display:flex}
 .upd a{font-weight:700;color:#1E4E8C}
@@ -188,12 +202,37 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
   <h1><span id="appName">Service Route Planner</span> <span id="verTag" style="font-size:15px;opacity:.8"></span></h1>
   <span class="sub" id="summary">No calls loaded</span>
   <span class="saved" id="savedNote">Saved on this computer</span>
+  <button class="hbtn" id="fbBtn" type="button">💬 Feedback</button>
   <div class="modebar">
     <span class="modebadge" id="modeBadge"></span>
     <span id="modeActions"></span>
   </div>
   <div class="upd" id="updBar" role="status"></div>
 </header>
+<div class="bmk fb" id="fbDlg" role="dialog" aria-modal="true" aria-labelledby="fbTitle">
+  <form class="box" id="fbForm" novalidate style="max-height:92vh;overflow:auto">
+    <h3 id="fbTitle">Send feedback</h3>
+    <p class="hint" style="margin:0">Report a bug, an error, or an idea. This opens Outlook with your report ready to send.</p>
+    <span class="lbl" style="display:block;font-weight:600;font-size:14px;margin:10px 0 4px">Type</span>
+    <div class="types" role="radiogroup" aria-label="Type">
+      <label><input type="radio" name="fbType" value="Bug" checked> Bug</label>
+      <label><input type="radio" name="fbType" value="Error"> Error</label>
+      <label><input type="radio" name="fbType" value="Suggestion"> Suggestion</label>
+    </div>
+    <label class="lbl" for="fbName">Name</label>
+    <input type="text" id="fbName" autocomplete="name" maxlength="60" required>
+    <label class="lbl" for="fbP">P Number</label>
+    <div class="pnum"><span aria-hidden="true">P</span><input type="text" id="fbP" inputmode="numeric" pattern="[0-9]{3,10}" maxlength="10" placeholder="3 to 10 digits" aria-describedby="fbPHint" required></div>
+    <div class="hint" id="fbPHint">Numbers only, 3 to 10 digits. The P is added for you.</div>
+    <label class="lbl" for="fbMsg">What happened, or what would you like?</label>
+    <textarea id="fbMsg" maxlength="1500" required></textarea>
+    <div class="warn"><b>Keep it general.</b> Describe the problem or idea in broad terms. Don't include store details, order numbers, customer information, or anything proprietary or confidential.</div>
+    <label class="ack"><input type="checkbox" id="fbAck"> <span>I used general terms and included no proprietary or confidential information.</span></label>
+    <div class="err" id="fbErr" role="alert"></div>
+    <div class="row" style="justify-content:flex-end"><button type="button" id="fbCancel">Cancel</button><button type="submit" class="primary" id="fbSend">Open in Outlook</button></div>
+    <p class="hint" id="fbAlt" style="margin:8px 0 0"></p>
+  </form>
+</div>
 <div class="bmk" id="sendDlg" role="dialog" aria-modal="true" aria-labelledby="sendTitle">
   <div class="box" style="max-width:460px;text-align:center">
     <h3 id="sendTitle">Send to phone</h3>
@@ -401,10 +440,12 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
 
 <script>
 // ---------- version ----------
-const APP_VERSION = "3.0";
+const APP_VERSION = "3.1";
+const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["3.1", "Feedback button: report a bug, an error, or a suggestion. It opens Outlook with your report ready to send."],
   ["3.0", "Send to phone (online version): your open calls and route settings move from your computer to your phone by scanning QR codes with the phone's camera. Codes open your state's planner. Nothing is uploaded; the data travels only inside the codes."],
   ["2.9.2", "Phone numbers for newly added stores are formatted like the rest, for example (239) 397-6860."],
   ["2.9.1", "Store list update. Added 44 new stores: 1782 Naples, FL; 1800 Palm Beach Gardens, FL; 1841 Jacksonville, FL; 1861 Clearwater, FL; 1865 Kingsland, GA; 1888 Durham, NC; 1899 Palm Bay, FL; 2009 Nolensville, TN; 2014 Saint Augustine, FL; 2016 Hinesville, GA; 2022 Orlando, FL; 2029 Calabash, NC; 2035 Winter Haven, FL; 2037 Plantation, FL; 2040 Aiken, SC; 2043 Lakeland, FL; 2053 Owensboro, KY; 2055 Florence, KY; 2057 Cold Spring, KY; 2058 Independence, KY; 2059 Elizabethtown, KY; 2088 Davenport, FL; 2090 Charleston, SC; 2091 Englewood, FL; 2094 Saint Petersburg, FL; 2095 Spring Hill, FL; 2096 Saint Augustine Beach, FL; 2099 Bradenton, FL; 2100 Mauldin, SC; 2101 Fayetteville, NC; 2102 Locust Grove, GA; 2103 Jacksonville, FL; 2105 Mills River, NC; 2106 Farragut, TN; 2107 Winter Haven, FL; 2108 Bradenton, FL; 2109 Bainbridge, GA; 2112 Fernandina Beach, FL; 2113 Saint Augustine, FL; 2117 Winter Haven, FL; 2120 Wesley Chapel, NC; 2121 Apopka, FL; 2141 Ruskin, FL; 2145 Athens, AL. Filled in missing details for stores 1884, 2013, 2018, 1886, 2050."],
@@ -2622,6 +2663,41 @@ function setupMode(){
     if($("autoUpd").checked){ checkUpdate(false); setInterval(()=>checkUpdate(false), 6*3600*1000); }
   }
 }
+// ---------- feedback (opens Outlook) ----------
+function setupFeedback(){
+  const dlg=$("fbDlg"), err=$("fbErr");
+  $("fbName").value=store.get("fbName",""); $("fbP").value=store.get("fbP","");
+  $("fbBtn").onclick=()=>{ err.textContent=""; $("fbAlt").textContent=""; $("fbAck").checked=false; dlg.classList.add("show"); ($("fbName").value?$("fbMsg"):$("fbName")).focus(); };
+  $("fbCancel").onclick=()=>dlg.classList.remove("show");
+  dlg.onclick=e=>{ if(e.target.id==="fbDlg") dlg.classList.remove("show"); };
+  $("fbP").addEventListener("input",e=>{ const v=e.target.value.replace(/\D/g,"").slice(0,10); if(v!==e.target.value) e.target.value=v; });
+  $("fbP").addEventListener("keydown",e=>{ if(e.key.length===1 && !/[0-9]/.test(e.key) && !e.ctrlKey && !e.metaKey) e.preventDefault(); });
+  $("fbForm").onsubmit=e=>{
+    e.preventDefault();
+    const type=(document.querySelector('input[name=fbType]:checked')||{}).value||"Bug";
+    const name=$("fbName").value.trim(), pn=$("fbP").value.trim(), msg=$("fbMsg").value.trim();
+    if(!name){ err.textContent="Enter your name."; $("fbName").focus(); return; }
+    if(!/^[0-9]{3,10}$/.test(pn)){ err.textContent="P Number must be 3 to 10 digits."; $("fbP").focus(); return; }
+    if(msg.length<5){ err.textContent="Describe the bug, error, or suggestion."; $("fbMsg").focus(); return; }
+    if(!$("fbAck").checked){ err.textContent="Check the box to confirm you included no proprietary or confidential information."; $("fbAck").focus(); return; }
+    err.textContent=""; store.set("fbName",name); store.set("fbP",pn);
+    const subject=`[Route2 Feedback] ${type} – ${name} (P${pn})`;
+    const body=[`Type: ${type}`,`Name: ${name}`,`P Number: P${pn}`,"",msg,"","---",
+      `Planner: ${EDITION.name} v${APP_VERSION} (${IS_ONLINE?"online":"offline"})`,
+      `Device: ${/iPhone|iPad/.test(navigator.userAgent)?"iPhone/iPad":/Android/.test(navigator.userAgent)?"Android":/Windows/.test(navigator.userAgent)?"Windows":/Mac/.test(navigator.userAgent)?"Mac":"Other"}`,
+      `Sent: ${new Date().toLocaleString()}`,"Confirmed: no proprietary or confidential information included."].join("\n");
+    const q=`to=${encodeURIComponent(FEEDBACK_TO)}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    const mobile=/iPhone|iPad|iPod|Android/.test(navigator.userAgent);
+    const web="https://outlook.office.com/mail/deeplink/compose?"+q;
+    if(mobile){ location.href="ms-outlook://compose?"+q; }
+    else { window.open(web,"_blank","noopener"); }
+    $("fbAlt").innerHTML = mobile
+      ? `Outlook didn't open? Make sure the Outlook app is installed, or <a href="${web}" target="_blank" rel="noopener">use Outlook on the web</a>.`
+      : `Outlook didn't open? Allow pop-ups for this page, or <a href="${web}" target="_blank" rel="noopener">open Outlook on the web</a>.`;
+    $("fbMsg").value=""; $("savedNote").textContent="Feedback ready in Outlook. Tap Send there.";
+  };
+}
+
 // ---------- send to phone (online version only) ----------
 const STATE_CODES=["AL","FL","GA","KY","NC","SC","TN","VA"];
 const STATE_NAMES={AL:"Alabama",FL:"Florida",GA:"Georgia",KY:"Kentucky",NC:"North Carolina",SC:"South Carolina",TN:"Tennessee",VA:"Virginia"};
@@ -2755,6 +2831,7 @@ async function checkUpdate(manual){
 
 // ---------- init ----------
 setupMode();
+setupFeedback();
 if(IS_ONLINE) receiveSync();
 $("colList").innerHTML=COLS.map((n,i)=>`<span>${i+1}</span><span>${esc(n)}</span>`).join("");
 if(!store.get("callsText","")) $("sapHelp").open=true;

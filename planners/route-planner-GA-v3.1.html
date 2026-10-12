@@ -108,6 +108,20 @@ legend{font-weight:600;font-size:14px;margin-bottom:6px}
 .bmk ol{padding-left:20px;margin:8px 0}
 .bmk li{margin:6px 0}
 .bmk .row{justify-content:flex-end}
+.fb label.lbl{display:block;font-weight:600;font-size:14px;margin:10px 0 4px}
+.fb .types{display:flex;gap:6px;flex-wrap:wrap}
+.fb .types label{display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--line);border-radius:999px;padding:5px 12px;cursor:pointer;font-size:14px}
+.fb .types input{accent-color:var(--road)}
+.fb .types label:has(input:checked){border-color:var(--ink);background:var(--soft);font-weight:600}
+.fb input[type=text],.fb textarea{width:100%;border:1px solid var(--line);border-radius:6px;padding:8px;background:var(--panel);color:var(--ink);font:inherit}
+.fb textarea{min-height:110px;resize:vertical}
+.pnum{display:flex;align-items:stretch;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--panel)}
+.pnum span{display:grid;place-items:center;padding:0 10px;background:var(--soft);font-weight:700;border-right:1px solid var(--line);user-select:none}
+.pnum input{border:0!important;border-radius:0!important;letter-spacing:.5px}
+.fb .warn{background:#FFF3C4;color:#3A2E00;border-radius:8px;padding:8px 10px;font-size:13px;margin-top:10px}
+.fb .ack{display:flex;gap:8px;align-items:flex-start;margin-top:8px;font-size:14px;cursor:pointer}
+.fb .ack input{width:20px;height:20px;flex:none;margin-top:1px;accent-color:var(--road)}
+.fb .err{color:var(--p2);font-size:13px;min-height:1em;margin-top:6px}
 .upd{display:none;width:100%;background:#FFF3C4;color:#3A2E00;border-radius:8px;padding:8px 12px;font-size:14px;align-items:center;gap:10px;flex-wrap:wrap}
 .upd.show{display:flex}
 .upd a{font-weight:700;color:#1E4E8C}
@@ -188,12 +202,37 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
   <h1><span id="appName">Service Route Planner</span> <span id="verTag" style="font-size:15px;opacity:.8"></span></h1>
   <span class="sub" id="summary">No calls loaded</span>
   <span class="saved" id="savedNote">Saved on this computer</span>
+  <button class="hbtn" id="fbBtn" type="button">💬 Feedback</button>
   <div class="modebar">
     <span class="modebadge" id="modeBadge"></span>
     <span id="modeActions"></span>
   </div>
   <div class="upd" id="updBar" role="status"></div>
 </header>
+<div class="bmk fb" id="fbDlg" role="dialog" aria-modal="true" aria-labelledby="fbTitle">
+  <form class="box" id="fbForm" novalidate style="max-height:92vh;overflow:auto">
+    <h3 id="fbTitle">Send feedback</h3>
+    <p class="hint" style="margin:0">Report a bug, an error, or an idea. This opens Outlook with your report ready to send.</p>
+    <span class="lbl" style="display:block;font-weight:600;font-size:14px;margin:10px 0 4px">Type</span>
+    <div class="types" role="radiogroup" aria-label="Type">
+      <label><input type="radio" name="fbType" value="Bug" checked> Bug</label>
+      <label><input type="radio" name="fbType" value="Error"> Error</label>
+      <label><input type="radio" name="fbType" value="Suggestion"> Suggestion</label>
+    </div>
+    <label class="lbl" for="fbName">Name</label>
+    <input type="text" id="fbName" autocomplete="name" maxlength="60" required>
+    <label class="lbl" for="fbP">P Number</label>
+    <div class="pnum"><span aria-hidden="true">P</span><input type="text" id="fbP" inputmode="numeric" pattern="[0-9]{3,10}" maxlength="10" placeholder="3 to 10 digits" aria-describedby="fbPHint" required></div>
+    <div class="hint" id="fbPHint">Numbers only, 3 to 10 digits. The P is added for you.</div>
+    <label class="lbl" for="fbMsg">What happened, or what would you like?</label>
+    <textarea id="fbMsg" maxlength="1500" required></textarea>
+    <div class="warn"><b>Keep it general.</b> Describe the problem or idea in broad terms. Don't include store details, order numbers, customer information, or anything proprietary or confidential.</div>
+    <label class="ack"><input type="checkbox" id="fbAck"> <span>I used general terms and included no proprietary or confidential information.</span></label>
+    <div class="err" id="fbErr" role="alert"></div>
+    <div class="row" style="justify-content:flex-end"><button type="button" id="fbCancel">Cancel</button><button type="submit" class="primary" id="fbSend">Open in Outlook</button></div>
+    <p class="hint" id="fbAlt" style="margin:8px 0 0"></p>
+  </form>
+</div>
 <div class="bmk" id="sendDlg" role="dialog" aria-modal="true" aria-labelledby="sendTitle">
   <div class="box" style="max-width:460px;text-align:center">
     <h3 id="sendTitle">Send to phone</h3>
@@ -401,10 +440,12 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
 
 <script>
 // ---------- version ----------
-const APP_VERSION = "3.0";
+const APP_VERSION = "3.1";
+const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["3.1", "Feedback button: report a bug, an error, or a suggestion. It opens Outlook with your report ready to send."],
   ["3.0", "Send to phone (online version): your open calls and route settings move from your computer to your phone by scanning QR codes with the phone's camera. Codes open your state's planner. Nothing is uploaded; the data travels only inside the codes."],
   ["2.9.2", "Phone numbers for newly added stores are formatted like the rest, for example (239) 397-6860."],
   ["2.9.1", "Store list update. Added 44 new stores: 1782 Naples, FL; 1800 Palm Beach Gardens, FL; 1841 Jacksonville, FL; 1861 Clearwater, FL; 1865 Kingsland, GA; 1888 Durham, NC; 1899 Palm Bay, FL; 2009 Nolensville, TN; 2014 Saint Augustine, FL; 2016 Hinesville, GA; 2022 Orlando, FL; 2029 Calabash, NC; 2035 Winter Haven, FL; 2037 Plantation, FL; 2040 Aiken, SC; 2043 Lakeland, FL; 2053 Owensboro, KY; 2055 Florence, KY; 2057 Cold Spring, KY; 2058 Independence, KY; 2059 Elizabethtown, KY; 2088 Davenport, FL; 2090 Charleston, SC; 2091 Englewood, FL; 2094 Saint Petersburg, FL; 2095 Spring Hill, FL; 2096 Saint Augustine Beach, FL; 2099 Bradenton, FL; 2100 Mauldin, SC; 2101 Fayetteville, NC; 2102 Locust Grove, GA; 2103 Jacksonville, FL; 2105 Mills River, NC; 2106 Farragut, TN; 2107 Winter Haven, FL; 2108 Bradenton, FL; 2109 Bainbridge, GA; 2112 Fernandina Beach, FL; 2113 Saint Augustine, FL; 2117 Winter Haven, FL; 2120 Wesley Chapel, NC; 2121 Apopka, FL; 2141 Ruskin, FL; 2145 Athens, AL. Filled in missing details for stores 1884, 2013, 2018, 1886, 2050."],
@@ -430,106 +471,235 @@ const CHANGELOG = [
   ["1.0", "Import calls, group by store, filters, route ordering, Google Maps directions."]
 ];
 // ===EDITION-START===
-const EDITION = {id:"state-AL", name:"Service Route Planner \u2013 Alabama", key:"rp-AL.", resetLabel:"Restore Alabama store list", groupBy:"city"};
+const EDITION = {id:"state-GA", name:"Service Route Planner \u2013 Georgia", key:"rp-GA.", resetLabel:"Restore Georgia store list", groupBy:"city"};
 const DEFAULT_GROUPS = ``;
 const DEFAULT_STORES = `Store #	Shopping Center	Address	City	State	Zip	Phone	Latitude	Longitude
-45	Decatur Commons	1605 Beltline Rd SW	Decatur	AL	35601-5591	(256) 301-0023	34.5651	-87.013084
-75	The Shops of Lake Tuscaloosa	4851 Rice Mine Rd NE Ste 200	Tuscaloosa	AL	35406-3571	(205) 247-7666	33.263107	-87.51333
-165	Edgemont Town Center	411 Green Springs Hwy	Homewood	AL	35209-4909	(205) 944-1101	33.465294	-86.81963
-209	Mountain Cove Crossing	12796 Bailey Cove Rd SE	Huntsville	AL	35803-2659	(256) 885-0002	34.622765	-86.538506
-573	Hampton Cove Center	6707 Highway 431 S	Owens Cross Roads	AL	35763-9204	(256) 512-0990	34.6589	-86.481
-574	Piedmont Point Shopping Center	4851 Whitesburg Dr SE Ste B	Huntsville	AL	35802-1626	(256) 650-2390	34.692776	-86.56597
-598	Madison Centre	8000 Madison Blvd Ste A	Madison	AL	35758-2035	(256) 461-1860	34.691734	-86.71839
-838	Valleydale Village	5188 Caldwell Mill Rd	Hoover	AL	35244-1915	(205) 980-7500	33.385883	-86.7406
-839	Trace Crossings	2543 John Hawkins Pkwy	Hoover	AL	35244-3533	(205) 982-8506	33.35582	-86.84268
-841	Southgate Village	1944 Montgomery Hwy S	Birmingham	AL	35244-1141	(205) 987-3401	33.347034	-86.797356
-842	Vestavia Hills City Center	784 Montgomery Hwy	Vestavia Hills	AL	35216-1800	(205) 824-6005	33.444695	-86.793365
-882	The Village at Lee Branch	410 Doug Baker Blvd	Hoover	AL	35242-2682	(205) 981-7415	33.408936	-86.66846
-1024	Taylor Junction	7076 Atlanta Hwy	Montgomery	AL	36117-4242	(334) 290-4501	32.381226	-86.171616
-1025	Dalraida Commons	4045 Atlanta Hwy	Montgomery	AL	36109-2920	(334) 260-7782	32.38358	-86.24181
-1026	Cornerstone	7700 Vaughn Rd	Montgomery	AL	36116-1337	(334) 290-4920	32.33679	-86.18278
-1027	Zelda Place	3026 Zelda Rd	Montgomery	AL	36106-2700	(334) 244-4481	32.35555	-86.26592
-1059	Montclair Place	1325 Montclair Rd	Birmingham	AL	35210-2205	(205) 951-6626	33.52109	-86.73115
-1065	Allison-Bonnett Plaza	3014 Allison Bonnett Memorial Dr Ste 130	Hueytown	AL	35023-2395	(205) 497-5366	33.453255	-86.97826
-1069	Clay Marketplace	5150 Old Springville Rd	Pinson	AL	35126-3635	(205) 815-5224	33.65588	-86.646996
-1073	White Stone Center	9200 Highway 119 Ste 1400	Alabaster	AL	35007-5344	(205) 663-3443	33.212715	-86.825676
-1074	Crow's Corner	4730 Highway 17	Helena	AL	35080-3570	(205) 620-0199	33.279976	-86.854065
-1075	Northwood Crossings	2300 McFarland Blvd	Northport	AL	35476-2927	(205) 339-4232	33.241905	-87.57779
-1082	The Shoppes at Deerfoot	7272 Gadsden Hwy	Trussville	AL	35173-1687	(205) 661-1415	33.641434	-86.57991
-1083	Publix At University Town Center	1190 University Blvd	Tuscaloosa	AL	35401-1601	(205) 247-5044	33.212097	-87.55358
-1085	Publix On Overton	3141 Overton Rd	Mountain Brook	AL	35223-2846	(205) 967-2188	33.46575	-86.73279
-1086	Phenix Crossing	5408 Summerville Rd Ste 200	Phenix City	AL	36867-7481	(334) 291-8525	32.521423	-85.0282
-1126	Winchester Plaza	2246 Winchester Rd NE	Huntsville	AL	35811-6800	(256) 851-5807	34.816174	-86.48965
-1185	Village Shoppes of Madison	12070 County Line Rd Ste C	Madison	AL	35756-2000	(256) 230-2626	34.730225	-86.7882
-1200	Colonial Promenade Tannehill	4965 Promenade Pkwy	Bessemer	AL	35022-7304	(205) 426-7100	33.33517	-86.9934
-1202	Pelham Towne Center	365 Huntley Pkwy	Pelham	AL	35124-6164	(205) 620-0102	33.274746	-86.79236
-1203	Eastside Junction	22031 US Highway 72	Athens	AL	35613-2614	(256) 230-2076	34.78381	-86.92976
-1206	Magnolia City Place	655 Fieldstown Rd	Gardendale	AL	35071-2411	(205) 608-4677	33.65124	-86.82223
-1207	Hoover Place	1584 Montgomery Hwy	Hoover	AL	35216-4524	(205) 824-7218	33.403557	-86.80838
-1213	The Shoppes at Palm Pointe	25771 Perdido Beach Blvd	Orange Beach	AL	36561-6107	(251) 980-1400	30.271769	-87.58804
-1218	Harvest Square	5850 Highway 53	Harvest	AL	35749-4301	(256) 851-5958	34.846462	-86.7103
-1228	High Point Town Center	2451 Cobbs Ford Rd	Prattville	AL	36066-7763	(334) 285-0227	32.461422	-86.39835
-1253	Capital Market Center	1101 Southview Ln	Tuscaloosa	AL	35405-6389	(205) 247-7710	33.123127	-87.55273
-1265	The Shoppes at Fairhope Village	22530 US Highway 98 Ste 100	Fairhope	AL	36532-6398	(251) 929-7355	30.555693	-87.890915
-1281	Calera Crossings	90 Marketplace Cir	Calera	AL	35040-8200	(205) 668-3585	33.15549	-86.74836
-1292	Colonial Promenade at Craft Farms	160 Cotton Creek Dr Ste 100	Gulf Shores	AL	36542-2850	(251) 948-1281	30.298656	-87.681404
-1294	Hamilton Place	2415 Moores Mill Rd	Auburn	AL	36830-8480	(334) 502-8667	32.585373	-85.43644
-1355	The Shoppes at Cary Creek	2900 E University Dr	Auburn	AL	36830-7720	(334) 502-2416	32.63822	-85.48016
-1362	Magnolia Place	27955 US Highway 98 Ste 1	Daphne	AL	36526-4700	(251) 626-1305	30.630938	-87.912575
-1369	Northside Mall	3525 Ross Clark Cir Ste 100	Dothan	AL	36303-5935	(334) 792-4281	31.248392	-85.42902
-1370	Chelsea Crossroads	501 Chelsea Xrds	Chelsea	AL	35043-3900	(205) 678-5600	33.353226	-86.608795
-1375	Cottonwood Corners	1620 Ross Clark Cir	Dothan	AL	36301-5439	(334) 673-1200	31.197466	-85.37453
-1377	Westway	4650 W Main St Ste 700	Dothan	AL	36305-9421	(334) 792-6801	31.239414	-85.46214
-1391	South Park Center	2040 Martin St S	Pell City	AL	35128-2326	(205) 338-3472	33.563824	-86.2677
-1400	Eastern Shore Commons	10179 Eastern Shore Dr	Spanish Fort	AL	36527-5801	(251) 621-9065	30.674051	-87.848
-1402	Park Place	847 Boll Weevil Cir Ste 112	Enterprise	AL	36330-2476	(334) 348-1489	31.326006	-85.838264
-1404	Publix at Sunset Point	4628 Airport Blvd	Mobile	AL	36608-2223	(251) 341-5727	30.676668	-88.16773
-1409	Renaissance City Center	322 Cox Creek Pkwy	Florence	AL	35630-1540	(256) 718-1790	34.837173	-87.62942
-1420	Oxford Commons	115 Commons Way	Oxford	AL	36203-3483	(256) 835-4075	33.607628	-85.78837
-1436	Hillwood Shopping Center	2370 Hillcrest Rd, Unit J	Mobile	AL	36695-3838	(251) 661-5361	30.641775	-88.19231
-1451	Twickenham Square	310 Pelham Ave SW	Huntsville	AL	35801-5016	(256) 534-2330	34.723385	-86.58394
-1462	Guntersville Landing	2300 Gunter Ave	Guntersville	AL	35976-2238	(256) 571-2501	34.333763	-86.316414
-1476	Shoppes at Rainbow Landing	128 W Grand Ave	Rainbow City	AL	35906-3238	(256) 442-2509	33.955227	-86.04394
-1503	Cullman Shopping Center	1104 Cullman Shopping Ctr NW	Cullman	AL	35055-2855	(256) 736-7000	34.181503	-86.84922
-1508	The Village at Moody	2200 Village Dr	Moody	AL	35004-3241	(205) 640-3230	33.570053	-86.51761
-1512	20 Midtown	230 20th St S	Birmingham	AL	35233	(205) 250-7170	33.51	-86.80339
-1525	Park Place	1147 US Hwy 231 S	Troy	AL	36081	(334) 807-5761	31.780548	-85.95472
-1532	Muscle Shoals Commons	3220 Woodward Ave	Muscle Shoals	AL	35661-3322	(256) 389-0080	34.731277	-87.66976
-1545	Patchwork Farms  Shopping Center	3040 Healthy Way	Vestavia Hills	AL	35243	(205) 970-7501	33.42937	-86.737595
-1604	Midtown Center	100 N Florida St	Mobile	AL	36607	(251) 471-4860	30.69239	-88.09899
-1609	Point Mallard Centre	2934 Point Mallard Pkwy SE	Decatur	AL	35603	(256) 351-5261	34.542683	-86.9204
-1612	The Pinnacle at Providence	1660 Old Monrovia Rd NW	Huntsville	AL	35806	(256) 430-5443	34.75842	-86.6803
-1627	Lakeshore Pavilion	2860 Lakeshore Pkwy	Birmingham	AL	35211	(205) 945-2741	33.423016	-86.88869
-1629	The Shoppes at Redstone Square	2286 Zierdt Rd	Huntsville	AL	35824	(256) 774-3888	34.64777	-86.71972
-1638	Madison Commons Shopping Center	350 Hughes Rd	Madison	AL	35758	(256) 464-3422	34.708176	-86.743774
-1642	The Shops at Pine Grove	7129 Wall Triana Hwy	Madison	AL	35757	(256) 722-3786	34.7932	-86.74669
-1650	Saraland Crossing	21 Shell St	Saraland	AL	36571	(251) 679-2995	30.805569	-88.11064
-1672	Paradise Isle Shopping Center	1720 Gulf Shores Pkwy Ste 2	Gulf Shores	AL	36542-3438	(251) 240-3003	30.27005	-87.68654
-1673	Riviera Square	2614 S McKenzie St	Foley	AL	36535	(251) 943-3329	30.377172	-87.68633
-1675	Rocky Ridge Square	3350 Morgan Dr	Vestavia Hills	AL	35216	(205) 978-9842	33.42661	-86.77439
-1676	Lane Parke	1000 Jemison Ln	Mountain Brook	AL	35223	(205) 802-9189	33.486256	-86.77304
-1687	Publix at Tattersall Park	6219 Tattersall Blvd	Hoover	AL	35242	(205) 981-3995	33.41998	-86.667656
-1691	Publix at Bristol Park	13556 Hwy 69 N	Northport	AL	35475	(205) 330-7653	33.303192	-87.570305
-1692	The Market Place at The Bray	3201 Endeavor Ln	Vestavia Hills	AL	35242	(205) 967-5998	33.47266	-86.70333
-1726	Clift Farm	417 John Henry Way	Madison	AL	35757	(256) 325-0540	34.75281	-86.76138
-1728	Morgan Road Plaza	4293 S Shades Crest Rd	Hoover	AL	35244	(205) 428-4923	33.308758	-86.90357
-1756	Shops at Pike Road	9515 Vaughn Rd	Pike Road	AL	36064	(334) 694-5802	32.34635	-86.09324
-1785	Market at Hays Farm	9040 Memorial Pkwy SW	Huntsville	AL	35802	(256) 650-6086	34.64807	-86.56769
-1790	Midtown Centre	165 US Hwy 31 N	Athens	AL	35611	(256) 771-5662	34.804874	-86.9508
-1794	Marble City Square	165 MCS Blvd	Sylacauga	AL	35150-1138	(256) 487-0098	33.17279	-86.283325
-1796	Bickley Station	9124 Cottage Hill Rd	Mobile	AL	36695	(251) 634-5141	30.640327	-88.258064
-1799	Planters Pointe Shopping Center	9867 State Hwy 104	Fairhope	AL	36532-4392	(251) 279-6001	30.54868	-87.8558
-1809	The Shops at Point Clear	18125 Wright Blvd	Fairhope	AL	36532-7335	(251) 279-6442	30.488304	-87.8875
-1822	Shops on Gay Street	138 S Gay St	Auburn	AL	36830	(334) 502-3616	32.605694	-85.48019
-1830	Publix at Scottsboro	24540 John T Reid Pkwy	Scottsboro	AL	35768	(256) 672-6056	34.665695	-86.01539
-1831	Cahaba Crossing	1288 Grants Mill Rd	Irondale	AL	35210-2112	(205) 905-3598	33.535587	-86.674644
-1878	The Gateway at Lake Martin	4812 Hwy 280	Alexander City	AL	35010	(256) 414-6016	32.91492	-85.953384
-2002	Camp Grandview Plaza	1400 AL Hwy 14	Millbrook	AL	36054	(334) 604-4819	32.493607	-86.402794
-2010	The Shoppes at Fort Toulouse	5039 US Hwy 231	Wetumpka	AL	36092	(334) 478-6185	32.514515	-86.214165
-2027	Semmes Village Shopping Center	2035 Schillinger Rd N Ste 100	Semmes	AL	36575-7417	(251) 264-6020	30.732477	-88.227905
-2042	Flint Crossing Market Place	12290 Hwy 231/431 N	Meridianville	AL	35759-1200	(256) 804-4042	34.870956	-86.569336
-2098	The Village at Foley Crossroads	9913 Foley-Beach Express	Foley	AL	36535	(251) 240-3043	30.368826	-87.65549
-2145	French Mill Crossing	14210 Mooresville Rd	Athens	AL	35613	(256) 867-6148	34.764635	-86.876485`;
+26	Cruse Marketplace	1735 Buford Hwy	Cumming	GA	30041-1266	(770) 781-5601	34.164	-84.11445
+33	Highland Plaza	3605 Sandy Plains Rd Ste 200	Marietta	GA	30066-3066	(770) 578-6000	34.038597	-84.463066
+42	Freehome Village	12424 Cumming Hwy	Canton	GA	30115-7778	(678) 455-0112	34.236805	-84.29072
+49	Lanier Commons	3480 Keith Bridge Rd	Cumming	GA	30041-5568	(678) 455-0610	34.258144	-84.0711
+74	Lilburn Corners Shopping Center	375 Rockbridge Rd NW	Lilburn	GA	30047-8225	(770) 806-4040	33.883102	-84.16379
+86	Publix at Shallowford	4401 Shallowford Rd	Roswell	GA	30075-3193	(770) 640-6200	34.028515	-84.42119
+92	Stockbridge Lakes	250 E Atlanta Rd	Stockbridge	GA	30281-3414	(770) 389-4666	33.55507	-84.23234
+108	The Vineyards	2095 Highway 211 NW	Braselton	GA	30517-3402	(678) 425-6200	34.102875	-83.81206
+122	Macland Pointe Shopping Center	1750 Powder Springs Rd SW	Marietta	GA	30064-4850	(770) 423-4160	33.90342	-84.607
+146	Wade Green Village	4430 Wade Green Rd NW Ste 100	Kennesaw	GA	30144-1267	(770) 419-4030	34.061768	-84.59052
+155	Woodlawn Point Shopping Center	1100 Johnson Ferry Rd	Marietta	GA	30068-2794	(770) 509-2350	33.977406	-84.41444
+226	Medlock Corners	5805 State Bridge Rd	Johns Creek	GA	30097-8220	(770) 813-7450	34.018204	-84.18761
+269	Flat Shoals Crossing Shopping Center	3649 Flakes Mill Rd	Decatur	GA	30034-5218	(770) 322-2380	33.679695	-84.231606
+280	Piedmont Commons Shopping Center	1050 E Piedmont Rd Ste 130	Marietta	GA	30062-4744	(770) 509-3980	33.976326	-84.478386
+282	The Peach	2900 Peachtree Rd NW	Atlanta	GA	30305-4915	(404) 848-0330	33.835217	-84.3838
+430	Baytree Village	1741 Gornto Rd	Valdosta	GA	31601-8408	(229) 242-2409	30.845682	-83.32282
+431	Village at Glynn Place	171 Village At Glynn Pl Ste 100	Brunswick	GA	31525-1988	(912) 261-4730	31.21316	-81.48226
+450	Albany Square	2715 Dawson Rd	Albany	GA	31707-1673	(229) 431-2880	31.621181	-84.22333
+451	Athens Pointe Shopping Center	3620 Atlanta Hwy	Athens	GA	30606-7219	(706) 208-3700	33.940693	-83.4556
+455	Camden Woods Shopping Center	1601 Ga Highway 40 E	Kingsland	GA	31548-6500	(912) 729-7878	30.784426	-81.63367
+456	Publix at Wilmington Island	155 Johnny Mercer Blvd	Savannah	GA	31410-2118	(912) 897-8100	32.01391	-80.9873
+461	Publix At Mt Zion	2035 Mount Zion Rd	Morrow	GA	30260-3313	(770) 472-4000	33.561684	-84.32501
+463	Rose Creek Shopping Center	4403 Towne Lake Pkwy	Woodstock	GA	30189-8132	(770) 516-2040	34.126797	-84.57109
+464	Mableton Walk	5015 Floyd Rd SW	Mableton	GA	30126-1673	(770) 819-5430	33.832897	-84.57421
+468	Abernathy Square Shopping Center	6615 Roswell Rd	Sandy Springs	GA	30328-3190	(404) 843-4340	33.935123	-84.377754
+469	Haynes Bridge Village	9925 Haynes Bridge Rd	Johns Creek	GA	30022-8532	(770) 751-7980	34.023163	-84.26752
+470	Coweta Crossing Shopping Center	370 Bullsboro Dr	Newnan	GA	30263-1069	(770) 502-0693	33.39598	-84.76407
+474	Bradley Park Square	1639 Bradley Park Dr Ste 600	Columbus	GA	31904-3625	(706) 571-3420	32.53442	-84.96686
+480	Winder Corners Shopping Center	17 Monroe Hwy Ste A	Winder	GA	30680-2494	(770) 307-2900	33.979355	-83.71411
+485	Cosby Station	3316 Highway 5	Douglasville	GA	30135-2308	(770) 920-3460	33.714413	-84.76599
+494	Deshon Plaza	380 N Deshon Rd	Stone Mountain	GA	30087-4797	(770) 879-2700	33.785652	-84.100174
+495	Merton Walk	911 Duluth Hwy	Lawrenceville	GA	30043-5320	(770) 339-5600	33.969692	-84.02386
+496	Lost Mountain Crossing	5100 Dallas Hwy	Powder Springs	GA	30127-4491	(770) 419-6000	33.94219	-84.703606
+503	Cascade Crossing Shopping Center	3695 Cascade Rd SW	Atlanta	GA	30331-2173	(404) 505-2870	33.724934	-84.50816
+505	Promenade at Pleasant Hill	1625 Pleasant Hill Rd Ste 200	Duluth	GA	30096-5863	(770) 806-2780	33.94389	-84.12815
+508	Presidential  Markets	1905 Scenic Hwy N Ste 4000	Snellville	GA	30078-5635	(770) 978-5800	33.8771	-84.01499
+514	Dunwoody Place Shopping Center	8725 Roswell Rd Ste G	Sandy Springs	GA	30350-7500	(770) 640-5950	33.994	-84.34916
+515	Abbotts Village at Ocee	11585 Jones Bridge Rd Ste 500	Johns Creek	GA	30022-8173	(770) 751-4580	34.0622	-84.21321
+519	Cumming 400 Shopping Center	580 Atlanta Rd	Cumming	GA	30040-2744	(770) 781-2040	34.186653	-84.13882
+521	Island Towne Center	4717 Hwy 80 E Ste B	Savannah	GA	31410-2944	(912) 897-8111	32.041576	-81.00696
+522	Twelve Oaks Shopping Center	5500 Abercorn St Ste 2	Savannah	GA	31405-6913	(912) 353-1260	32.024414	-81.10846
+525	National Plaza	2816 Washington Rd	Augusta	GA	30909-2199	(706) 731-5200	33.50787	-82.03118
+526	Evans Towne Centre	4274 Washington Rd	Evans	GA	30809-3070	(706) 650-5040	33.53346	-82.1277
+534	Fury's Ferry Plaza	403 Furys Ferry Rd	Martinez	GA	30907-9038	(706) 650-3360	33.530167	-82.07302
+536	Paces Ferry Center	2451 Cumberland Pkwy SE	Atlanta	GA	30339-6136	(770) 437-7000	33.862637	-84.47869
+538	Publix at Old Peachtree	2380 Buford Dr Ste 201	Lawrenceville	GA	30043-7638	(770) 338-4560	34.03631	-83.99021
+539	Publix At Centerville	3550 Centerville Hwy Ste 201	Snellville	GA	30039-4133	(770) 736-7800	33.80254	-84.04078
+540	LaGrange Plaza	139 Commerce Ave	LaGrange	GA	30241-2337	(706) 883-1120	33.050762	-85.02425
+541	Powers Ferry Village	6300 Powers Ferry Rd	Sandy Springs	GA	30339-2919	(770) 612-5140	33.90533	-84.42739
+546	Publix at Peachtree East	130 Peachtree East Ct, Ste #4	Peachtree City	GA	30269-4045	(770) 486-2020	33.423615	-84.55677
+547	Eagles Landing	909 Eagles Landing Pkwy Ste 300	Stockbridge	GA	30281-6398	(770) 389-6130	33.510536	-84.219986
+548	Towne Center Prado	50 Barrett Pkwy Ste 1000	Marietta	GA	30066-3344	(770) 419-4043	34.016747	-84.54932
+554	Main Street	300 Cherokee Pl	Cartersville	GA	30121-2964	(770) 606-2360	34.17333	-84.78407
+556	Publix at Alpharetta	11800 Haynes Bridge Rd Ste B	Alpharetta	GA	30009-7994	(770) 752-4960	34.07319	-84.29376
+559	Publix at Cobb Parkway	2774 N Cobb Pkwy Ste 201	Kennesaw	GA	30152-3469	(770) 426-3240	34.023453	-84.62359
+560	Peachtree Square Shopping Center	3200 Holcomb Bridge Rd	Peachtree Corners	GA	30092-3361	(770) 417-5100	33.952084	-84.23218
+561	West Cobb Marketplace	2500 Dallas Hwy SW Ste 300	Marietta	GA	30064-2571	(770) 426-3250	33.94836	-84.62555
+562	Milgen Plaza	5435 Woodruff Farm Rd	Columbus	GA	31907-1395	(706) 568-8820	32.51959	-84.893936
+564	Five Forks Corners Shopping Center	4045 Five Forks Trickum Rd SW	Lilburn	GA	30047-2538	(770) 381-4170	33.870716	-84.092865
+565	The Shops at Laurel Springs	3245 Peachtree Pkwy Ste A	Suwanee	GA	30024-1097	(770) 886-5335	34.08436	-84.15917
+566	Brookstone Village	1727 Mars Hill Rd NW	Acworth	GA	30101-8090	(770) 218-2420	33.99755	-84.70799
+569	Hamilton Mill Village Shopping Center	2463 Hamilton Mill Pkwy	Dacula	GA	30019-4648	(770) 614-1070	34.07402	-83.91534
+579	Fayette Pavilion	108 Pavilion Pkwy	Fayetteville	GA	30214-4056	(770) 460-4100	33.478443	-84.43852
+585	Duluth Station	2750 Buford Hwy	Duluth	GA	30096-2867	(770) 622-6750	34.007046	-84.1302
+593	Publix At Acworth	3507 Baker Rd NW Ste 300	Acworth	GA	30101-3706	(770) 917-4600	34.0746	-84.6518
+596	Sugar Hill Corners	5885 Cumming Hwy	Sugar Hill	GA	30518-5765	(770) 614-8860	34.118866	-84.07496
+599	Ansley Mall	1544 Piedmont Ave NE	Atlanta	GA	30324-5018	(404) 898-1850	33.79914	-84.37179
+601	Oglethorpe Crossing	3435 Ashford Dunwoody Rd NE	Brookhaven	GA	30319-2546	(770) 216-5050	33.890465	-84.3245
+603	Loganville Town Centre	4325 Atlanta Hwy	Loganville	GA	30052-2341	(770) 466-5150	33.839252	-83.908066
+608	McIntosh Plaza	1109 S Park St Ste 600	Carrollton	GA	30117-4449	(770) 214-3140	33.56083	-85.07486
+612	Sugarloaf Crossing	4850 Sugarloaf Pkwy	Lawrenceville	GA	30044-2859	(770) 277-5240	33.95381	-84.05516
+615	McGinnis Crossing	1000 Peachtree Industrial Blvd	Suwanee	GA	30024-6737	(770) 932-4300	34.049797	-84.08856
+616	Midway Shopping Center	4900 Atlanta Hwy	Alpharetta	GA	30004-2921	(770) 754-4321	34.15958	-84.23961
+617	Butler's Crossing	2061 Experiment Station Rd	Watkinsville	GA	30677-5328	(706) 769-2080	33.871212	-83.44112
+624	Riverstone Plaza Shopping Center	1451 Riverstone Pkwy	Canton	GA	30114-5624	(770) 720-1001	34.25296	-84.475655
+626	King Plaza	885 Woodstock Rd Ste 100	Roswell	GA	30075-2276	(770) 552-4580	34.061115	-84.386116
+634	Robson Crossing	3446 Winder Hwy	Flowery Branch	GA	30542-3007	(770) 538-4270	34.218025	-83.86333
+636	The Centre at Woodstock	12165 Highway 92	Woodstock	GA	30188-4298	(770) 517-1600	34.08966	-84.483986
+646	Trowbridge Crossing	7525 Roswell Rd	Sandy Springs	GA	30350-8500	(678) 443-8980	33.961	-84.36382
+647	Publix at Perimeter	1100 Hammond Dr Ste 300	Sandy Springs	GA	30328-8153	(678) 443-2100	33.920086	-84.35266
+650	Parkway Centre	7600 Schomburg Rd	Columbus	GA	31909-1833	(706) 565-3260	32.55766	-84.904655
+664	Lenox Marketplace	3535 Peachtree Rd NE	Atlanta	GA	30326-3287	(404) 848-0344	33.850986	-84.359795
+665	Shamrock Plaza	3870 N Druid Hills Rd	Decatur	GA	30033-3002	(404) 638-1293	33.811375	-84.274734
+670	Publix at Powder Springs	3721 New Macland Rd, Ste 300	Powder Springs	GA	30127-1966	(770) 222-2972	33.864437	-84.674095
+672	Sandy Plains Exchange	1860 Sandy Plains Rd	Marietta	GA	30066-7833	(770) 509-3991	33.99368	-84.50952
+691	Briarcliff Village Shopping Center	2162 Henderson Mill Rd NE	Atlanta	GA	30345-3762	(770) 724-1947	33.8474	-84.257324
+694	The Market at Bridgemill	3760 Sixes Rd Ste 110	Canton	GA	30114-8194	(770) 345-8380	34.178993	-84.54887
+706	Golden Park Village	4840 Golden Pkwy	Buford	GA	30518-5843	(770) 614-7700	34.14212	-83.95061
+711	Hickory Flat Village	6175 Hickory Flat Hwy Ste 140	Canton	GA	30115-7210	(770) 345-8600	34.178024	-84.41816
+717	The Village	1236 Thompson Bridge Rd	Gainesville	GA	30501-1708	(770) 538-0665	34.319126	-83.83031
+718	Chastain Square	4279 Roswell Rd NE Ste 300	Atlanta	GA	30342-3769	(404) 843-4353	33.871033	-84.37894
+719	Peachtree Battle Shopping Center	2365 Peachtree Rd NE	Atlanta	GA	30305-4147	(404) 869-6556	33.820896	-84.38667
+720	West Paces Ferry	1250 W Paces Ferry Rd NW	Atlanta	GA	30327-2306	(404) 848-1610	33.84829	-84.427986
+721	Alpharetta Commons	4305 State Bridge Rd	Alpharetta	GA	30022-4471	(770) 751-7991	34.05727	-84.23513
+722	Spalding Corners	7736 Spalding Dr	Norcross	GA	30092-4207	(770) 417-5155	33.96858	-84.260735
+723	Emory Commons	2155 N Decatur Rd	Decatur	GA	30033	(404) 638-6015	33.78977	-84.30441
+724	Publix at Ponce	1001 Ponce De Leon Ave NE	Atlanta	GA	30306-4215	(404) 892-9229	33.772896	-84.354355
+725	Sope Creek Crossing	2900 Delk Rd SE Ste 1150	Marietta	GA	30067-5320	(770) 612-5150	33.922897	-84.46681
+726	Tree Summit Village	3870 Peachtree Industrial Blvd	Duluth	GA	30096-1422	(770) 813-7465	33.98782	-84.16847
+730	Paradise Crossing	2675 Lee Rd	Lithia Springs	GA	30122-3356	(770) 920-3471	33.735348	-84.66886
+744	Salem Road Station	13015 Brown Bridge Rd	Covington	GA	30016-9111	(678) 342-0766	33.576603	-83.965004
+752	Centre at Panola	3045 Panola Rd	Lithonia	GA	30038-2317	(770) 322-1890	33.69856	-84.17458
+753	Highland Station	4480 S Cobb Dr SE	Smyrna	GA	30080-6990	(770) 434-6225	33.843464	-84.50447
+762	Bethany Village	13800 Highway 9 N Ste E	Alpharetta	GA	30004-4590	(770) 751-0312	34.116844	-84.271416
+764	Orchard Square Shopping Center	4290 Bells Ferry Rd NW	Kennesaw	GA	30144-7140	(770) 516-3883	34.055214	-84.55366
+765	Dunwoody Hall Shopping Center	5550 Chamblee Dunwoody Rd	Dunwoody	GA	30338-4111	(678) 443-0644	33.950638	-84.338135
+769	Publix at Barrett Parkway	1635 Old Highway 41 NW	Kennesaw	GA	30152-4480	(770) 426-5299	33.99389	-84.59943
+773	Toco Hills Shopping Center	2969 N Druid Hills Rd NE	Atlanta	GA	30329-3909	(404) 638-6022	33.81349	-84.311295
+776	Publix at Piedmont	595 Piedmont Ave NE	Atlanta	GA	30308-2478	(404) 881-1750	33.77037	-84.381134
+783	Publix at East Lake	2235 Glenwood Ave SE	Atlanta	GA	30316-2307	(404) 373-2858	33.73866	-84.31313
+786	Coweta Crossroads	100 Glenda Trce	Newnan	GA	30265-3863	(770) 502-0686	33.410664	-84.68771
+789	Grayson Village	2715 Loganville Hwy SW	Loganville	GA	30052-6660	(770) 822-0637	33.879047	-83.93842
+799	Wilshire Pavilion	1200 Highway 74 S Ste 20	Peachtree City	GA	30269-3071	(770) 486-0133	33.342716	-84.53696
+800	Shallowford Exchange	2562 Shallowford Rd NE	Atlanta	GA	30345-1202	(404) 636-1175	33.862183	-84.287834
+803	Dacula Village	720 Dacula Rd	Dacula	GA	30019-7055	(770) 822-5959	34.00342	-83.912575
+816	Paradise Pointe at Lake Dow	920 Highway 81 E	McDonough	GA	30252-2978	(770) 898-1213	33.437027	-84.12134
+825	Mountain Park Plaza	4750 Alabama Rd NE Ste 107	Roswell	GA	30075-1680	(770) 645-0144	34.065723	-84.42297
+844	Village Shops of Flowery Branch	5900 Spout Springs Rd	Flowery Branch	GA	30542-6448	(770) 967-1303	34.17658	-83.91226
+853	Lake Oconee Village	6350 Lake Oconee Pkwy Ste 106	Greensboro	GA	30642-6434	(706) 454-7140	33.455776	-83.24456
+859	Village Shoppes of Sugarloaf	3370 Sugarloaf Pkwy	Lawrenceville	GA	30044-5478	(678) 376-3844	33.921474	-84.01839
+863	The Shops at Huntcrest	1030 Old Peachtree Rd NW	Lawrenceville	GA	30043-3308	(678) 376-3220	33.99848	-84.06819
+880	Village Shoppes of East Cherokee	6236 Holly Springs Pkwy	Woodstock	GA	30188	(770) 928-5530	34.130215	-84.49953
+892	South Hampton Village	1512 Highway 74 N	Tyrone	GA	30290-1663	(770) 774-2780	33.4883	-84.58719
+1008	Paradise Shoppes of Warner Robins	1114 Georgia Highway 96	Kathleen	GA	31047-2111	(478) 987-6707	32.547165	-83.69206
+1010	Publix In Atlantic Station	1380 Atlantic Dr NW Ste 14135	Atlanta	GA	30363-1144	(404) 873-5055	33.792824	-84.39801
+1019	Village Walk Shopping Center	270 Rucker Rd	Alpharetta	GA	30004-4045	(770) 360-5591	34.079308	-84.35738
+1043	King's Market	1425 Market Blvd Ste 600	Roswell	GA	30076-6711	(770) 640-6035	34.0179	-84.31999
+1044	Cheshire Square	2325 Cheshire Bridge Rd NE	Atlanta	GA	30324-3733	(404) 638-1900	33.818565	-84.34904
+1052	The Shoppes At Locust Grove	2730 Highway 155	Locust Grove	GA	30248-2401	(770) 288-4180	33.365803	-84.18142
+1054	The Shops at Westridge	2158 Highway 20 W	McDonough	GA	30253-7205	(770) 898-6650	33.413666	-84.20258
+1056	Publix at Princeton Lakes	3730 Carmia Dr SW Ste 200	Atlanta	GA	30331-6259	(404) 346-9253	33.65642	-84.51075
+1060	The Marketplace at Birmingham Village	980 Birmingham Rd Ste 100	Alpharetta	GA	30004-4418	(770) 751-5543	34.167374	-84.3308
+1061	The Plaza Midtown	950 W Peachtree St NW	Atlanta	GA	30309-3846	(404) 253-3544	33.780445	-84.3888
+1063	Paradise Shoppes of New Hope	51 E Paulding Dr	Dallas	GA	30157-7190	(770) 505-5838	33.958782	-84.78758
+1064	Paradise Shoppes of Prominence Point	120 Prominence Point Pkwy	Canton	GA	30114-9008	(770) 345-5389	34.192	-84.51137
+1071	Smyrna Crossing	2880 Georgia Highway 212 SW	Conyers	GA	30094-3349	(770) 918-2512	33.617233	-84.08138
+1077	Kennesaw Walk	2090 Baker Rd NW	Kennesaw	GA	30144-4600	(678) 331-8750	34.049606	-84.610115
+1078	The Village Shoppes at Simonton	930 New Hope Rd	Lawrenceville	GA	30045-6407	(770) 682-2430	33.934673	-83.95627
+1087	Summit Point	840 Glynn St S	Fayetteville	GA	30214-2031	(678) 817-5415	33.43079	-84.45452
+1089	The Village at Flynn Crossing	5180 McGinnis Ferry Rd	Alpharetta	GA	30005-1792	(770) 360-1025	34.093224	-84.20639
+1091	Publix At Shakerag	7780 McGinnis Ferry Rd	Suwanee	GA	30024-1622	(770) 622-0218	34.057186	-84.128876
+1096	Governors Towne Square	6110 Cedarcrest Rd NW	Acworth	GA	30101-9539	(678) 439-3440	34.06399	-84.72657
+1110	Village Shoppes of Gainesville	879 Dawsonville Hwy	Gainesville	GA	30501-2616	(770) 534-1350	34.296577	-83.85969
+1112	Providence Pavilion	1025 Veterans Memorial Hwy SE Ste 400	Mableton	GA	30126-7709	(678) 398-3651	33.805737	-84.525444
+1118	Milstead Crossing	1591 Georgia Highway 20 NE	Conyers	GA	30012-3834	(678) 413-2421	33.68413	-83.99786
+1119	Howell Mill Village	2020 Howell Mill Rd NW Ste A	Atlanta	GA	30318-1732	(404) 609-7840	33.810345	-84.41467
+1130	Castleberry-Southard Crossing	5475 Bethelview Rd	Cumming	GA	30040-9731	(678) 455-1232	34.17436	-84.18716
+1139	The Shoppes at Deer Creek	4300 Chapel Hill Rd	Douglasville	GA	30135-4200	(770) 577-5133	33.689068	-84.7149
+1143	Stillwood Pavilion at Summer Grove	1111 Lower Fayetteville Rd	Newnan	GA	30265-6501	(770) 502-2370	33.374344	-84.752365
+1146	Georgetown Square	1860 Barnett Shoals Rd	Athens	GA	30605-6811	(706) 227-6260	33.924553	-83.34217
+1154	Publix at Richmond Hill Plantation	12800 Highway 144	Richmond Hill	GA	31324-7343	(912) 459-1171	31.909521	-81.27874
+1178	Village at Mulberry Park	831 Auburn Rd	Dacula	GA	30019-5434	(770) 682-2421	34.03096	-83.887024
+1183	Parkway Village	5370 Campbellton Fairburn Rd	Fairburn	GA	30213-2296	(770) 774-3600	33.61243	-84.609856
+1184	Seven Hills Station	80 Seven Hills Blvd	Dallas	GA	30132-0574	(770) 975-6786	34.02959	-84.77884
+1186	Largo Plaza	11701 Abercorn St	Savannah	GA	31419-1905	(912) 925-4112	31.981304	-81.15211
+1188	West Jackson Crossing	6055 Highway 124 W	Hoschton	GA	30548-5534	(706) 654-5900	34.106777	-83.70371
+1217	The Village at New Georgia	7953 Villa Rica Hwy	Dallas	GA	30157-8619	(678) 840-4676	33.809074	-84.886185
+1226	Moores Mill Center	2275 Marietta Blvd NW	Atlanta	GA	30318	(404) 351-4794	33.819637	-84.45077
+1227	The Village Shoppes at Windermere	3120 Mathis Airport Pkwy	Suwanee	GA	30024-9128	(770) 781-0368	34.11071	-84.15438
+1233	Paradise Shoppes of Perry	275 Perry Pkwy	Perry	GA	31069-9275	(478) 218-7577	32.47288	-83.70604
+1248	Laurel Canyon Village	15 Laurel Canyon Village Circle Suite 118	Canton	GA	30114	(770) 479-3700	34.271206	-84.50329
+1250	Jonquil Plaza	2955 Atlanta Rd SE	Smyrna	GA	30080	(770) 319-1123	33.8817	-84.51214
+1251	Barrow Crossing	916 Loganville Hwy Ste 200	Bethlehem	GA	30620-2145	(770) 307-1600	33.94369	-83.75431
+1256	The Market at Rice Hope	7936 Ga Highway 21	Port Wentworth	GA	31407-9720	(912) 966-5890	32.221424	-81.19363
+1263	Bass Plantation	5451 Bowman Rd	Macon	GA	31210-5783	(478) 474-3064	32.924507	-83.73561
+1279	Friendship Springs Village	7334 Spout Springs Rd	Flowery Branch	GA	30542-5543	(770) 967-1249	34.110947	-83.877075
+1286	Riverwood Town Center	5119 Washington Rd	Evans	GA	30809-6445	(706) 650-1460	33.573547	-82.19334
+1291	Publix at Gunn Battle	6015 Watson Blvd	Byron	GA	31008-6650	(478) 971-7706	32.61239	-83.71448
+1349	Lee Crossings	1212 US Highway 19 S	Leesburg	GA	31763-4877	(229) 431-0294	31.655548	-84.17523
+1363	Town Brookhaven	104 Town Blvd Ste A100	Brookhaven	GA	30319-3146	(404) 233-7475	33.87038	-84.33448
+1364	Pooler Marketplace	467 Pooler Pkwy	Pooler	GA	31322-5102	(912) 330-7313	32.13513	-81.251144
+1390	Cross Country Plaza	3201 Macon Rd Ste 201	Columbus	GA	31906-1725	(706) 561-2160	32.48272	-84.94437
+1403	Charles Hight Square	435 Turner McCall Blvd NE	Rome	GA	30165-2735	(706) 291-3380	34.261784	-85.17771
+1411	The Village at Millers Chapel	2159 Highway 20 SE	Conyers	GA	30013	(770) 785-6202	33.634464	-84.01685
+1422	Publix Plaza at Tifton	620 Virginia Ave. North	Tifton	GA	31794-4227	(229) 386-1166	31.462656	-83.52865
+1435	Publix at Perimeter Park	3330 Inner Perimeter Rd	Valdosta	GA	31602-7063	(229) 671-9835	30.880966	-83.285126
+1489	The Village on Skidaway Island	6 Westridge Rd	Savannah	GA	31411-2952	(912) 598-3130	31.94019	-81.05046
+1498	Publix at Park Place	13775 US Highway 19 S	Thomasville	GA	31792-5398	(229) 226-9800	30.837662	-83.94665
+1540	Parkway Centre	378 Veterans Pkwy N	Moultrie	GA	31788	(229) 217-4812	31.186567	-83.75918
+1542	Dawson Crossroads	145 Forest Blvd Ste 100	Dawsonville	GA	30534	(706) 216-4220	34.352066	-84.04483
+1584	Publix At Blue Moon Crossing	101 Blue Moon Crossing	Pooler	GA	31322	(912) 450-1070	32.079483	-81.28468
+1622	Merganser Commons at Bonaire	510 GA Hwy 247 S	Bonaire	GA	31005	(478) 322-3620	32.54645	-83.59516
+1641	Boynton Ridge Plaza	3775 Battlefield Pkwy	Ringgold	GA	30736	(706) 858-6568	34.938118	-85.20406
+1647	Madison Yards	905 Memorial Dr SE	Atlanta	GA	30316	(404) 521-3992	33.745857	-84.35766
+1678	Holland Point	4108 Hamilton Mill Rd	Buford	GA	30519	(770) 831-1054	34.103275	-83.97546
+1685	Publix at Winder Hill	401 Gainesville Hwy	Winder	GA	30680	(470) 429-6015	34.009827	-83.706345
+1690	Matt Town Center	5310 Matt Hwy	Cumming	GA	30028	(770) 889-5778	34.29989	-84.15084
+1700	Publix at Tobesofkee Crossing	5581 Thomaston Rd	Macon	GA	31220	(478) 474-4918	32.835865	-83.74381
+1718	Sandtown Crossing	5829 Campbellton Rd SW Ste 110	Atlanta	GA	30331	(404) 346-4170	33.701473	-84.57864
+1724	Sam's Crossing Village	2720 E Ponce de Leon Ave	Decatur	GA	30030	(404) 378-9225	33.77771	-84.27823
+1725	Shoppes at Ola Crossroads	3479 Hwy 81 E	McDonough	GA	30252	(770) 305-9357	33.437653	-84.03948
+1733	Eagles Corner Shopping Center	101 Tormenta Way	Statesboro	GA	30458-5697	(912) 681-6150	32.415836	-81.79966
+1736	Monroe Pavilion	900 Pavilion Pkwy	Monroe	GA	30656	(678) 635-4316	33.807186	-83.72562
+1745	East Cobb Crossing	4269 Roswell Rd Bldg 100 Ste 108-112	Marietta	GA	30062	(770) 579-1620	33.98652	-84.42581
+1758	Perimeter Marketplace	500 Ashwood Pkwy	Dunwoody	GA	30338	(770) 522-5133	33.932102	-84.33886
+1761	Senoia Village	8080 Wells St	Senoia	GA	30276	(770) 599-3311	33.295277	-84.54489
+1768	Braselton Village	1060 Braselton Village Pkwy	Braselton	GA	30517	(470) 429-6148	34.106354	-83.814575
+1772	Hugh Howell Village	4650 Hugh Howell Rd Bldg 100	Tucker	GA	30084	(770) 934-4799	33.85006	-84.199715
+1773	Tribble Crossing	3620 Era Dr	Cumming	GA	30028	(770) 406-5140	34.2391	-84.225525
+1777	Chamblee Plaza	5534 Peachtree Blvd	Chamblee	GA	30341	(770) 457-9835	33.90048	-84.302475
+1786	Kelleytown Village	3500 Hwy 155 N	McDonough	GA	30252	(770) 288-8588	33.54836	-84.13697
+1811	Covington Town Center	12701 Town Center Dr	Covington	GA	30014	(770) 385-5705	33.6227	-83.83895
+1816	Arbor Springs Plaza	4000 N Hwy 29	Newnan	GA	30265	(678) 633-6167	33.450287	-84.70315
+1825	Publix at Summerhill	572 Hank Aaron Dr SE	Atlanta	GA	30312-2896	(470) 945-8956	33.737705	-84.38737
+1827	Gateway Crossing	51 Old Farm Rd	Jefferson	GA	30549	(706) 708-5216	34.124413	-83.6043
+1838	Oak Grove	5345 Jefferson Rd	Athens	GA	30606	(762) 400-8555	33.9925	-83.43847
+1865	Market at King's Bay	1521 E King Ave	Kingsland	GA	31548	(912) 540-4165	30.785544	-81.639429
+1867	Buckhead Landing	3330 Piedmont Rd NE Ste 16	Atlanta	GA	30305-1726	(470) 945-8948	33.845627	-84.37455
+1868	Midland Commons	6901 Ray Wright Way	Columbus	GA	31909-7700	(706) 358-0289	32.54564	-84.87475
+1870	Douglas Square	1329 S Peterson Ave	Douglas	GA	31533	(912) 493-6058	31.489819	-82.852875
+1873	Merganser Commons at Hills & Dales Farm	2200 Vernon St	Lagrange	GA	30240	(706) 443-7764	33.035545	-85.06027
+1880	Old Town Marketplace	8132 Veterans Pkwy Bldg 3	Columbus	GA	31909-1802	(706) 223-6574	32.56606	-84.93403
+1890	Fischer Marketplace	4957 Hwy 34 E	Sharpsburg	GA	30277-3505	(678) 633-6140	33.397717	-84.62749
+1891	Shops at Walnut Creek	2400 Jonesboro Rd	Hampton	GA	30228	(470) 369-9579	33.46531	-84.233826
+1892	Gateway Crossing Hoschton	234 Gateway Crossing Pkwy	Hoschton	GA	30548	(706) 471-5334	34.08791	-83.75591
+1893	Publix at Harbins 316	952 Harbins Rd	Dacula	GA	30019	(770) 666-9280	33.968906	-83.88702
+2003	Lakeside Commons	2775 N Columbia St	Milledgeville	GA	31061	(478) 223-5015	33.148396	-83.27174
+2006	Limestone Marketplace	2155 Limestone Ridge NE	Gainesville	GA	30501-2135	(678) 971-6207	34.313644	-83.80074
+2011	Villa Rica Town Center	103 Villa Rica Pkwy Ste 200	Villa Rica	GA	30180-3250	(770) 462-6171	33.735233	-84.90623
+2016	Flemington Village Shopping Center	1435 E Oglethorpe Hwy	Hinesville	GA	31313	(912) 255-6174	31.855399	-81.572363
+2024	Dahlonega Village	23 Maxwell Ln	Dahlonega	GA	30533	(706) 701-6331	34.471294	-83.96989
+2039	Cambridge Square Shopping Center	2010 Johnson Ferry Rd NE	Brookhaven	GA	30319	(404) 460-9991	33.89451	-84.33035
+2045	Publix Shops at Riverbrook Village	3715 Wahoo Falls Trace	Gainesville	GA	30506	(470) 892-3127	34.37693	-83.87544
+2047	Gateway Crossing Jasper	178 Virginia Way	Jasper	GA	30143	(706) 301-7235	34.45929	-84.452835
+2102	Shops at Indian Creek	4518 Hwy 42 S	Locust Grove	GA	30248-4111	(470) 754-6830	33.334756	-84.091767
+2109	Bainbridge Crossings	1515 Tallahassee Hwy	Bainbridge	GA	39819	(229) 442-6100	30.883949	-84.564418`;
 const DEFAULT_COORDS = ``;
 // ===EDITION-END===
 
@@ -1232,6 +1402,41 @@ function setupMode(){
     if($("autoUpd").checked){ checkUpdate(false); setInterval(()=>checkUpdate(false), 6*3600*1000); }
   }
 }
+// ---------- feedback (opens Outlook) ----------
+function setupFeedback(){
+  const dlg=$("fbDlg"), err=$("fbErr");
+  $("fbName").value=store.get("fbName",""); $("fbP").value=store.get("fbP","");
+  $("fbBtn").onclick=()=>{ err.textContent=""; $("fbAlt").textContent=""; $("fbAck").checked=false; dlg.classList.add("show"); ($("fbName").value?$("fbMsg"):$("fbName")).focus(); };
+  $("fbCancel").onclick=()=>dlg.classList.remove("show");
+  dlg.onclick=e=>{ if(e.target.id==="fbDlg") dlg.classList.remove("show"); };
+  $("fbP").addEventListener("input",e=>{ const v=e.target.value.replace(/\D/g,"").slice(0,10); if(v!==e.target.value) e.target.value=v; });
+  $("fbP").addEventListener("keydown",e=>{ if(e.key.length===1 && !/[0-9]/.test(e.key) && !e.ctrlKey && !e.metaKey) e.preventDefault(); });
+  $("fbForm").onsubmit=e=>{
+    e.preventDefault();
+    const type=(document.querySelector('input[name=fbType]:checked')||{}).value||"Bug";
+    const name=$("fbName").value.trim(), pn=$("fbP").value.trim(), msg=$("fbMsg").value.trim();
+    if(!name){ err.textContent="Enter your name."; $("fbName").focus(); return; }
+    if(!/^[0-9]{3,10}$/.test(pn)){ err.textContent="P Number must be 3 to 10 digits."; $("fbP").focus(); return; }
+    if(msg.length<5){ err.textContent="Describe the bug, error, or suggestion."; $("fbMsg").focus(); return; }
+    if(!$("fbAck").checked){ err.textContent="Check the box to confirm you included no proprietary or confidential information."; $("fbAck").focus(); return; }
+    err.textContent=""; store.set("fbName",name); store.set("fbP",pn);
+    const subject=`[Route2 Feedback] ${type} – ${name} (P${pn})`;
+    const body=[`Type: ${type}`,`Name: ${name}`,`P Number: P${pn}`,"",msg,"","---",
+      `Planner: ${EDITION.name} v${APP_VERSION} (${IS_ONLINE?"online":"offline"})`,
+      `Device: ${/iPhone|iPad/.test(navigator.userAgent)?"iPhone/iPad":/Android/.test(navigator.userAgent)?"Android":/Windows/.test(navigator.userAgent)?"Windows":/Mac/.test(navigator.userAgent)?"Mac":"Other"}`,
+      `Sent: ${new Date().toLocaleString()}`,"Confirmed: no proprietary or confidential information included."].join("\n");
+    const q=`to=${encodeURIComponent(FEEDBACK_TO)}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    const mobile=/iPhone|iPad|iPod|Android/.test(navigator.userAgent);
+    const web="https://outlook.office.com/mail/deeplink/compose?"+q;
+    if(mobile){ location.href="ms-outlook://compose?"+q; }
+    else { window.open(web,"_blank","noopener"); }
+    $("fbAlt").innerHTML = mobile
+      ? `Outlook didn't open? Make sure the Outlook app is installed, or <a href="${web}" target="_blank" rel="noopener">use Outlook on the web</a>.`
+      : `Outlook didn't open? Allow pop-ups for this page, or <a href="${web}" target="_blank" rel="noopener">open Outlook on the web</a>.`;
+    $("fbMsg").value=""; $("savedNote").textContent="Feedback ready in Outlook. Tap Send there.";
+  };
+}
+
 // ---------- send to phone (online version only) ----------
 const STATE_CODES=["AL","FL","GA","KY","NC","SC","TN","VA"];
 const STATE_NAMES={AL:"Alabama",FL:"Florida",GA:"Georgia",KY:"Kentucky",NC:"North Carolina",SC:"South Carolina",TN:"Tennessee",VA:"Virginia"};
@@ -1365,6 +1570,7 @@ async function checkUpdate(manual){
 
 // ---------- init ----------
 setupMode();
+setupFeedback();
 if(IS_ONLINE) receiveSync();
 $("colList").innerHTML=COLS.map((n,i)=>`<span>${i+1}</span><span>${esc(n)}</span>`).join("");
 if(!store.get("callsText","")) $("sapHelp").open=true;
