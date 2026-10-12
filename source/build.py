@@ -28,7 +28,7 @@ def block(id,name,key,reset,groupBy,rows):
     return ('// ===EDITION-START===\nconst EDITION = {id:%s, name:%s, key:%s, resetLabel:%s, groupBy:%s};\n'
             'const DEFAULT_GROUPS = ``;\nconst DEFAULT_STORES = `%s`;\nconst DEFAULT_COORDS = ``;\n')%(
             json.dumps(id),json.dumps(name),json.dumps(key),json.dumps(reset),json.dumps(groupBy),tsv(rows))
-E=[dict(code="ALL",title="Company-wide",file=f"route-planner-v{VER}.html",stores=len(stores),note="All 1,443 stores in every state",
+E=[dict(code="ALL",title="Company-wide",file=f"route-planner-v{VER}.html",stores=len(stores),note=f"All {len(stores):,} stores in every state",
         block=block("company","Service Route Planner – Company Wide","rpc.","Restore company store list","state",stores))]
 for code,name in sorted(list(STATES.items())+[("VA","Virginia")]):
     if code=="VA":
@@ -68,3 +68,15 @@ if EXTRA:
     if os.path.exists(pub):
         hh=open(pub).read(); a=hh.index(tag)+len(tag); b=hh.index('</script>',a)
         open(pub,'w').write(hh[:a]+payload+hh[b:]); print("updated published page")
+
+# Keep README store counts in step with the store list.
+import re as _re
+try:
+    _r=open("README.md").read()
+    for e in E:
+        label={"ALL":"Company-wide"}.get(e["code"],e["title"])
+        cnt=f'All {e["stores"]:,} stores' if e["code"]=="ALL" else (f'{e["stores"]} stores, route groups A–F' if e["code"]=="VA" else f'{e["stores"]} stores')
+        _r=_re.sub(r'(\| \*\*'+_re.escape(label)+r'\*\* \| )[^|]+( \|)', lambda m:m.group(1)+cnt+m.group(2), _r)
+    _r=_re.sub(r"\*\*Current version: [\d.]+\*\*", f"**Current version: {VER}**", _r)
+    open("README.md","w").write(_r)
+except FileNotFoundError: pass
