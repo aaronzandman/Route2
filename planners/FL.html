@@ -172,6 +172,7 @@ details.ropts[open]{padding-bottom:10px}
 .fb .ack{display:flex;gap:8px;align-items:flex-start;margin-top:8px;font-size:14px;cursor:pointer}
 #setDlg .facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:8px}
 #setDlg .fact{background:var(--soft);border-radius:8px;padding:8px 10px}#setDlg .fact b{display:block;font:700 20px/1.2 var(--sign)}#setDlg .fact span{font-size:12px;color:var(--muted)}
+#setDlg .uidbox{margin-top:10px;padding:8px 10px;border:1px dashed var(--line);border-radius:8px}#setDlg .uidbox b{font:700 18px ui-monospace,Consolas,monospace;letter-spacing:1px}
 #setDlg .ul{margin:6px 0;padding-left:20px;font-size:13px}#setDlg .ul li{margin:3px 0}#setDlg details summary{cursor:pointer;font-weight:600;color:var(--road);margin-top:6px}
 .fb .devd{margin:6px 0 0 28px;font-size:13px}.fb .devd summary{cursor:pointer;color:var(--road);font-weight:600}
 .fb .devd pre{white-space:pre-wrap;word-break:break-word;background:var(--soft);border:1px solid var(--line);border-radius:6px;padding:8px;font:12px/1.45 ui-monospace,Consolas,monospace;margin:6px 0 0;max-height:220px;overflow:auto}
@@ -420,6 +421,7 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
       <details><summary>What's sent</summary><ul class="ul">
         <li>Which planner and version (on this device: <i id="usageEd"></i>)</li>
         <li>What you used, by name only: opened, loaded calls, opened a route, sent to phone, sent feedback, took the tour</li>
+        <li>Your anonymous ID (below), once a day, so you're counted as one person across days and devices</li>
         <li>Screen size, plus browser and device type (read from your browser)</li>
         <li>General area (country and state), worked out by the counting service from your internet address. The address itself isn't stored.</li>
       </ul></details>
@@ -431,6 +433,10 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
         <li>The page address (it can hold call data or your Windows user name), so it's blocked from every count</li>
       </ul></details>
       <details><summary>Where it goes</summary><p class="hint">Counts go to <b>GoatCounter</b>, a privacy-focused counting service. Like any website, it sees your internet address while receiving a count; it uses it only to work out country and state and to avoid double counting for a few hours, and never saves it. No personally identifiable information is collected. Only the app's owner sees the totals, and only as counts (for example "42 people opened the Virginia planner this week"). Counts are only sent when you're online.</p></details>
+      <div class="uidbox"><span>Your anonymous ID</span> <b id="uidShow"></b> <button type="button" id="uidCopy">Copy</button>
+        <div class="hint">A random code, not linked to your name, P number, or email. It goes along automatically when you use Send to phone, send calls from Companion, or save a backup (never with a hand-off to a teammate). To match another device by hand, type its ID here:</div>
+        <div class="row"><input type="text" id="uidIn" maxlength="9" placeholder="XXXX-XXXX" style="width:130px;text-transform:uppercase"><button type="button" id="uidUse">Use this ID</button></div>
+        <div class="msg" id="uidMsg"></div></div>
       <details id="sentWrap"><summary>Sent from this device</summary><div id="sentLog" class="hint"></div></details>
     </fieldset>
     <fieldset>
@@ -696,12 +702,13 @@ const ERRLOG=[];
   window.addEventListener("unhandledrejection",e=>add("Promise: "+((e.reason&&e.reason.message)||e.reason)));
 })();
 // ---------- version ----------
-const APP_VERSION = "4.3";
+const APP_VERSION = "4.4";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const GC_CODE = "";   // GoatCounter site code for anonymous usage counts (blank = nothing is sent)
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["4.4", "Anonymous user ID: a random code (shown in Settings → Usage data) so one person is counted once across days and devices. It travels with Send to phone, calls from Companion, and backup files (never with a hand-off to a teammate), and can be typed in on another device. It is never linked to your name, P number, or email."],
   ["4.3", "Usage data and Your stats: ☰ Menu → Settings shows fun facts from your own data (calls completed, stores and cities served, routes opened, busiest day) and explains exactly what anonymous usage data is sent: app version, what you used (by name only), device type, screen size, and general area (country and state). Your calls, store numbers, addresses, GPS location, and names are never sent."],
   ["4.2", "Feedback can include device details (browser, screen, planner version, counts of loaded calls and stores, recent errors) to help fix problems. You see exactly what is added before sending and can uncheck it. Your calls, locations and addresses are never included."],
   ["4.1", "What's new: after an update, a short note shows what changed. Quick tour: a one-minute walk through the screen, offered on first use and any time from ☰ Menu."],
@@ -2374,7 +2381,7 @@ $("exportBtn").onclick=()=>{
   const keys=["callsText","done","history","showDone","excluded","manual","mode","round","start","startAddr","startCoords","groups","stores","coords"];
   const data={app:"service-route-planner",edition:EDITION.id,version:APP_VERSION,savedAt:new Date().toISOString()};
   keys.forEach(k=>{ const v=store.get(k,undefined); if(v!==undefined) data[k]=v; });
-  data.callsText=$("callsInput").value; data.done=S.done;
+  data.callsText=$("callsInput").value; data.done=S.done; data.uid=getUid();
   const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
   const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
   a.download="route-planner-"+(EDITION.id==="company"?"":EDITION.id==="local"?"VA-":EDITION.id.replace("state-","")+"-")+"backup-"+new Date().toISOString().slice(0,10)+".json";
@@ -2390,7 +2397,8 @@ $("backupFile").onchange=e=>{
       const d=JSON.parse(r.result);
       if(d.app!=="service-route-planner") throw new Error();
       if((d.edition||"local")!==EDITION.id){ $("backupMsg").textContent="That backup is from a different edition of the planner. Load it in the edition that made it."; return; }
-      Object.keys(d).forEach(k=>{ if(!["app","savedAt","version","edition"].includes(k)) store.set(k,d[k]); });
+      if(d.uid) adoptUid(d.uid);
+      Object.keys(d).forEach(k=>{ if(!["app","savedAt","version","edition","uid"].includes(k)) store.set(k,d[k]); });
       location.reload();
     }catch(err){ $("backupMsg").textContent="That file isn't a route planner backup."; }
   };
@@ -2475,7 +2483,11 @@ function applyFeatures(){
 function setupSettings(){
   $("setList").innerHTML=FEATURES.map(([k,t,d])=>`<label class="setl"><span><b>${t}</b><small>${d}</small></span><input type="checkbox" data-feat="${k}" ${F(k)?"checked":""}></label>`).join("");
   $("setList").querySelectorAll("input[data-feat]").forEach(cb=>cb.onchange=()=>{ FEAT[cb.dataset.feat]=cb.checked; store.set("features",FEAT); applyFeatures(); render(); });
-  $("setBtn").onclick=()=>{ renderUsage(); $("setDlg").classList.add("show"); };
+  $("setBtn").onclick=()=>{ $("uidMsg").textContent=""; renderUsage(); $("setDlg").classList.add("show"); };
+  $("uidCopy").onclick=()=>{ const t=getUid().i; (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>$("uidMsg").textContent="Copied.",()=>$("uidMsg").textContent="Select the ID and copy it."); };
+  $("uidUse").onclick=()=>{ let v=$("uidIn").value.toUpperCase().replace(/[^0-9A-Z]/g,""); v=v.slice(0,4)+"-"+v.slice(4,8);
+    if(!/^[0-9A-Z]{4}-[0-9A-Z]{4}$/.test(v)){ $("uidMsg").textContent="Enter the 8-character ID from your other device, like 7F3K-9QXA."; return; }
+    adoptUid({i:v},true); $("uidIn").value=""; $("uidMsg").textContent="This device now uses ID "+v+"."; renderUsage(); };
   $("setClose").onclick=()=>$("setDlg").classList.remove("show");
   $("setDlg").onclick=e=>{ if(e.target.id==="setDlg") $("setDlg").classList.remove("show"); };
 }
@@ -2575,7 +2587,7 @@ function outlookCompose(subject, body){
 let handCalls=[];
 async function packCalls(calls, add){
   const rows=calls.map(c=>["","",c.date,c.time,c.prioLabel,"P"+c.store,"","",c.serial||"",c.order,c.desc,c.wc||"",c.status==="—"?"":c.status,"",c.location||""].join("\t"));
-  return zip(JSON.stringify({v:1,a:add?1:0,c:rows.join("\n")}));
+  return zip(JSON.stringify({v:1,a:add?1:0,c:rows.join("\n")}));   // hand-offs go to a teammate: no ID
 }
 async function openHandoff(calls){
   handCalls=calls.filter(c=>!isDone(c)); if(!handCalls.length) return;
@@ -2748,8 +2760,19 @@ const shared={ get(k,d){ try{ const v=localStorage.getItem("route2."+k); return 
   set(k,v){ try{ localStorage.setItem("route2."+k,JSON.stringify(v)); }catch(e){} } };
 const USAGE=Object.assign({first:Date.now(),days:0,lastDay:"",imports:0,routes:0,sends:0,feedback:0},shared.get("usage",{}));
 function bump(k,n=1){ Object.assign(USAGE,shared.get("usage",{})); USAGE[k]=(USAGE[k]||0)+n; shared.set("usage",USAGE); }
+// Anonymous user ID: random, never linked to a name, P number, or email. Shared by all versions on this device,
+// carried to your other devices by transfers and backups. When two IDs meet, the older one wins so they converge.
+function makeUid(){ const a="0123456789ABCDEFGHJKMNPQRSTVWXYZ", r=new Uint8Array(8); crypto.getRandomValues(r); const t=[...r].map(x=>a[x%32]).join(""); return t.slice(0,4)+"-"+t.slice(4); }
+function getUid(){ let u=shared.get("uid",null); if(!u||!/^[0-9A-Z]{4}-[0-9A-Z]{4}$/.test(u.i)){ u={i:makeUid(),a:Date.now()}; shared.set("uid",u); } return u; }
+function adoptUid(u,manual){
+  if(!u||typeof u.i!=="string"||!/^[0-9A-Z]{4}-[0-9A-Z]{4}$/.test(u.i)) return false;
+  const mine=getUid(); if(u.i===mine.i) return false;
+  const a=manual?1:+u.a||Date.now();
+  if(manual || a<mine.a){ shared.set("uid",{i:u.i,a:Math.min(a,mine.a)}); shared.set("uidDay",""); return true; }
+  return false;
+}
 function track(ev){
-  const name=`planner/${EDITION_CODE}/${ev}`, log=shared.get("sentLog",[]);
+  const name=ev.startsWith("user/")?`users/${ev.slice(5)}`:`planner/${EDITION_CODE}/${ev}`, log=shared.get("sentLog",[]);
   const send=!!GC_CODE && navigator.onLine;
   if(send){ try{ const img=new Image(); img.referrerPolicy="no-referrer";
     img.src=`https://${GC_CODE}.goatcounter.com/count?p=${encodeURIComponent(name)}&t=${encodeURIComponent(EDITION_CODE+" v"+APP_VERSION)}&e=1&s=${screen.width},${screen.height},${devicePixelRatio}&rnd=${Math.random().toString(36).slice(2)}`; }catch(e){} }
@@ -2761,11 +2784,13 @@ function dailyUsage(){
   // "Days used" counts once per device per day; the daily count is sent once per day for each version opened.
   if(shared.get("usage",{}).lastDay!==today){ bump("days"); USAGE.lastDay=today; shared.set("usage",USAGE); }
   if(store.get("dailySent","")!==today){ store.set("dailySent",today); track("daily"); }
+  if(shared.get("uidDay","")!==today){ shared.set("uidDay",today); track("user/"+getUid().i); }
 }
 function renderUsage(){
   $("usageEd").textContent=`${EDITION.name.replace(/^Service Route Planner\s*[–-]\s*/,"")} v${APP_VERSION}`;
   const log=shared.get("sentLog",[]).slice().reverse();
-  $("sentLog").innerHTML = log.length ? log.map(x=>`${esc(new Date(x.t).toLocaleString())} – <b>${esc(x.e.split("/").pop())}</b> (${esc(x.e.split("/")[1])} v${esc(x.v)}, screen ${screen.width}×${screen.height})${x.s?"":" – not sent: offline or counting not set up yet"}`).join("<br>") : "Nothing yet.";
+  $("uidShow").textContent=getUid().i;
+  $("sentLog").innerHTML = log.length ? log.map(x=>`${esc(new Date(x.t).toLocaleString())} – <b>${esc(x.e.startsWith("users/")?"daily user count, ID "+x.e.slice(6):x.e.split("/").pop())}</b> (${esc(x.e.startsWith("users/")?"":x.e.split("/")[1]+" ")}v${esc(x.v)}, screen ${screen.width}×${screen.height})${x.s?"":" – not sent: offline or counting not set up yet"}`).join("<br>") : "Nothing yet.";
   // Completed calls from every version used on this device (each keeps its own list).
   const all={}; try{ for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(/^(rp|rpc|rp-[A-Z]{2})\.history$/.test(k)) Object.assign(all,JSON.parse(localStorage.getItem(k)||"{}")); } }catch(e){}
   Object.assign(all,S.history||{});
@@ -2889,7 +2914,7 @@ function syncPayload(){
   const open=S.calls.filter(c=>!isDone(c)&&!S.handed[c.order]);
   const wcCount={}; open.forEach(c=>{ if(c.wc) wcCount[c.wc]=(wcCount[c.wc]||0)+1; });
   const w=Object.keys(wcCount).sort((a,b)=>wcCount[b]-wcCount[a])[0]||"";
-  const d={v:2,k:open.map(c=>packRow(c,w))};
+  const d={v:2,k:open.map(c=>packRow(c,w)),u:getUid()};
   if(w) d.w=w;
   if(S.excluded.size) d.x=[...S.excluded];
   d.m=$("modeSel").value; if($("roundTrip").checked) d.r=true;
@@ -2958,6 +2983,7 @@ function applySync(d){
   render(); $("savedNote").textContent="Loaded from your computer.";
 }
 function offerSync(d, packed, fromPaste){
+  if(d.u && (d.v===2 || d.src==="companion")) adoptUid(d.u);   // only your own transfers carry your ID
   const count=d.c?d.c.split("\n").length:0;
   if(d.a){
     $("recvText").innerHTML=`Add <b>${count} ${d.src==="companion"?"call":"handed-off call"}${count>1?"s":""}</b>${d.src==="companion"?" from Companion":""} to your list? Your current calls stay.`;
