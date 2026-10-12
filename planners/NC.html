@@ -194,6 +194,7 @@ details.ropts[open]{padding-bottom:10px}
 .hday{position:sticky;top:0;background:var(--soft);padding:6px 8px;font-weight:700;display:flex;justify-content:space-between;align-items:center;gap:8px;border-bottom:1px solid var(--line);z-index:1}
 .hday button{font-size:12px;padding:2px 8px}
 .hitem{display:grid;grid-template-columns:62px 1fr;gap:8px;padding:7px 8px;border-bottom:1px solid var(--line);font-size:14px}
+.smstag{display:inline-block;border-radius:4px;padding:0 5px;font-size:11px;font-weight:700;background:var(--soft);border:1px solid var(--line)}
 .hitem .t{color:var(--muted);font-variant-numeric:tabular-nums}
 .hitem .m{color:var(--muted);font-size:12px}
 .hmonth{color:var(--muted);font-size:13px}
@@ -705,12 +706,13 @@ const ERRLOG=[];
   window.addEventListener("unhandledrejection",e=>add("Promise: "+((e.reason&&e.reason.message)||e.reason)));
 })();
 // ---------- version ----------
-const APP_VERSION = "4.6";
+const APP_VERSION = "4.7";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const GC_CODE = "";   // GoatCounter site code for anonymous usage counts (blank = nothing is sent)
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["4.7", "Past calls from Companion: after importing past dispatch texts in Companion, send them to Route Planner and they appear in History (by the day the text arrived), and count toward repeat-issue alerts and Your stats."],
   ["4.6", "Fixes: the ☰ Menu no longer runs off the edge of the screen on phones; dialogs and the tour stay on screen at every phone size. Send feedback now reminds you to attach a screenshot of the problem."],
   ["4.5", "Usage data is only sent from phones and tablets. Nothing is sent when you use the planner on a computer."],
   ["4.4", "Anonymous user ID: a random code (shown in Settings → Usage data) so one person is counted once across days and devices. It travels with Send to phone, calls from Companion, and backup files (never with a hand-off to a teammate), and can be typed in on another device. It is never linked to your name, P number, or email."],
@@ -1867,6 +1869,20 @@ function recordHistory(c, at){
   const cut=Date.now()-400*864e5; Object.keys(S.history).forEach(k=>{ if(Date.parse(S.history[k].at)<cut) delete S.history[k]; });
   store.set("history",S.history);
 }
+// Past calls from Companion: [order, store, severity, received (seconds), description]
+function importPastCalls(rows){
+  const cut=Date.now()-400*864e5; let added=0, old=0;
+  rows.forEach(r=>{ const [o,s,sev,t,desc]=r, at=new Date((+t||0)*1000);
+    if(!o||!/^\d{6,12}$/.test(String(o))||isNaN(at)) return;
+    if(at.getTime()<cut){ old++; return; }
+    if(S.history[o]) return;
+    const st=S.stores[String(s)]||{};
+    S.history[o]={o:String(o), s:String(s), city:st.city||"", d:String(desc||"").slice(0,200), p:"Sev "+(sev||"?"), due:"", at:at.toISOString(), sn:"", src:"sms"}; added++; });
+  store.set("history",S.history);
+  $("savedNote").textContent=`Added ${added} past call${added===1?"":"s"} to History`+(old?` (${old} older than 400 days skipped)`:"")+".";
+  render();
+  if(added){ openHistory(); const newest=new Date(Math.max(...rows.map(r=>+r[3]||0))*1000); histMonth=new Date(newest.getFullYear(),newest.getMonth(),1); renderHistory(); }
+}
 function backfillHistory(){ let n=0; S.calls.forEach(c=>{ if(S.done[c.order] && !S.history[c.order]){ recordHistory(c,S.done[c.order]); n++; } }); return n; }
 let histMonth=null, histSel=null;
 function openHistory(){ const d=new Date(); histMonth=new Date(d.getFullYear(),d.getMonth(),1); histSel=null; renderHistory(); $("histDlg").classList.add("show"); }
@@ -1893,7 +1909,7 @@ function renderHistory(){
   $("histList").innerHTML = keys.length ? keys.map(k=>{
     const d=new Date(k+"T12:00:00"), items=byDay[k];
     return `<div class="hday" id="hd-${k}"><span>${d.toLocaleDateString(undefined,{weekday:"long",month:"short",day:"numeric"})} · ${items.length}</span><button data-copy="${k}">Copy day</button></div>`+
-      items.map(x=>`<div class="hitem"><span class="t">${new Date(x.at).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}</span><div><b>${esc(x.d)}</b><div class="m">Store ${esc(x.s)}${x.city?" · "+esc(x.city):""} · ${esc(x.p||"")} · Order <a class="ord" href="${ORDER_HREF(x.o)}"${orderTarget()}>${esc(x.o)}</a></div></div></div>`).join("");
+      items.map(x=>`<div class="hitem"><span class="t">${new Date(x.at).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}</span><div><b>${esc(x.d)}</b><div class="m">${x.src==="sms"?'<span class="smstag">From dispatch text</span> ':""}Store ${esc(x.s)}${x.city?" · "+esc(x.city):""} · ${esc(x.p||"")} · Order <a class="ord" href="${ORDER_HREF(x.o)}"${orderTarget()}>${esc(x.o)}</a></div></div></div>`).join("");
   }).join("") : `<p class="hint" style="padding:12px">Calls you mark Done appear here, grouped by day.</p>`;
   $("histList").querySelectorAll("[data-copy]").forEach(b=>b.onclick=()=>{ const k=b.dataset.copy, t=histDayText(k,byDay[k]), done=()=>$("histMsg").textContent="Day copied.";
     if(navigator.clipboard) navigator.clipboard.writeText(t).then(done,()=>fallbackCopy(t,done)); else fallbackCopy(t,done); });
@@ -2140,6 +2156,15 @@ function applySync(d){
 }
 function offerSync(d, packed, fromPaste){
   if(d.u && (d.v===2 || d.src==="companion")) adoptUid(d.u);   // only your own transfers carry your ID
+  if(Array.isArray(d.h)){   // past calls from Companion's dispatch texts → History only
+    const n=d.h.length, have=d.h.filter(r=>S.history[String(r[0])]).length;
+    $("recvText").innerHTML=`Add <b>${n} past call${n===1?"":"s"}</b> from Companion to your <b>History</b>?`+(have?` (${have} ${have===1?"is":"are"} already there.)`:"")+` They show on the History calendar by the day the dispatch text arrived. Your current list doesn't change.`;
+    $("recvCopy").style.display="none"; $("recvHint").textContent=""; $("recvYes").textContent="Add to History";
+    $("recvDlg").classList.add("show");
+    $("recvNo").onclick=()=>$("recvDlg").classList.remove("show");
+    $("recvYes").onclick=()=>{ $("recvDlg").classList.remove("show"); importPastCalls(d.h); };
+    return;
+  }
   const count=d.c?d.c.split("\n").length:0;
   if(d.a){
     $("recvText").innerHTML=`Add <b>${count} ${d.src==="companion"?"call":"handed-off call"}${count>1?"s":""}</b>${d.src==="companion"?" from Companion":""} to your list? Your current calls stay.`;
