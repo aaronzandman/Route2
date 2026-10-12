@@ -245,11 +245,21 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
     <div class="row" style="justify-content:center"><button id="sendPrev">◀ Previous</button><button class="primary" id="sendNext">Next code ▶</button><button id="sendClose">Close</button></div>
   </div>
 </div>
+<div class="bmk" id="pasteDlg" role="dialog" aria-modal="true" aria-labelledby="pasteTitle">
+  <div class="box">
+    <h3 id="pasteTitle">Paste transfer</h3>
+    <p class="hint" style="margin:0 0 8px">Long-press the box and choose <b>Paste</b>, then tap <b>Load</b>.</p>
+    <textarea id="pasteBox" style="width:100%;min-height:90px;font:12px ui-monospace,monospace;border:1px solid var(--line);border-radius:6px;padding:8px;background:var(--soft);color:var(--ink)" aria-label="Transfer"></textarea>
+    <div class="msg" id="pasteMsg"></div>
+    <div class="row"><button id="pasteNo">Cancel</button><button class="primary" id="pasteYes">Load</button></div>
+  </div>
+</div>
 <div class="bmk" id="recvDlg" role="dialog" aria-modal="true" aria-labelledby="recvTitle">
   <div class="box">
     <h3 id="recvTitle">Calls from your computer</h3>
     <p id="recvText"></p>
-    <div class="row"><button id="recvNo">Cancel</button><button class="primary" id="recvYes">Load on this phone</button></div>
+    <div class="row"><button id="recvNo">Cancel</button><button id="recvCopy">Copy for the installed app</button><button class="primary" id="recvYes">Load here</button></div>
+    <p class="hint" id="recvHint" style="margin:8px 0 0"></p>
   </div>
 </div>
 <div class="bmk" id="bmk" role="dialog" aria-modal="true" aria-labelledby="bmkTitle">
@@ -441,11 +451,12 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
 
 <script>
 // ---------- version ----------
-const APP_VERSION = "3.3";
+const APP_VERSION = "3.4";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["3.4", "Send to phone works with the installed app: after scanning, choose Copy for the installed app, then tap Paste transfer in the app. Needed on iPhone, where scanned links always open in Safari."],
   ["3.3", "Install app: put the planner on your phone's home screen or computer's taskbar with its own icon. It opens full screen like an app and works without signal once installed. Your data stays on your device."],
   ["3.2", "Feedback: the confirmation checkbox is replaced by an optional flag for reports that contain proprietary information. Flagged reports are clearly marked in the email."],
   ["3.1", "Feedback button: report a bug, an error, or a suggestion. It opens Outlook with your report ready to send."],
@@ -1173,7 +1184,7 @@ function setupMode(){
   const badge=$("modeBadge"), act=$("modeActions");
   if(IS_ONLINE){
     badge.className="modebadge online"; badge.textContent="Online version";
-    act.innerHTML=`<button class="hbtn" id="instBtn">📲 Install app</button> <button class="hbtn" id="sendBtn">📱 Send to phone</button> <button class="hbtn" id="bmkBtn">☆ Bookmark</button> <button class="hbtn" id="dlSelf">Download offline copy</button>`;
+    act.innerHTML=`<button class="hbtn" id="pasteBtn" hidden>📋 Paste transfer</button> <button class="hbtn" id="instBtn">📲 Install app</button> <button class="hbtn" id="sendBtn">📱 Send to phone</button> <button class="hbtn" id="bmkBtn">☆ Bookmark</button> <button class="hbtn" id="dlSelf">Download offline copy</button>`;
     setupSend();
     setupBookmark();
     $("dlSelf").onclick=async()=>{
@@ -1289,6 +1300,53 @@ function setupSend(){
   $("sendClose").onclick=()=>$("sendDlg").classList.remove("show");
   $("sendDlg").onclick=e=>{ if(e.target.id==="sendDlg") $("sendDlg").classList.remove("show"); };
 }
+const SYNC_TAG="ROUTE2-TRANSFER:";
+function applySync(d){
+  $("callsInput").value=d.c||""; $("loadBtn").click();
+  S.excluded=new Set(d.x||[]); store.set("excluded",[...S.excluded]);
+  if(d.m){ $("modeSel").value=d.m; store.set("mode",d.m); }
+  $("roundTrip").checked=!!d.r; store.set("round",!!d.r);
+  S.pastTiers=new Set(d.t||[]); store.set("pastTiers",[...S.pastTiers]);
+  S.fDates=new Set(d.d||[]); store.set("fDates",[...S.fDates]);
+  if(d.s){ S.listSort=d.s; store.set("listSort",d.s); }
+  if(Array.isArray(d.o)){ S.manual=d.o; store.set("manual",d.o); }
+  render(); $("savedNote").textContent="Loaded from your computer.";
+}
+function offerSync(d, packed, fromPaste){
+  const count=d.c?d.c.split("\n").length:0;
+  $("recvText").innerHTML=`Load <b>${count} open call${count>1?"s":""}</b> and your route settings from your computer? This replaces the calls here. Calls you've marked Done stay done.`;
+  // In a browser on a phone, offer to hand the transfer to the installed app (separate storage on iPhone).
+  const showCopy=!fromPaste && !IS_APP && /iPhone|iPad|iPod|Android/.test(navigator.userAgent);
+  $("recvCopy").style.display = showCopy ? "" : "none";
+  $("recvHint").textContent = showCopy ? "Using the installed app? Choose Copy for the installed app, open Route "+EDITION_CODE+" from your home screen, and tap Paste transfer." : "";
+  $("recvDlg").classList.add("show");
+  $("recvNo").onclick=()=>$("recvDlg").classList.remove("show");
+  $("recvYes").onclick=()=>{ $("recvDlg").classList.remove("show"); applySync(d); };
+  $("recvCopy").onclick=()=>{
+    const t=SYNC_TAG+packed, done=()=>{ $("recvHint").innerHTML="<b>Copied.</b> Now open <b>Route "+EDITION_CODE+"</b> from your home screen and tap <b>📋 Paste transfer</b>."; };
+    if(navigator.clipboard) navigator.clipboard.writeText(t).then(done,()=>fallbackCopy(t,done)); else fallbackCopy(t,done);
+  };
+}
+async function readTransfer(text){
+  const t=(text||"").trim(); const k=t.indexOf(SYNC_TAG);
+  if(k<0) throw new Error("none");
+  const packed=t.slice(k+SYNC_TAG.length).split(/\s/)[0];
+  return {d:JSON.parse(await unzip(packed)), packed};
+}
+function setupPaste(){
+  const b=$("pasteBtn"); if(!b) return;
+  if(IS_APP || /iPhone|iPad|iPod|Android/.test(navigator.userAgent)) b.hidden=false;
+  const openBox=(msg)=>{ $("pasteBox").value=""; $("pasteMsg").textContent=msg||""; $("pasteDlg").classList.add("show"); };
+  b.onclick=async()=>{
+    try{ const t=await navigator.clipboard.readText(); const r=await readTransfer(t); offerSync(r.d,r.packed,true); }
+    catch(e){ openBox(e&&e.message==="none"?"Nothing to paste yet. On your phone's browser, scan the codes and choose Copy for the installed app first.":""); }
+  };
+  $("pasteNo").onclick=()=>$("pasteDlg").classList.remove("show");
+  $("pasteYes").onclick=async()=>{
+    try{ const r=await readTransfer($("pasteBox").value); $("pasteDlg").classList.remove("show"); offerSync(r.d,r.packed,true); }
+    catch(e){ $("pasteMsg").textContent="That isn't a Route transfer. Copy it again from the browser and paste here."; }
+  };
+}
 async function receiveSync(){
   const m=/^#sync=([a-z0-9]+)\.(\d+)\.(\d+)\.(.+)$/i.exec(location.hash);
   if(!m) return;
@@ -1299,26 +1357,12 @@ async function receiveSync(){
   st.parts[i]=chunk; store.set("syncParts",st);
   const have=Object.keys(st.parts).length;
   if(have<n){ const msg=$("updBar"); msg.innerHTML=`<span><b>Got code ${have} of ${n}.</b> Scan the next code on your computer.</span>`; msg.classList.add("show"); return; }
+  const packed=Array.from({length:n},(_,k)=>st.parts[k+1]).join("");
   let d;
-  try{ d=JSON.parse(await unzip(Array.from({length:n},(_,k)=>st.parts[k+1]).join(""))); }
+  try{ d=JSON.parse(await unzip(packed)); }
   catch(e){ store.set("syncParts",null); $("updBar").innerHTML="<span><b>That transfer didn't work.</b> Close Send to phone on your computer, open it again, and rescan.</span>"; $("updBar").classList.add("show"); return; }
   store.set("syncParts",null);
-  const count=d.c?d.c.split("\n").length:0;
-  $("recvText").innerHTML=`Load <b>${count} open call${count>1?"s":""}</b> and your route settings from your computer? This replaces the calls on this phone. Calls you've marked Done here stay done.`;
-  $("recvDlg").classList.add("show");
-  $("recvNo").onclick=()=>$("recvDlg").classList.remove("show");
-  $("recvYes").onclick=()=>{
-    $("recvDlg").classList.remove("show");
-    $("callsInput").value=d.c||""; $("loadBtn").click();
-    S.excluded=new Set(d.x||[]); store.set("excluded",[...S.excluded]);
-    if(d.m){ $("modeSel").value=d.m; store.set("mode",d.m); }
-    $("roundTrip").checked=!!d.r; store.set("round",!!d.r);
-    S.pastTiers=new Set(d.t||[]); store.set("pastTiers",[...S.pastTiers]);
-    S.fDates=new Set(d.d||[]); store.set("fDates",[...S.fDates]);
-    if(d.s){ S.listSort=d.s; store.set("listSort",d.s); }
-    if(Array.isArray(d.o)){ S.manual=d.o; store.set("manual",d.o); }
-    render(); $("savedNote").textContent="Loaded from your computer.";
-  };
+  offerSync(d,packed,false);
 }
 let installPrompt=null;
 window.addEventListener("beforeinstallprompt",e=>{ e.preventDefault(); installPrompt=e; });
@@ -1334,8 +1378,9 @@ function setupBookmark(){
   meta("apple-mobile-web-app-title","Route "+EDITION_CODE); meta("apple-mobile-web-app-status-bar-style","default");
   // Offline helper: keeps a copy of the planner's own files so the installed app opens without signal. It never stores your calls.
   if("serviceWorker" in navigator) navigator.serviceWorker.register("../sw.js").catch(()=>{});
+  if(/iPhone|iPad|iPod|Android/.test(navigator.userAgent)) $("sendBtn").style.display="none";   // sending is done from a computer
   if(IS_APP){
-    $("instBtn").style.display="none"; $("bmkBtn").style.display="none";
+    $("instBtn").style.display="none"; $("bmkBtn").style.display="none"; $("dlSelf").style.display="none";
     $("modeBadge").textContent="App"; 
   }
   $("instBtn").onclick=async()=>{
@@ -1388,6 +1433,7 @@ async function checkUpdate(manual){
 // ---------- init ----------
 setupMode();
 setupFeedback();
+if(IS_ONLINE) setupPaste();
 if(IS_ONLINE) receiveSync();
 $("colList").innerHTML=COLS.map((n,i)=>`<span>${i+1}</span><span>${esc(n)}</span>`).join("");
 if(!store.get("callsText","")) $("sapHelp").open=true;

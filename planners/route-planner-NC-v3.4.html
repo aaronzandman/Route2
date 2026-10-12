@@ -245,11 +245,21 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
     <div class="row" style="justify-content:center"><button id="sendPrev">◀ Previous</button><button class="primary" id="sendNext">Next code ▶</button><button id="sendClose">Close</button></div>
   </div>
 </div>
+<div class="bmk" id="pasteDlg" role="dialog" aria-modal="true" aria-labelledby="pasteTitle">
+  <div class="box">
+    <h3 id="pasteTitle">Paste transfer</h3>
+    <p class="hint" style="margin:0 0 8px">Long-press the box and choose <b>Paste</b>, then tap <b>Load</b>.</p>
+    <textarea id="pasteBox" style="width:100%;min-height:90px;font:12px ui-monospace,monospace;border:1px solid var(--line);border-radius:6px;padding:8px;background:var(--soft);color:var(--ink)" aria-label="Transfer"></textarea>
+    <div class="msg" id="pasteMsg"></div>
+    <div class="row"><button id="pasteNo">Cancel</button><button class="primary" id="pasteYes">Load</button></div>
+  </div>
+</div>
 <div class="bmk" id="recvDlg" role="dialog" aria-modal="true" aria-labelledby="recvTitle">
   <div class="box">
     <h3 id="recvTitle">Calls from your computer</h3>
     <p id="recvText"></p>
-    <div class="row"><button id="recvNo">Cancel</button><button class="primary" id="recvYes">Load on this phone</button></div>
+    <div class="row"><button id="recvNo">Cancel</button><button id="recvCopy">Copy for the installed app</button><button class="primary" id="recvYes">Load here</button></div>
+    <p class="hint" id="recvHint" style="margin:8px 0 0"></p>
   </div>
 </div>
 <div class="bmk" id="bmk" role="dialog" aria-modal="true" aria-labelledby="bmkTitle">
@@ -441,11 +451,12 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
 
 <script>
 // ---------- version ----------
-const APP_VERSION = "3.3";
+const APP_VERSION = "3.4";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["3.4", "Send to phone works with the installed app: after scanning, choose Copy for the installed app, then tap Paste transfer in the app. Needed on iPhone, where scanned links always open in Safari."],
   ["3.3", "Install app: put the planner on your phone's home screen or computer's taskbar with its own icon. It opens full screen like an app and works without signal once installed. Your data stays on your device."],
   ["3.2", "Feedback: the confirmation checkbox is replaced by an optional flag for reports that contain proprietary information. Flagged reports are clearly marked in the email."],
   ["3.1", "Feedback button: report a bug, an error, or a suggestion. It opens Outlook with your report ready to send."],
@@ -474,25 +485,75 @@ const CHANGELOG = [
   ["1.0", "Import calls, group by store, filters, route ordering, Google Maps directions."]
 ];
 // ===EDITION-START===
-const EDITION = {id:"state-KY", name:"Service Route Planner \u2013 Kentucky", key:"rp-KY.", resetLabel:"Restore Kentucky store list", groupBy:"city"};
+const EDITION = {id:"state-NC", name:"Service Route Planner \u2013 North Carolina", key:"rp-NC.", resetLabel:"Restore North Carolina store list", groupBy:"city"};
 const DEFAULT_GROUPS = ``;
 const DEFAULT_STORES = `Store #	Shopping Center	Address	City	State	Zip	Phone	Latitude	Longitude
-1846	Terra Crossing	2500 Terra Crossing Blvd	Louisville	KY	40245-5374	(502) 885-7662	38.27257	-85.49839
-1847	Publix at Marshall Commons	10005 Ballardsville Rd	Louisville	KY	40241-1202	(502) 302-7925	38.31706	-85.560394
-1887	The Fountains At Palomar	3855 Fountainblue Ln	Lexington	KY	40513	(859) 469-7337	38.003456	-84.57397
-2050	Publix at Flat Rock	150 Flat Rock Rd	Louisville	KY	40245	(502) 912-5403	38.236137	-85.445526
-2051	Citation Point	1952 Stockton Way	Lexington	KY	40511-2412	(859) 286-8293	38.095634	-84.51252
-2052	Triple Crown Shopping Center	430 Richwood Rd	Walton	KY	41094	(859) 379-1137	38.913414	-84.636505
-2053	Gateway Commons	3370 Hayden Rd	Owensboro	KY	42303	(270) 215-3915	37.767458	-87.062537
-2055	Farmview Commons	8740 US Hwy 42	Florence	KY	41042	(859) 938-1052	38.967207	-84.673345
-2057	Cold Spring Pointe	5401 Alexandria Pike	Cold Spring	KY	41076	(859) 908-6007	39.001796	-84.4217
-2058	Publix at Independence	5135 Jenkins Dr	Independence	KY	41051	(859) 898-5036	38.928628	-84.544058
-2059	The Shops at Pear Orchard	1311 Pear Orchard Rd Suite 100	Elizabethtown	KY	42701	(270) 740-5249	37.735684	-85.86062
-3646	Terra Crossing	2502 Terra Crossing Blvd	Louisville	KY	40245-5374	(502) 302-6531	38.27257	-85.49839
-3647	Publix at Marshall Commons	10015 Ballardsville Rd	Louisville	KY	40241-1202	(502) 313-7027		
-3651	Citation Point	1976 Stockton Way	Lexington	KY	40511-2412	(859) 286-8931	38.095634	-84.51252
-3652	Triple Crown Shopping Center	420 Richwood Rd	Walton	KY	41094	(859) 379-1139	38.913414	-84.636505
-3687	The Fountains At Palomar	3825 Fountainblue Ln	Lexington	KY	40513	(859) 469-7339	38.003456	-84.57397`;
+1442	Ballantyne Town Center	11222 Providence Rd W	Charlotte	NC	28277	(704) 716-2344	35.04258	-80.84965
+1453	Shops at Southline	2222 South Blvd	Charlotte	NC	28203-6581	(704) 373-2122	35.206657	-80.86254
+1466	Bradford	1020 Bradford Plaza Way	Cary	NC	27519	(919) 460-2082	35.793247	-78.8448
+1470	Mint Hill Commons	6828 Matthews Mint Hill Rd	Mint Hill	NC	28227-9324	(704) 573-0234	35.17094	-80.65955
+1473	Pinnacle Point	1830 Hendersonville Rd	Asheville	NC	28803-3207	(828) 274-6287	35.5049	-82.52241
+1474	Magnolia Plaza	8315 Magnolia Estates Dr	Cornelius	NC	28031-7837	(704) 895-7057	35.475414	-80.88894
+1475	Publix at Miller Street	34 Miller St	Winston-Salem	NC	27104-4212	(336) 724-3707	36.094845	-80.27575
+1480	Whitehall Commons	8120 S Tryon St	Charlotte	NC	28273-3325	(704) 583-2323	35.14604	-80.929794
+1481	Market Square	9815 Rose Commons Dr	Huntersville	NC	28078-3334	(704) 948-4801	35.40851	-80.864296
+1483	Steele Creek Crossing	12810 S Tryon St	Charlotte	NC	28273-6949	(704) 587-0339	35.104816	-80.98803
+1484	McKee Farms	3110 Fincher Farm Rd	Matthews	NC	28105-5462	(704) 814-6001	35.082245	-80.729935
+1490	Willow Oaks Crossing	5015 Weddington Rd	Concord	NC	28027	(704) 795-7127	35.396206	-80.66127
+1509	Prosperity Village Square	10110 Benfield Rd	Charlotte	NC	28269	(704) 992-6951	35.3748	-80.788574
+1514	The Shoppes at Heritage Village	1030 Forestville Rd	Wake Forest	NC	27587	(919) 556-6671	35.945904	-78.50794
+1516	Publix at Pine Valley	716 Bragg Dr	Wilmington	NC	28412	(910) 313-2201	34.180668	-77.89324
+1518	Cotswold	4425 Randolph Rd	Charlotte	NC	28211	(704) 367-5208	35.1778	-80.7994
+1519	Brawley Commons	631 Brawley School Rd	Mooresville	NC	28117-6204	(704) 660-6800	35.581768	-80.87465
+1520	Millpond Village	3480 Kildaire Farm Rd	Cary	NC	27518-1541	(919) 303-4024	35.70501	-78.797
+1521	Hoffman Village	1949 Hoffman Rd	Gastonia	NC	28054-6574	(704) 853-7000	35.225433	-81.132645
+1533	River Place	2004 S Glenburnie Rd	New Bern	NC	28562-5227	(252) 634-1646	35.100266	-77.10051
+1539	North Pointe Shopping Center	134 Venture Ln	Statesville	NC	28625	(704) 878-4073	35.818302	-80.87841
+1544	Publix Pointe	1441 Kelly Rd	Apex	NC	27502	(919) 303-6200	35.737526	-78.89342
+1546	Weaverville Plaza	165 Weaver Blvd	Weaverville	NC	28787	(828) 658-1020	35.705868	-82.568794
+1548	Publix at Three Creeks	1620 Blowing Rock Rd	Boone	NC	28607	(828) 263-8126	36.19921	-81.66139
+1550	Lake Hickory Crossings	36 29th Ave NE	Hickory	NC	28601-1100	(828) 322-3675	35.769314	-81.32824
+1551	Leesville Market Place	9640 Leesville Rd	Raleigh	NC	27613	(919) 848-3480	35.90569	-78.72725
+1552	Amberly Place	425 Emissary Dr	Cary	NC	27519	(919) 388-7201	35.825207	-78.90321
+1555	Harris Square	4055 Harris Square Dr	Harrisburg	NC	28075	(704) 454-7832	35.320442	-80.64581
+1556	Shoppes at Hanfield Village	5132 Old Charlotte Hwy	Monroe	NC	28110	(704) 289-6598	35.048042	-80.64222
+1569	Greenville Square	705 Greenville Blvd SE	Greenville	NC	27858	(252) 756-4682	35.588303	-77.370125
+1574	Peace Haven Village	3150 Gammon Ln	Clemmons	NC	27012	(336) 766-2069	36.04019	-80.38912
+1575	Tallywood Shopping Center	3114 Raeford Rd	Fayetteville	NC	28303	(910) 321-0114	35.04692	-78.93146
+1580	Ogden Market Place	7144 Market St	Wilmington	NC	28411	(910) 681-3555	34.271004	-77.81954
+1582	Westchester Square	2005 N Main St Ste 101	High Point	NC	27262	(336) 905-8610	35.981407	-80.024864
+1583	The Village Shoppes	7883 Village Center N	Sherrills Ford	NC	28673	(828) 478-2644	35.584713	-80.98934
+1586	South Market Village	635 Greenville Hwy	Hendersonville	NC	28792	(828) 694-4440	35.305576	-82.45932
+1603	Cambridge Village	513 Brentwood Rd	Denver	NC	28037	(704) 483-7152	35.448223	-80.99328
+1615	Publix at First Flight Square	1530 N Croatan Hwy	Kill Devil Hills	NC	27948	(252) 255-5006	36.027336	-75.671135
+1619	Arboretum at Surf City	2765 NC Hwy 210 E	Hampstead	NC	28443	(910) 329-1000	34.45176	-77.56461
+1623	Egret Landing	8800 Crew Drive	Emerald Isle	NC	28594	(252) 354-2104	34.66231	-77.05169
+1631	Ocean Isle Beach Market Place	1560 Market Place Blvd	Ocean Isle Beach	NC	28469	(910) 393-2059	33.90404	-78.43869
+1640	Waynesville Pavilion	124 Frazier St	Waynesville	NC	28786	(828) 454-5700	35.504246	-82.99398
+1652	Peace	417 W Peace St Ste 100	Raleigh	NC	27603	(919) 755-5444	35.78837	-78.64446
+1658	Grandover Village	6029 W Gate City Blvd	Greensboro	NC	27407	(336) 894-2591	36.000057	-79.90604
+1660	Gateway Marketplace	2001 Marlin Dr Unit 100	Jacksonville	NC	28546	(910) 353-0433	34.79604	-77.40825
+1677	Publix Commons at Federal Point	1018 Lake Park Blvd N Ste 107	Carolina Beach	NC	28428	(910) 458-8615	34.04399	-77.89519
+1703	Oak Island Marketplace	5003 E Oak Island Dr	Oak Island	NC	28465	(910) 278-6785	33.91143	-78.112785
+1704	Marvin Gardens	1615 Providence Rd S	Marvin	NC	28173	(704) 843-0119	34.98699	-80.77168
+1706	Church Street Commons	2750 S Church St	Burlington	NC	27215	(336) 586-1873	36.08065	-79.483215
+1727	Marketplace at Flowers Crossroads	24 Publix Dr	Clayton	NC	27527	(919) 550-2812	35.652176	-78.351944
+1744	Publix at Wendell Falls	2257 Wendell Falls Pkwy	Wendell	NC	27591	(919) 365-7055	35.776608	-78.43507
+1765	North Creek Village	15010 Village Crossing Rd	Huntersville	NC	28078	(704) 977-0021	35.454235	-80.80321
+1817	Marketplace at Ellis Crossing	1065 Yunus Rd	Durham	NC	27703-7200	(919) 598-0245	35.9408	-78.8543
+1824	Publix at Arboretum	7933 Providence Rd	Charlotte	NC	28277	(980) 273-7487	35.099136	-80.77755
+1855	Wallbrook	821 S Main Street	Rolesville	NC	27571-9264	(919) 263-6027	35.906536	-78.4801
+1858	West Edge	5525 Robin Lark Cir	Winston-Salem	NC	27106-9906	(336) 815-6007	36.1205	-80.36928
+1872	Harris Farms Shopping Center	1254 Coddle Creek Hwy	Mooresville	NC	28115	(704) 360-6915	35.561268	-80.78994
+1881	Clear Creek Crossings	12925 Albemarle Rd	Charlotte	NC	28227	(980) 365-7588	35.22505	-80.63641
+1886	Buffaloe Bend	7330 Buffaloe Rd	Raleigh	NC	27616	(919) 679-6584	35.844086	-78.51527
+1888	Latta Park	4628 Guess Rd	Durham	NC	27712-2624	(984) 243-5497	36.078212	-78.930075
+2017	Publix At Quail Commons	11525 Carmel Commons Blvd	Charlotte	NC	28226-5317	(704) 496-5209	35.087196	-80.84484
+2029	Commons at Carolina Shores	9770 Ocean Hwy W	Calabash	NC	28467	(910) 393-4010	33.90847	-78.586439
+2031	Middlecreek Crossings	16100 NC Hwy 50 N	Garner	NC	27529	(919) 334-4539	35.59163	-78.597275
+2101	Rockfish Village	7483 Rockfish Rd	Fayetteville	NC	28306-8075	(910) 912-2926	34.980518	-79.01654
+2105	The Marketplace at Mills River	70 Vance Hill Dr	Mills River	NC	28759	(828) 393-6342	35.402587	-82.567743
+2120	Village Commons	6460 Weddington Rd	Wesley Chapel	NC	28104	(704) 839-5004	34.999227	-80.692369`;
 const DEFAULT_COORDS = ``;
 // ===EDITION-END===
 
@@ -1173,7 +1234,7 @@ function setupMode(){
   const badge=$("modeBadge"), act=$("modeActions");
   if(IS_ONLINE){
     badge.className="modebadge online"; badge.textContent="Online version";
-    act.innerHTML=`<button class="hbtn" id="instBtn">📲 Install app</button> <button class="hbtn" id="sendBtn">📱 Send to phone</button> <button class="hbtn" id="bmkBtn">☆ Bookmark</button> <button class="hbtn" id="dlSelf">Download offline copy</button>`;
+    act.innerHTML=`<button class="hbtn" id="pasteBtn" hidden>📋 Paste transfer</button> <button class="hbtn" id="instBtn">📲 Install app</button> <button class="hbtn" id="sendBtn">📱 Send to phone</button> <button class="hbtn" id="bmkBtn">☆ Bookmark</button> <button class="hbtn" id="dlSelf">Download offline copy</button>`;
     setupSend();
     setupBookmark();
     $("dlSelf").onclick=async()=>{
@@ -1289,6 +1350,53 @@ function setupSend(){
   $("sendClose").onclick=()=>$("sendDlg").classList.remove("show");
   $("sendDlg").onclick=e=>{ if(e.target.id==="sendDlg") $("sendDlg").classList.remove("show"); };
 }
+const SYNC_TAG="ROUTE2-TRANSFER:";
+function applySync(d){
+  $("callsInput").value=d.c||""; $("loadBtn").click();
+  S.excluded=new Set(d.x||[]); store.set("excluded",[...S.excluded]);
+  if(d.m){ $("modeSel").value=d.m; store.set("mode",d.m); }
+  $("roundTrip").checked=!!d.r; store.set("round",!!d.r);
+  S.pastTiers=new Set(d.t||[]); store.set("pastTiers",[...S.pastTiers]);
+  S.fDates=new Set(d.d||[]); store.set("fDates",[...S.fDates]);
+  if(d.s){ S.listSort=d.s; store.set("listSort",d.s); }
+  if(Array.isArray(d.o)){ S.manual=d.o; store.set("manual",d.o); }
+  render(); $("savedNote").textContent="Loaded from your computer.";
+}
+function offerSync(d, packed, fromPaste){
+  const count=d.c?d.c.split("\n").length:0;
+  $("recvText").innerHTML=`Load <b>${count} open call${count>1?"s":""}</b> and your route settings from your computer? This replaces the calls here. Calls you've marked Done stay done.`;
+  // In a browser on a phone, offer to hand the transfer to the installed app (separate storage on iPhone).
+  const showCopy=!fromPaste && !IS_APP && /iPhone|iPad|iPod|Android/.test(navigator.userAgent);
+  $("recvCopy").style.display = showCopy ? "" : "none";
+  $("recvHint").textContent = showCopy ? "Using the installed app? Choose Copy for the installed app, open Route "+EDITION_CODE+" from your home screen, and tap Paste transfer." : "";
+  $("recvDlg").classList.add("show");
+  $("recvNo").onclick=()=>$("recvDlg").classList.remove("show");
+  $("recvYes").onclick=()=>{ $("recvDlg").classList.remove("show"); applySync(d); };
+  $("recvCopy").onclick=()=>{
+    const t=SYNC_TAG+packed, done=()=>{ $("recvHint").innerHTML="<b>Copied.</b> Now open <b>Route "+EDITION_CODE+"</b> from your home screen and tap <b>📋 Paste transfer</b>."; };
+    if(navigator.clipboard) navigator.clipboard.writeText(t).then(done,()=>fallbackCopy(t,done)); else fallbackCopy(t,done);
+  };
+}
+async function readTransfer(text){
+  const t=(text||"").trim(); const k=t.indexOf(SYNC_TAG);
+  if(k<0) throw new Error("none");
+  const packed=t.slice(k+SYNC_TAG.length).split(/\s/)[0];
+  return {d:JSON.parse(await unzip(packed)), packed};
+}
+function setupPaste(){
+  const b=$("pasteBtn"); if(!b) return;
+  if(IS_APP || /iPhone|iPad|iPod|Android/.test(navigator.userAgent)) b.hidden=false;
+  const openBox=(msg)=>{ $("pasteBox").value=""; $("pasteMsg").textContent=msg||""; $("pasteDlg").classList.add("show"); };
+  b.onclick=async()=>{
+    try{ const t=await navigator.clipboard.readText(); const r=await readTransfer(t); offerSync(r.d,r.packed,true); }
+    catch(e){ openBox(e&&e.message==="none"?"Nothing to paste yet. On your phone's browser, scan the codes and choose Copy for the installed app first.":""); }
+  };
+  $("pasteNo").onclick=()=>$("pasteDlg").classList.remove("show");
+  $("pasteYes").onclick=async()=>{
+    try{ const r=await readTransfer($("pasteBox").value); $("pasteDlg").classList.remove("show"); offerSync(r.d,r.packed,true); }
+    catch(e){ $("pasteMsg").textContent="That isn't a Route transfer. Copy it again from the browser and paste here."; }
+  };
+}
 async function receiveSync(){
   const m=/^#sync=([a-z0-9]+)\.(\d+)\.(\d+)\.(.+)$/i.exec(location.hash);
   if(!m) return;
@@ -1299,26 +1407,12 @@ async function receiveSync(){
   st.parts[i]=chunk; store.set("syncParts",st);
   const have=Object.keys(st.parts).length;
   if(have<n){ const msg=$("updBar"); msg.innerHTML=`<span><b>Got code ${have} of ${n}.</b> Scan the next code on your computer.</span>`; msg.classList.add("show"); return; }
+  const packed=Array.from({length:n},(_,k)=>st.parts[k+1]).join("");
   let d;
-  try{ d=JSON.parse(await unzip(Array.from({length:n},(_,k)=>st.parts[k+1]).join(""))); }
+  try{ d=JSON.parse(await unzip(packed)); }
   catch(e){ store.set("syncParts",null); $("updBar").innerHTML="<span><b>That transfer didn't work.</b> Close Send to phone on your computer, open it again, and rescan.</span>"; $("updBar").classList.add("show"); return; }
   store.set("syncParts",null);
-  const count=d.c?d.c.split("\n").length:0;
-  $("recvText").innerHTML=`Load <b>${count} open call${count>1?"s":""}</b> and your route settings from your computer? This replaces the calls on this phone. Calls you've marked Done here stay done.`;
-  $("recvDlg").classList.add("show");
-  $("recvNo").onclick=()=>$("recvDlg").classList.remove("show");
-  $("recvYes").onclick=()=>{
-    $("recvDlg").classList.remove("show");
-    $("callsInput").value=d.c||""; $("loadBtn").click();
-    S.excluded=new Set(d.x||[]); store.set("excluded",[...S.excluded]);
-    if(d.m){ $("modeSel").value=d.m; store.set("mode",d.m); }
-    $("roundTrip").checked=!!d.r; store.set("round",!!d.r);
-    S.pastTiers=new Set(d.t||[]); store.set("pastTiers",[...S.pastTiers]);
-    S.fDates=new Set(d.d||[]); store.set("fDates",[...S.fDates]);
-    if(d.s){ S.listSort=d.s; store.set("listSort",d.s); }
-    if(Array.isArray(d.o)){ S.manual=d.o; store.set("manual",d.o); }
-    render(); $("savedNote").textContent="Loaded from your computer.";
-  };
+  offerSync(d,packed,false);
 }
 let installPrompt=null;
 window.addEventListener("beforeinstallprompt",e=>{ e.preventDefault(); installPrompt=e; });
@@ -1334,8 +1428,9 @@ function setupBookmark(){
   meta("apple-mobile-web-app-title","Route "+EDITION_CODE); meta("apple-mobile-web-app-status-bar-style","default");
   // Offline helper: keeps a copy of the planner's own files so the installed app opens without signal. It never stores your calls.
   if("serviceWorker" in navigator) navigator.serviceWorker.register("../sw.js").catch(()=>{});
+  if(/iPhone|iPad|iPod|Android/.test(navigator.userAgent)) $("sendBtn").style.display="none";   // sending is done from a computer
   if(IS_APP){
-    $("instBtn").style.display="none"; $("bmkBtn").style.display="none";
+    $("instBtn").style.display="none"; $("bmkBtn").style.display="none"; $("dlSelf").style.display="none";
     $("modeBadge").textContent="App"; 
   }
   $("instBtn").onclick=async()=>{
@@ -1388,6 +1483,7 @@ async function checkUpdate(manual){
 // ---------- init ----------
 setupMode();
 setupFeedback();
+if(IS_ONLINE) setupPaste();
 if(IS_ONLINE) receiveSync();
 $("colList").innerHTML=COLS.map((n,i)=>`<span>${i+1}</span><span>${esc(n)}</span>`).join("");
 if(!store.get("callsText","")) $("sapHelp").open=true;
