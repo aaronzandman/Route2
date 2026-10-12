@@ -383,10 +383,11 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
 
 <script>
 // ---------- version ----------
-const APP_VERSION = "2.9";
+const APP_VERSION = "2.9.1";
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["2.9.1", "Store list update. Added 44 new stores: 1782 Naples, FL; 1800 Palm Beach Gardens, FL; 1841 Jacksonville, FL; 1861 Clearwater, FL; 1865 Kingsland, GA; 1888 Durham, NC; 1899 Palm Bay, FL; 2009 Nolensville, TN; 2014 Saint Augustine, FL; 2016 Hinesville, GA; 2022 Orlando, FL; 2029 Calabash, NC; 2035 Winter Haven, FL; 2037 Plantation, FL; 2040 Aiken, SC; 2043 Lakeland, FL; 2053 Owensboro, KY; 2055 Florence, KY; 2057 Cold Spring, KY; 2058 Independence, KY; 2059 Elizabethtown, KY; 2088 Davenport, FL; 2090 Charleston, SC; 2091 Englewood, FL; 2094 Saint Petersburg, FL; 2095 Spring Hill, FL; 2096 Saint Augustine Beach, FL; 2099 Bradenton, FL; 2100 Mauldin, SC; 2101 Fayetteville, NC; 2102 Locust Grove, GA; 2103 Jacksonville, FL; 2105 Mills River, NC; 2106 Farragut, TN; 2107 Winter Haven, FL; 2108 Bradenton, FL; 2109 Bainbridge, GA; 2112 Fernandina Beach, FL; 2113 Saint Augustine, FL; 2117 Winter Haven, FL; 2120 Wesley Chapel, NC; 2121 Apopka, FL; 2141 Ruskin, FL; 2145 Athens, AL. Filled in missing details for stores 1884, 2013, 2018, 1886, 2050."],
   ["2.9", "Store list updates automatically every day from Publix's store locator: new stores are added, none are ever removed. New Virginia stores show the group NEW until you assign one. Built-in stores are always included even if you've edited your store list."],
   ["2.8", "Due dates browser: every date that has calls, as tappable chips with counts and past-due colors; pick one or several. Landing pages list states first and the company-wide edition last."],
   ["2.7", "Bookmark button on the online version: one-tap Install or Add to Home screen where the browser supports it, otherwise the exact steps for your device and a copied link."],
@@ -483,7 +484,10 @@ const DEFAULT_STORES = `Store #	Shopping Center	Address	City	State	Zip	Phone	Lat
 1856	Market at Boiling Springs	4400 Highway 9	Boiling Springs	SC	29316	(864) 381-6929	35.0622	-81.99729
 1866	One Nexton	1274 Nexton Pkwy	Summerville	SC	29486-2167	(843) 879-5573	33.06032	-80.1538
 2001	Market at Spears Creek	185 Earth Rd	Columbia	SC	29229	(803) 769-0440	34.113445	-80.844604
-2038	The Market Place at Carnes Crossroads	2700 N Main St Ste A	Summerville	SC	29486-7841	(843) 879-5076	33.063465	-80.09442`;
+2038	The Market Place at Carnes Crossroads	2700 N Main St Ste A	Summerville	SC	29486-7841	(843) 879-5076	33.063465	-80.09442
+2040	The Village at Woodside	1535 Silver Bluff Rd	Aiken	SC	29803	8038456298	33.495453	-81.750007
+2090	Daniel Island Town Center	162 Seven Farms Dr Ste 100	Charleston	SC	29492-8024	8439726081	32.863676	-79.903614
+2100	The Shops at Arden Woods	1311 Fork Shoals Rd	Mauldin	SC	29605	8642481125	34.74568	-82.352922`;
 const DEFAULT_COORDS = ``;
 // ===EDITION-END===
 

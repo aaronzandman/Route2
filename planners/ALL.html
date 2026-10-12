@@ -383,10 +383,11 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
 
 <script>
 // ---------- version ----------
-const APP_VERSION = "2.9";
+const APP_VERSION = "2.9.1";
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["2.9.1", "Store list update. Added 44 new stores: 1782 Naples, FL; 1800 Palm Beach Gardens, FL; 1841 Jacksonville, FL; 1861 Clearwater, FL; 1865 Kingsland, GA; 1888 Durham, NC; 1899 Palm Bay, FL; 2009 Nolensville, TN; 2014 Saint Augustine, FL; 2016 Hinesville, GA; 2022 Orlando, FL; 2029 Calabash, NC; 2035 Winter Haven, FL; 2037 Plantation, FL; 2040 Aiken, SC; 2043 Lakeland, FL; 2053 Owensboro, KY; 2055 Florence, KY; 2057 Cold Spring, KY; 2058 Independence, KY; 2059 Elizabethtown, KY; 2088 Davenport, FL; 2090 Charleston, SC; 2091 Englewood, FL; 2094 Saint Petersburg, FL; 2095 Spring Hill, FL; 2096 Saint Augustine Beach, FL; 2099 Bradenton, FL; 2100 Mauldin, SC; 2101 Fayetteville, NC; 2102 Locust Grove, GA; 2103 Jacksonville, FL; 2105 Mills River, NC; 2106 Farragut, TN; 2107 Winter Haven, FL; 2108 Bradenton, FL; 2109 Bainbridge, GA; 2112 Fernandina Beach, FL; 2113 Saint Augustine, FL; 2117 Winter Haven, FL; 2120 Wesley Chapel, NC; 2121 Apopka, FL; 2141 Ruskin, FL; 2145 Athens, AL. Filled in missing details for stores 1884, 2013, 2018, 1886, 2050."],
   ["2.9", "Store list updates automatically every day from Publix's store locator: new stores are added, none are ever removed. New Virginia stores show the group NEW until you assign one. Built-in stores are always included even if you've edited your store list."],
   ["2.8", "Due dates browser: every date that has calls, as tappable chips with counts and past-due colors; pick one or several. Landing pages list states first and the company-wide edition last."],
   ["2.7", "Bookmark button on the online version: one-tap Install or Add to Home screen where the browser supports it, otherwise the exact steps for your device and a copied link."],
@@ -1705,6 +1706,7 @@ const DEFAULT_STORES = `Store #	Shopping Center	Address	City	State	Zip	Phone	Lat
 1779	Foothills Mall	198 Foothills Mall	Maryville	TN	37801-2310	(865) 518-0971	35.744446	-83.99438
 1780	Newman's Crossing	1931 Long Hollow Pike	Gallatin	TN	37066-8591	(615) 230-7647	36.382328	-86.54891
 1781	The Landings	4840 S Tamiami Trl	Sarasota	FL	34231-4352	(941) 923-1129	27.284208	-82.53264
+1782	Neapolitan Way Shopping Center	4601 9th St N	Naples	FL	34103-3004	2393976860	26.20337	-81.80273
 1783	Cove Shopping Center	5893 SE Federal Hwy	Stuart	FL	34997	(772) 403-6329	27.1332	-80.20393
 1784	Westgate Shopping Center	3315 W University Ave	Gainesville	FL	32607-2539	(352) 372-4276	29.650911	-82.37113
 1785	Market at Hays Farm	9040 Memorial Pkwy SW	Huntsville	AL	35802	(256) 650-6086	34.64807	-86.56769
@@ -1721,6 +1723,7 @@ const DEFAULT_STORES = `Store #	Shopping Center	Address	City	State	Zip	Phone	Lat
 1797	The Shoppes at Palmer Ranch	8405 Honore Ave Unit 1	Sarasota	FL	34238	(941) 924-0031	27.22312	-82.45913
 1798	Crawfordville Commons	2343 Crawfordville Hwy	Crawfordville	FL	32327	(850) 926-4072	30.20537	-84.36623
 1799	Planters Pointe Shopping Center	9867 State Hwy 104	Fairhope	AL	36532-4392	(251) 279-6001	30.54868	-87.8558
+1800	Avenir Town Center	12535 Northlake Blvd	Palm Beach Gardens	FL	33412	5615305848	26.813974	-80.237212
 1801	Hickory Ridge Shopping Center	445 Hwy 109 N	Lebanon	TN	37090	(615) 443-4349	36.19268	-86.410095
 1802	Walker Farms Shopping Center	2300 Trenton Rd	Clarksville	TN	37040	(931) 553-5067	36.577137	-87.31543
 1803	The Crossings Shopping Village	13001 SW 112th St	Miami	FL	33186-4601	(786) 822-3966	25.664944	-80.406654
@@ -1755,6 +1758,7 @@ const DEFAULT_STORES = `Store #	Shopping Center	Address	City	State	Zip	Phone	Lat
 1837	Shoppes at Beville Road	1500 Beville Rd Ste 300	Daytona Beach	FL	32114-5644	(386) 281-4623	29.171131	-81.041794
 1838	Oak Grove	5345 Jefferson Rd	Athens	GA	30606	(762) 400-8555	33.9925	-83.43847
 1840	Aberdeen Square	4966 Le Chalet Blvd	Boynton Beach	FL	33436-1406	(561) 413-6665	26.554125	-80.122185
+1841	Deerwood Village Shopping Center	9964 Old Baymeadows Rd	Jacksonville	FL	32256-8103	9043808551	30.219428	-81.553065
 1842	eTown Exchange	11025 eTown Pkwy Unit 100	Jacksonville	FL	32256-5892	(904) 944-8971	30.168285	-81.50398
 1843	Publix at Waterleigh Village	10650 Avalon Rd	Winter Garden	FL	34787	(407) 550-9012	28.411785	-81.6364
 1844	Churchill Square	303 SE 17th St Unit 201	Ocala	FL	34471-4470	(352) 820-7005	29.173367	-82.132576
@@ -1772,9 +1776,11 @@ const DEFAULT_STORES = `Store #	Shopping Center	Address	City	State	Zip	Phone	Lat
 1856	Market at Boiling Springs	4400 Highway 9	Boiling Springs	SC	29316	(864) 381-6929	35.0622	-81.99729
 1858	West Edge	5525 Robin Lark Cir	Winston-Salem	NC	27106-9906	(336) 815-6007	36.1205	-80.36928
 1859	Plaza At Normandy	11341 Normandy Blvd Ste 201	Jacksonville	FL	32221	(904) 929-6000	30.269337	-81.85058
+1861	Clearwater Plaza	1295 S Missouri Ave	Clearwater	FL	33756-4174	7272416723	27.951107	-82.786044
 1862	Wellington Green Square	10640 Forest Hill Blvd	Wellington	FL	33414-3165	(561) 530-5026	26.64998	-80.21573
 1863	Shops at Enclave	1688 Ooltewah Ringgold Rd Ste 100	Ooltewah	TN	37363	(423) 508-6834	34.999672	-85.09461
 1864	King's Crossing	4181 E SR 46	Sanford	FL	32771	(407) 430-4035	28.78551	-81.20961
+1865	Market at King's Bay	1521 E King Ave	Kingsland	GA	31548	9125404165	30.785544	-81.639429
 1866	One Nexton	1274 Nexton Pkwy	Summerville	SC	29486-2167	(843) 879-5573	33.06032	-80.1538
 1867	Buckhead Landing	3330 Piedmont Rd NE Ste 16	Atlanta	GA	30305-1726	(470) 945-8948	33.845627	-84.37455
 1868	Midland Commons	6901 Ray Wright Way	Columbus	GA	31909-7700	(706) 358-0289	32.54564	-84.87475
@@ -1791,10 +1797,11 @@ const DEFAULT_STORES = `Store #	Shopping Center	Address	City	State	Zip	Phone	Lat
 1881	Clear Creek Crossings	12925 Albemarle Rd	Charlotte	NC	28227	(980) 365-7588	35.22505	-80.63641
 1882	Publix At Fruitville Farms	1940 Lakewood Ranch Blvd	Sarasota	FL	34240	(941) 271-6984	27.33646	-82.43592
 1883	Publix at Planters Station	3189 Godwin Blvd	Suffolk	VA	23434-8694	(757) 942-6032	36.786213	-76.59072
-1884	Publix at West River	1700 N Blvd	Tampa	FL	33607		27.957457	-82.46946
+1884	Publix at West River	1700 N Blvd	Tampa	FL	33607	8134624243	27.957457	-82.46946
 1885	Chancellor Crossing	5940 Plank Rd	Fredericksburg	VA	22407-6232	(540) 736-6013	38.291405	-77.57935
-1886	Buffaloe Bend	7330 Buffaloe Rd	Raleigh	NC	27616		35.844086	-78.51527
+1886	Buffaloe Bend	7330 Buffaloe Rd	Raleigh	NC	27616	9196796584	35.844086	-78.51527
 1887	The Fountains At Palomar	3855 Fountainblue Ln	Lexington	KY	40513	(859) 469-7337	38.003456	-84.57397
+1888	Latta Park	4628 Guess Rd	Durham	NC	27712-2624	9842435497	36.078212	-78.930075
 1889	Alafaya Square	81 Alafaya Woods Blvd	Oviedo	FL	32765-6235	(407) 603-4222	28.650515	-81.20515
 1890	Fischer Marketplace	4957 Hwy 34 E	Sharpsburg	GA	30277-3505	(678) 633-6140	33.397717	-84.62749
 1891	Shops at Walnut Creek	2400 Jonesboro Rd	Hampton	GA	30228	(470) 369-9579	33.46531	-84.233826
@@ -1805,6 +1812,7 @@ const DEFAULT_STORES = `Store #	Shopping Center	Address	City	State	Zip	Phone	Lat
 1896	Harbour Place	13170 Atlantic Blvd Ste 29	Jacksonville	FL	32225-6149	(904) 380-4404	30.318617	-81.46129
 1897	Bayshore Gardens Shopping Center	6030 14th St W	Bradenton	FL	34207-4104	(941) 527-4706	27.434263	-82.57726
 1898	Shoppes at Cypress Bay	9179 Babcock St SE	Palm Bay	FL	32909	(321) 327-6140	27.898705	-80.6201
+1899	Heritage Square	150 Saint Johns Heritage Pkwy NW Suite 101	Palm Bay	FL	32907	3213276277	27.999528	-80.738799
 2001	Market at Spears Creek	185 Earth Rd	Columbia	SC	29229	(803) 769-0440	34.113445	-80.844604
 2002	Camp Grandview Plaza	1400 AL Hwy 14	Millbrook	AL	36054	(334) 604-4819	32.493607	-86.402794
 2003	Lakeside Commons	2775 N Columbia St	Milledgeville	GA	31061	(478) 223-5015	33.148396	-83.27174
@@ -1812,34 +1820,71 @@ const DEFAULT_STORES = `Store #	Shopping Center	Address	City	State	Zip	Phone	Lat
 2006	Limestone Marketplace	2155 Limestone Ridge NE	Gainesville	GA	30501-2135	(678) 971-6207	34.313644	-83.80074
 2007	Shopper's Haven Shopping Center	3435 N Federal Hwy	Pompano Beach	FL	33064-6605	(954) 590-4068	26.273426	-80.09945
 2008	The Greens	19595 S State Rd 7	Boca Raton	FL	33498-4701	(561) 226-9830	26.38592	-80.20497
+2009	Village Green	7344 Nolensville Rd	Nolensville	TN	37135	6295298036	35.949902	-86.664896
 2010	The Shoppes at Fort Toulouse	5039 US Hwy 231	Wetumpka	AL	36092	(334) 478-6185	32.514515	-86.214165
 2011	Villa Rica Town Center	103 Villa Rica Pkwy Ste 200	Villa Rica	GA	30180-3250	(770) 462-6171	33.735233	-84.90623
 2012	Market at Newberry Farms	24100 W Newberry Rd Ste 10	Newberry	FL	32669-3782	(352) 660-6061	29.653524	-82.59676
-2013	Daniels Crossing	6900 Daniels Pkwy Ste 19	Fort Myers	FL	33912-1586		26.54494	-81.84216
+2013	Daniels Crossing	6900 Daniels Pkwy Ste 19	Fort Myers	FL	33912-1586	2392866069	26.54494	-81.84216
+2014	Elevation Pointe	2875 State Rd 16	Saint Augustine	FL	32092	9048156214	29.925523	-81.422584
+2016	Flemington Village Shopping Center	1435 E Oglethorpe Hwy	Hinesville	GA	31313	9122556174	31.855399	-81.572363
 2017	Publix At Quail Commons	11525 Carmel Commons Blvd	Charlotte	NC	28226-5317	(704) 496-5209	35.087196	-80.84484
-2018	The Shoppes at Orange Blossom	1715 Oil Well Rd	Naples	FL	34120		26.294865	-81.57268
+2018	The Shoppes at Orange Blossom	1715 Oil Well Rd	Naples	FL	34120	2393976689	26.294865	-81.57268
 2020	White House Shops	453 Hwy 76	White House	TN	37188	(615) 581-6132	36.46734	-86.66399
 2021	Promenade Shopping Plaza	9900 Alternate A1A	Palm Beach Gardens	FL	33410-4903	(728) 210-7250	26.822596	-80.08298
+2022	Metro West Village	2435 S Hiawassee Rd	Orlando	FL	32835-6346	4078673722	28.514923	-81.483533
 2023	Destin Publix at Main Street	771 Harbor Blvd Unit 100	Destin	FL	32541-2620	(850) 389-6014	30.39248	-86.48549
 2024	Dahlonega Village	23 Maxwell Ln	Dahlonega	GA	30533	(706) 701-6331	34.471294	-83.96989
 2025	Bartlett Station	22449 Spadea Way	Carrollton	VA	23314	(757) 542-6041	36.94319	-76.53447
 2027	Semmes Village Shopping Center	2035 Schillinger Rd N Ste 100	Semmes	AL	36575-7417	(251) 264-6020	30.732477	-88.227905
+2029	Commons at Carolina Shores	9770 Ocean Hwy W	Calabash	NC	28467	9103934010	33.90847	-78.586439
 2030	Hickman Place	2200 General Booth Blvd	Virginia Beach	VA	23454	(757) 716-6015	36.76458	-76.01289
 2031	Middlecreek Crossings	16100 NC Hwy 50 N	Garner	NC	27529	(919) 334-4539	35.59163	-78.597275
 2032	Dominion Station	1620 Cedar Rd Ste 100	Chesapeake	VA	23322-7197	(757) 550-6044	36.728184	-76.299904
 2034	Sweetbay Town Center	3213 W Hwy 390	Panama City	FL	32405-2734	(850) 772-6596	30.206188	-85.67379
+2035	Mariana Acres	1075 Brookstone Rd	Winter Haven	FL	33881	8632694834	28.051891	-81.769099
 2036	Spring Hill Towne Crossing	1021 Jim Warren Pkwy	Spring Hill	TN	37174	(931) 487-5038	35.732	-86.89
+2037	West Broward Shopping Center	3901 W Broward Blvd	Plantation	FL	33312	9543311457	26.122398	-80.201002
 2038	The Market Place at Carnes Crossroads	2700 N Main St Ste A	Summerville	SC	29486-7841	(843) 879-5076	33.063465	-80.09442
 2039	Cambridge Square Shopping Center	2010 Johnson Ferry Rd NE	Brookhaven	GA	30319	(404) 460-9991	33.89451	-84.33035
+2040	The Village at Woodside	1535 Silver Bluff Rd	Aiken	SC	29803	8038456298	33.495453	-81.750007
 2041	Shops at The Grove	4112 E Johnson Ave	Haines City	FL	33844-9233	(863) 256-1194	28.115377	-81.58875
 2042	Flint Crossing Market Place	12290 Hwy 231/431 N	Meridianville	AL	35759-1200	(256) 804-4042	34.870956	-86.569336
+2043	Lake Miriam Square	4730 S Florida Ave	Lakeland	FL	33813-2181	8634007441	27.978389	-81.955941
 2045	Publix Shops at Riverbrook Village	3715 Wahoo Falls Trace	Gainesville	GA	30506	(470) 892-3127	34.37693	-83.87544
 2047	Gateway Crossing Jasper	178 Virginia Way	Jasper	GA	30143	(706) 301-7235	34.45929	-84.452835
-2050	Publix at Flat Rock	150 Flat Rock Rd	Louisville	KY	40245		38.236137	-85.445526
+2050	Publix at Flat Rock	150 Flat Rock Rd	Louisville	KY	40245	5029125403	38.236137	-85.445526
 2051	Citation Point	1952 Stockton Way	Lexington	KY	40511-2412	(859) 286-8293	38.095634	-84.51252
 2052	Triple Crown Shopping Center	430 Richwood Rd	Walton	KY	41094	(859) 379-1137	38.913414	-84.636505
+2053	Gateway Commons	3370 Hayden Rd	Owensboro	KY	42303	2702153915	37.767458	-87.062537
+2055	Farmview Commons	8740 US Hwy 42	Florence	KY	41042	8599381052	38.967207	-84.673345
+2057	Cold Spring Pointe	5401 Alexandria Pike	Cold Spring	KY	41076	8599086007	39.001796	-84.4217
+2058	Publix at Independence	5135 Jenkins Dr	Independence	KY	41051	8598985036	38.928628	-84.544058
+2059	The Shops at Pear Orchard	1311 Pear Orchard Rd Suite 100	Elizabethtown	KY	42701	2707405249	37.735684	-85.86062
+2088	The Shoppes at Citrus Creek	42660 Hwy 27	Davenport	FL	33837	8632561445	28.213317	-81.642235
+2090	Daniel Island Town Center	162 Seven Farms Dr Ste 100	Charleston	SC	29492-8024	8439726081	32.863676	-79.903614
+2091	Merchants Crossing	1500 Placida Rd, Ste C	Englewood	FL	34223-4951	9416819219	26.936868	-82.338771
 2092	Riverland Town Center	12407 SW Community Blvd	Port Saint Lucie	FL	34987	(772) 446-8514	27.237438	-80.43371
+2094	Publix	6605 38th Ave N	Saint Petersburg	FL	33710	7272916995	27.807552	-82.729736
+2095	Publix at Seven Hills	160 Mariner Blvd	Spring Hill	FL	34609-5689	3526105042	28.435624	-82.546981
+2096	Anastasia Plaza	1033 A1A Beach Blvd	Saint Augustine Beach	FL	32080-6731	9048156242	29.829506	-81.27202
 2098	The Village at Foley Crossroads	9913 Foley-Beach Express	Foley	AL	36535	(251) 240-3043	30.368826	-87.65549
+2099	SeaFlower Village Center	7535 Cortez Rd W	Bradenton	FL	34210	9412531003	27.461049	-82.637794
+2100	The Shops at Arden Woods	1311 Fork Shoals Rd	Mauldin	SC	29605	8642481125	34.74568	-82.352922
+2101	Rockfish Village	7483 Rockfish Rd	Fayetteville	NC	28306-8075	9109122926	34.980518	-79.01654
+2102	Shops at Indian Creek	4518 Hwy 42 S	Locust Grove	GA	30248-4111	4707546830	33.334756	-84.091767
+2103	Marketplace at Nocatee	75 Irondale Rd Ste 100	Jacksonville	FL	32081	9048156238	30.108999	-81.447112
+2105	The Marketplace at Mills River	70 Vance Hill Dr	Mills River	NC	28759	8283936342	35.402587	-82.567743
+2106	Westerly Commons	13123 Kingston Pike	Farragut	TN	37934	8656725008	35.862803	-84.223535
+2107	The Shoppes at Country Club	4267 Dundee Rd	Winter Haven	FL	33884	8632694836	28.024414	-81.663199
+2108	Northchase Center	16642 State Rd 64 E	Bradenton	FL	34212	9412778276	27.47457	-82.370801
+2109	Bainbridge Crossings	1515 Tallahassee Hwy	Bainbridge	GA	39819	2294426100	30.883949	-84.564418
+2112	Island Walk Shopping Center	1421 Sadler Rd	Fernandina Beach	FL	32034-4788	9045579420	30.641756	-81.453818
+2113	Silverleaf Market	1975 Silverleaf Pkwy Ste 101	Saint Augustine	FL	32092-2059	9048156986	30.002409	-81.504472
+2117	Publix at Thompson Nursery	8710 W Lake Ruby Dr	Winter Haven	FL	33884	8632694831	27.960765	-81.668243
+2120	Village Commons	6460 Weddington Rd	Wesley Chapel	NC	28104	7048395004	34.999227	-80.692369
+2121	The Shoppes at East Shore	2411 Ocoee Apopka Rd	Apopka	FL	32703	4075534229	28.639344	-81.541302
+2141	Wolf Creek Commons	3050 19th Ave Ne	Ruskin	FL	33570	8139227678	27.736638	-82.392404
+2145	French Mill Crossing	14210 Mooresville Rd	Athens	AL	35613	2568676148	34.764635	-86.876485
 3210	Publix Pharmacy at H Lee Moffitt Cancer Center	12902 Magnolia Dr Ste 1170	Tampa	FL	33612-9416	(813) 745-8484	28.06428	-82.42091
 3211	Publix Pharmacy at Lakeland Regional Medical Center	1324 Lakeland Hills Blvd Ste 203	Lakeland	FL	33805-4543	(863) 284-1834	28.061209	-81.95339
 3212	Publix Compounding Pharmacy	2424 Orlando Central Parkway STE 200	Orlando	FL	32809-8513	(877) 253-8949	28.45529	-81.40588

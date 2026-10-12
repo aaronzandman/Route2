@@ -383,10 +383,11 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
 
 <script>
 // ---------- version ----------
-const APP_VERSION = "2.9";
+const APP_VERSION = "2.9.1";
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["2.9.1", "Store list update. Added 44 new stores: 1782 Naples, FL; 1800 Palm Beach Gardens, FL; 1841 Jacksonville, FL; 1861 Clearwater, FL; 1865 Kingsland, GA; 1888 Durham, NC; 1899 Palm Bay, FL; 2009 Nolensville, TN; 2014 Saint Augustine, FL; 2016 Hinesville, GA; 2022 Orlando, FL; 2029 Calabash, NC; 2035 Winter Haven, FL; 2037 Plantation, FL; 2040 Aiken, SC; 2043 Lakeland, FL; 2053 Owensboro, KY; 2055 Florence, KY; 2057 Cold Spring, KY; 2058 Independence, KY; 2059 Elizabethtown, KY; 2088 Davenport, FL; 2090 Charleston, SC; 2091 Englewood, FL; 2094 Saint Petersburg, FL; 2095 Spring Hill, FL; 2096 Saint Augustine Beach, FL; 2099 Bradenton, FL; 2100 Mauldin, SC; 2101 Fayetteville, NC; 2102 Locust Grove, GA; 2103 Jacksonville, FL; 2105 Mills River, NC; 2106 Farragut, TN; 2107 Winter Haven, FL; 2108 Bradenton, FL; 2109 Bainbridge, GA; 2112 Fernandina Beach, FL; 2113 Saint Augustine, FL; 2117 Winter Haven, FL; 2120 Wesley Chapel, NC; 2121 Apopka, FL; 2141 Ruskin, FL; 2145 Athens, AL. Filled in missing details for stores 1884, 2013, 2018, 1886, 2050."],
   ["2.9", "Store list updates automatically every day from Publix's store locator: new stores are added, none are ever removed. New Virginia stores show the group NEW until you assign one. Built-in stores are always included even if you've edited your store list."],
   ["2.8", "Due dates browser: every date that has calls, as tappable chips with counts and past-due colors; pick one or several. Landing pages list states first and the company-wide edition last."],
   ["2.7", "Bookmark button on the online version: one-tap Install or Add to Home screen where the browser supports it, otherwise the exact steps for your device and a copied link."],
@@ -415,9 +416,14 @@ const DEFAULT_STORES = `Store #	Shopping Center	Address	City	State	Zip	Phone	Lat
 1846	Terra Crossing	2500 Terra Crossing Blvd	Louisville	KY	40245-5374	(502) 885-7662	38.27257	-85.49839
 1847	Publix at Marshall Commons	10005 Ballardsville Rd	Louisville	KY	40241-1202	(502) 302-7925	38.31706	-85.560394
 1887	The Fountains At Palomar	3855 Fountainblue Ln	Lexington	KY	40513	(859) 469-7337	38.003456	-84.57397
-2050	Publix at Flat Rock	150 Flat Rock Rd	Louisville	KY	40245		38.236137	-85.445526
+2050	Publix at Flat Rock	150 Flat Rock Rd	Louisville	KY	40245	5029125403	38.236137	-85.445526
 2051	Citation Point	1952 Stockton Way	Lexington	KY	40511-2412	(859) 286-8293	38.095634	-84.51252
 2052	Triple Crown Shopping Center	430 Richwood Rd	Walton	KY	41094	(859) 379-1137	38.913414	-84.636505
+2053	Gateway Commons	3370 Hayden Rd	Owensboro	KY	42303	2702153915	37.767458	-87.062537
+2055	Farmview Commons	8740 US Hwy 42	Florence	KY	41042	8599381052	38.967207	-84.673345
+2057	Cold Spring Pointe	5401 Alexandria Pike	Cold Spring	KY	41076	8599086007	39.001796	-84.4217
+2058	Publix at Independence	5135 Jenkins Dr	Independence	KY	41051	8598985036	38.928628	-84.544058
+2059	The Shops at Pear Orchard	1311 Pear Orchard Rd Suite 100	Elizabethtown	KY	42701	2707405249	37.735684	-85.86062
 3646	Terra Crossing	2502 Terra Crossing Blvd	Louisville	KY	40245-5374	(502) 302-6531	38.27257	-85.49839
 3647	Publix at Marshall Commons	10015 Ballardsville Rd	Louisville	KY	40241-1202	(502) 313-7027		
 3651	Citation Point	1976 Stockton Way	Lexington	KY	40511-2412	(859) 286-8931	38.095634	-84.51252

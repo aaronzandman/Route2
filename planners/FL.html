@@ -383,10 +383,11 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
 
 <script>
 // ---------- version ----------
-const APP_VERSION = "2.9";
+const APP_VERSION = "2.9.1";
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["2.9.1", "Store list update. Added 44 new stores: 1782 Naples, FL; 1800 Palm Beach Gardens, FL; 1841 Jacksonville, FL; 1861 Clearwater, FL; 1865 Kingsland, GA; 1888 Durham, NC; 1899 Palm Bay, FL; 2009 Nolensville, TN; 2014 Saint Augustine, FL; 2016 Hinesville, GA; 2022 Orlando, FL; 2029 Calabash, NC; 2035 Winter Haven, FL; 2037 Plantation, FL; 2040 Aiken, SC; 2043 Lakeland, FL; 2053 Owensboro, KY; 2055 Florence, KY; 2057 Cold Spring, KY; 2058 Independence, KY; 2059 Elizabethtown, KY; 2088 Davenport, FL; 2090 Charleston, SC; 2091 Englewood, FL; 2094 Saint Petersburg, FL; 2095 Spring Hill, FL; 2096 Saint Augustine Beach, FL; 2099 Bradenton, FL; 2100 Mauldin, SC; 2101 Fayetteville, NC; 2102 Locust Grove, GA; 2103 Jacksonville, FL; 2105 Mills River, NC; 2106 Farragut, TN; 2107 Winter Haven, FL; 2108 Bradenton, FL; 2109 Bainbridge, GA; 2112 Fernandina Beach, FL; 2113 Saint Augustine, FL; 2117 Winter Haven, FL; 2120 Wesley Chapel, NC; 2121 Apopka, FL; 2141 Ruskin, FL; 2145 Athens, AL. Filled in missing details for stores 1884, 2013, 2018, 1886, 2050."],
   ["2.9", "Store list updates automatically every day from Publix's store locator: new stores are added, none are ever removed. New Virginia stores show the group NEW until you assign one. Built-in stores are always included even if you've edited your store list."],
   ["2.8", "Due dates browser: every date that has calls, as tappable chips with counts and past-due colors; pick one or several. Landing pages list states first and the company-wide edition last."],
   ["2.7", "Bookmark button on the online version: one-tap Install or Add to Home screen where the browser supports it, otherwise the exact steps for your device and a copied link."],
@@ -1232,6 +1233,7 @@ const DEFAULT_STORES = `Store #	Shopping Center	Address	City	State	Zip	Phone	Lat
 1774	Wedgewood Commons	3540 SE Federal Hwy	Stuart	FL	34997	(772) 463-5950	27.162868	-80.228424
 1776	Plantation Promenade	10065 Cleary Blvd	Plantation	FL	33324-1063	(954) 424-3084	26.134876	-80.28377
 1781	The Landings	4840 S Tamiami Trl	Sarasota	FL	34231-4352	(941) 923-1129	27.284208	-82.53264
+1782	Neapolitan Way Shopping Center	4601 9th St N	Naples	FL	34103-3004	2393976860	26.20337	-81.80273
 1783	Cove Shopping Center	5893 SE Federal Hwy	Stuart	FL	34997	(772) 403-6329	27.1332	-80.20393
 1784	Westgate Shopping Center	3315 W University Ave	Gainesville	FL	32607-2539	(352) 372-4276	29.650911	-82.37113
 1787	Publix at Westlake Plaza	16841 Persimmon Blvd W Unit 1000	Westlake	FL	33470-7076	(561) 273-1070	26.7538	-80.30871
@@ -1242,6 +1244,7 @@ const DEFAULT_STORES = `Store #	Shopping Center	Address	City	State	Zip	Phone	Lat
 1795	16000 Pines Market	16024 Pines Blvd #101	Pembroke Pines	FL	33027-1168	(954) 432-1075	26.00556	-80.36025
 1797	The Shoppes at Palmer Ranch	8405 Honore Ave Unit 1	Sarasota	FL	34238	(941) 924-0031	27.22312	-82.45913
 1798	Crawfordville Commons	2343 Crawfordville Hwy	Crawfordville	FL	32327	(850) 926-4072	30.20537	-84.36623
+1800	Avenir Town Center	12535 Northlake Blvd	Palm Beach Gardens	FL	33412	5615305848	26.813974	-80.237212
 1803	The Crossings Shopping Village	13001 SW 112th St	Miami	FL	33186-4601	(786) 822-3966	25.664944	-80.406654
 1804	The Shoppes of Highland	3685 W 85th Path	Hialeah	FL	33018	(786) 804-6444	25.900614	-80.35788
 1805	Rockledge Square	1880 US Hwy 1 S	Rockledge	FL	32955-2822	(321) 631-3480	28.328411	-80.71852
@@ -1261,6 +1264,7 @@ const DEFAULT_STORES = `Store #	Shopping Center	Address	City	State	Zip	Phone	Lat
 1836	The Shops at Bannerman Village	8462 Bannerman Blvd	Tallahassee	FL	32312-9118	(448) 206-6622	30.584866	-84.25012
 1837	Shoppes at Beville Road	1500 Beville Rd Ste 300	Daytona Beach	FL	32114-5644	(386) 281-4623	29.171131	-81.041794
 1840	Aberdeen Square	4966 Le Chalet Blvd	Boynton Beach	FL	33436-1406	(561) 413-6665	26.554125	-80.122185
+1841	Deerwood Village Shopping Center	9964 Old Baymeadows Rd	Jacksonville	FL	32256-8103	9043808551	30.219428	-81.553065
 1842	eTown Exchange	11025 eTown Pkwy Unit 100	Jacksonville	FL	32256-5892	(904) 944-8971	30.168285	-81.50398
 1843	Publix at Waterleigh Village	10650 Avalon Rd	Winter Garden	FL	34787	(407) 550-9012	28.411785	-81.6364
 1844	Churchill Square	303 SE 17th St Unit 201	Ocala	FL	34471-4470	(352) 820-7005	29.173367	-82.132576
@@ -1273,6 +1277,7 @@ const DEFAULT_STORES = `Store #	Shopping Center	Address	City	State	Zip	Phone	Lat
 1853	Publix at San Carlos	16950 San Carlos Blvd	Fort Myers	FL	33908-1224	(239) 895-0720	26.495426	-81.944756
 1854	Oakbridge Centre	3636 Harden Blvd	Lakeland	FL	33803-5938	(863) 400-7873	27.998001	-81.97206
 1859	Plaza At Normandy	11341 Normandy Blvd Ste 201	Jacksonville	FL	32221	(904) 929-6000	30.269337	-81.85058
+1861	Clearwater Plaza	1295 S Missouri Ave	Clearwater	FL	33756-4174	7272416723	27.951107	-82.786044
 1862	Wellington Green Square	10640 Forest Hill Blvd	Wellington	FL	33414-3165	(561) 530-5026	26.64998	-80.21573
 1864	King's Crossing	4181 E SR 46	Sanford	FL	32771	(407) 430-4035	28.78551	-81.20961
 1871	Hernando West Plaza	1400 Pinehurst Dr	Spring Hill	FL	34606-4553	(352) 610-5005	28.455603	-82.6271
@@ -1281,24 +1286,44 @@ const DEFAULT_STORES = `Store #	Shopping Center	Address	City	State	Zip	Phone	Lat
 1877	Innovation Springs	32265 Overpass Rd	Wesley Chapel	FL	33545-4987	(813) 953-4409	28.270386	-82.286514
 1879	Blue Angel Plaza	9500 W Hwy 98	Pensacola	FL	32506	(850) 823-5870	30.405329	-87.3454
 1882	Publix At Fruitville Farms	1940 Lakewood Ranch Blvd	Sarasota	FL	34240	(941) 271-6984	27.33646	-82.43592
-1884	Publix at West River	1700 N Blvd	Tampa	FL	33607		27.957457	-82.46946
+1884	Publix at West River	1700 N Blvd	Tampa	FL	33607	8134624243	27.957457	-82.46946
 1889	Alafaya Square	81 Alafaya Woods Blvd	Oviedo	FL	32765-6235	(407) 603-4222	28.650515	-81.20515
 1894	Courtyard Shops At Wellington	13880 Wellington Trce	Wellington	FL	33414-8553	(561) 530-6664	26.660475	-80.26555
 1895	Palm Lakes Plaza	7230 W Atlantic Blvd	Margate	FL	33063-4236	(954) 590-4056	26.233984	-80.22259
 1896	Harbour Place	13170 Atlantic Blvd Ste 29	Jacksonville	FL	32225-6149	(904) 380-4404	30.318617	-81.46129
 1897	Bayshore Gardens Shopping Center	6030 14th St W	Bradenton	FL	34207-4104	(941) 527-4706	27.434263	-82.57726
 1898	Shoppes at Cypress Bay	9179 Babcock St SE	Palm Bay	FL	32909	(321) 327-6140	27.898705	-80.6201
+1899	Heritage Square	150 Saint Johns Heritage Pkwy NW Suite 101	Palm Bay	FL	32907	3213276277	27.999528	-80.738799
 2005	Publix at Bal Harbour Square	1750 N Federal Hwy	Fort Lauderdale	FL	33305-2543	(954) 847-8601	26.149801	-80.119354
 2007	Shopper's Haven Shopping Center	3435 N Federal Hwy	Pompano Beach	FL	33064-6605	(954) 590-4068	26.273426	-80.09945
 2008	The Greens	19595 S State Rd 7	Boca Raton	FL	33498-4701	(561) 226-9830	26.38592	-80.20497
 2012	Market at Newberry Farms	24100 W Newberry Rd Ste 10	Newberry	FL	32669-3782	(352) 660-6061	29.653524	-82.59676
-2013	Daniels Crossing	6900 Daniels Pkwy Ste 19	Fort Myers	FL	33912-1586		26.54494	-81.84216
-2018	The Shoppes at Orange Blossom	1715 Oil Well Rd	Naples	FL	34120		26.294865	-81.57268
+2013	Daniels Crossing	6900 Daniels Pkwy Ste 19	Fort Myers	FL	33912-1586	2392866069	26.54494	-81.84216
+2014	Elevation Pointe	2875 State Rd 16	Saint Augustine	FL	32092	9048156214	29.925523	-81.422584
+2018	The Shoppes at Orange Blossom	1715 Oil Well Rd	Naples	FL	34120	2393976689	26.294865	-81.57268
 2021	Promenade Shopping Plaza	9900 Alternate A1A	Palm Beach Gardens	FL	33410-4903	(728) 210-7250	26.822596	-80.08298
+2022	Metro West Village	2435 S Hiawassee Rd	Orlando	FL	32835-6346	4078673722	28.514923	-81.483533
 2023	Destin Publix at Main Street	771 Harbor Blvd Unit 100	Destin	FL	32541-2620	(850) 389-6014	30.39248	-86.48549
 2034	Sweetbay Town Center	3213 W Hwy 390	Panama City	FL	32405-2734	(850) 772-6596	30.206188	-85.67379
+2035	Mariana Acres	1075 Brookstone Rd	Winter Haven	FL	33881	8632694834	28.051891	-81.769099
+2037	West Broward Shopping Center	3901 W Broward Blvd	Plantation	FL	33312	9543311457	26.122398	-80.201002
 2041	Shops at The Grove	4112 E Johnson Ave	Haines City	FL	33844-9233	(863) 256-1194	28.115377	-81.58875
+2043	Lake Miriam Square	4730 S Florida Ave	Lakeland	FL	33813-2181	8634007441	27.978389	-81.955941
+2088	The Shoppes at Citrus Creek	42660 Hwy 27	Davenport	FL	33837	8632561445	28.213317	-81.642235
+2091	Merchants Crossing	1500 Placida Rd, Ste C	Englewood	FL	34223-4951	9416819219	26.936868	-82.338771
 2092	Riverland Town Center	12407 SW Community Blvd	Port Saint Lucie	FL	34987	(772) 446-8514	27.237438	-80.43371
+2094	Publix	6605 38th Ave N	Saint Petersburg	FL	33710	7272916995	27.807552	-82.729736
+2095	Publix at Seven Hills	160 Mariner Blvd	Spring Hill	FL	34609-5689	3526105042	28.435624	-82.546981
+2096	Anastasia Plaza	1033 A1A Beach Blvd	Saint Augustine Beach	FL	32080-6731	9048156242	29.829506	-81.27202
+2099	SeaFlower Village Center	7535 Cortez Rd W	Bradenton	FL	34210	9412531003	27.461049	-82.637794
+2103	Marketplace at Nocatee	75 Irondale Rd Ste 100	Jacksonville	FL	32081	9048156238	30.108999	-81.447112
+2107	The Shoppes at Country Club	4267 Dundee Rd	Winter Haven	FL	33884	8632694836	28.024414	-81.663199
+2108	Northchase Center	16642 State Rd 64 E	Bradenton	FL	34212	9412778276	27.47457	-82.370801
+2112	Island Walk Shopping Center	1421 Sadler Rd	Fernandina Beach	FL	32034-4788	9045579420	30.641756	-81.453818
+2113	Silverleaf Market	1975 Silverleaf Pkwy Ste 101	Saint Augustine	FL	32092-2059	9048156986	30.002409	-81.504472
+2117	Publix at Thompson Nursery	8710 W Lake Ruby Dr	Winter Haven	FL	33884	8632694831	27.960765	-81.668243
+2121	The Shoppes at East Shore	2411 Ocoee Apopka Rd	Apopka	FL	32703	4075534229	28.639344	-81.541302
+2141	Wolf Creek Commons	3050 19th Ave Ne	Ruskin	FL	33570	8139227678	27.736638	-82.392404
 3210	Publix Pharmacy at H Lee Moffitt Cancer Center	12902 Magnolia Dr Ste 1170	Tampa	FL	33612-9416	(813) 745-8484	28.06428	-82.42091
 3211	Publix Pharmacy at Lakeland Regional Medical Center	1324 Lakeland Hills Blvd Ste 203	Lakeland	FL	33805-4543	(863) 284-1834	28.061209	-81.95339
 3212	Publix Compounding Pharmacy	2424 Orlando Central Parkway STE 200	Orlando	FL	32809-8513	(877) 253-8949	28.45529	-81.40588
