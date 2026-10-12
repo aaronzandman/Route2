@@ -34,6 +34,12 @@ h2{font:700 22px/1.2 var(--sign);margin:28px 0 12px}
 .meta{color:var(--muted);font-size:14px}
 button{font:inherit;font-weight:600;border:0;border-radius:8px;padding:9px 14px;background:var(--road);color:#fff;cursor:pointer;margin-top:10px}
 button:disabled{opacity:.5;cursor:default}
+.acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;align-items:center}
+.acts button{margin-top:0}
+a.online{display:inline-block;font-weight:600;text-decoration:none;border-radius:8px;padding:8px 13px;border:1.5px solid var(--road);color:var(--road);background:transparent}
+a.online:focus-visible{outline:3px solid #4C9BE8;outline-offset:2px}
+.legend{display:flex;gap:4px 18px;flex-wrap:wrap;font-size:14px;color:var(--muted);margin:14px 0 0}
+.legend span{margin:0}
 button:focus-visible{outline:3px solid #4C9BE8;outline-offset:2px}
 .status{font-size:13px;color:var(--muted);margin-top:6px;min-height:1em}
 .notice{background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-top:14px;font-size:15px;display:none}
@@ -55,7 +61,7 @@ code{background:var(--soft);padding:1px 5px;border-radius:4px}
 <body>
 <header><div class="wrap">
   <h1>Service Route Planner</h1>
-  <p>Plan your day of service calls: paste your calls, see them grouped by store, and get a driving order with Google Maps directions. Download the version for your area and open it on your computer or phone. Nothing to install, and your data stays on your device.</p>
+  <p>Plan your day of service calls: paste your calls, see them grouped by store, and get a driving order with Google Maps directions. Use it online in your browser, or download it to use with no internet. Nothing to install, and your data stays on your device.</p>
   <span class="ver" id="ver"></span>
 </div></header>
 <main class="wrap">
@@ -76,6 +82,7 @@ code{background:var(--soft);padding:1px 5px;border-radius:4px}
     </div>
     <textarea id="cbText" readonly aria-label="Planner file contents" style="margin-top:10px"></textarea>
   </section>
+  <p class="legend"><span><b>Use online</b>: opens in your browser, always the newest version.</span><span><b>Download</b>: saves a copy that works offline and tells you when an update is out.</span></p>
   <h2>Every store</h2>
   <div id="featured"></div>
   <h2>By state</h2>
@@ -84,8 +91,8 @@ code{background:var(--soft);padding:1px 5px;border-radius:4px}
   <h2>Getting started</h2>
   <div class="steps">
     <ol>
-      <li><b>Download</b> the version for your area. Save it somewhere easy to find, like your desktop.</li>
-      <li><b>Open the file</b> in Microsoft Edge or Chrome by double-clicking it. It works offline.</li>
+      <li><b>Use online</b> to open the planner right in your browser on any phone or computer, or <b>Download</b> the version for your area. Save it somewhere easy to find, like your desktop.</li>
+      <li>If you downloaded it, <b>open the file</b> in Microsoft Edge or Chrome by double-clicking it. It works offline.</li>
       <li><b>Paste your service calls</b> into the Import box and select Load calls. Mark calls Done as you finish them.</li>
     </ol>
     <p><b>Your data is saved in your browser</b>, so closing and reopening the file keeps your calls, completed list, and settings. To move to another computer, use Save backup file in the planner.</p>
@@ -104,7 +111,7 @@ $("ver").textContent="Version "+B.version;
 function card(e,featured){
   const shield=`<span class="shield">${esc(e.code)}</span>`;
   const info=`<div class="info"><h3>${esc(e.title)}</h3><div class="meta">${esc(e.note)}</div><div class="meta">${esc(e.file)} · ${kb(e.size)}</div>
-    <button data-code="${esc(e.code)}">Download ${esc(e.title)}</button><div class="status" id="st-${esc(e.code)}"></div></div>`;
+    <div class="acts"><button data-code="${esc(e.code)}">Download ${esc(e.title)}</button><a class="online" href="https://aaronzandman.github.io/Route2/planners/${esc(e.code)}.html" target="_blank" rel="noopener">Use online</a></div><div class="status" id="st-${esc(e.code)}"></div></div>`;
   return `<div class="${featured?"featured":"card"}">${shield}${info}</div>`;
 }
 $("featured").innerHTML=card(B.editions.find(e=>e.code==="ALL"),true);
