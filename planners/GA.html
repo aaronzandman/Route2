@@ -121,6 +121,7 @@ legend{font-weight:600;font-size:14px;margin-bottom:6px}
 .fb .warn{background:#FFF3C4;color:#3A2E00;border-radius:8px;padding:8px 10px;font-size:13px;margin-top:10px}
 .fb .ack{display:flex;gap:8px;align-items:flex-start;margin-top:8px;font-size:14px;cursor:pointer}
 .fb .ack input{width:20px;height:20px;flex:none;margin-top:1px;accent-color:var(--road)}
+.fb .ack:has(input:checked){color:var(--p2)}
 .fb .err{color:var(--p2);font-size:13px;min-height:1em;margin-top:6px}
 .upd{display:none;width:100%;background:#FFF3C4;color:#3A2E00;border-radius:8px;padding:8px 12px;font-size:14px;align-items:center;gap:10px;flex-wrap:wrap}
 .upd.show{display:flex}
@@ -226,8 +227,8 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
     <div class="hint" id="fbPHint">Numbers only, 3 to 10 digits. The P is added for you.</div>
     <label class="lbl" for="fbMsg">What happened, or what would you like?</label>
     <textarea id="fbMsg" maxlength="1500" required></textarea>
-    <div class="warn"><b>Keep it general.</b> Describe the problem or idea in broad terms. Don't include store details, order numbers, customer information, or anything proprietary or confidential.</div>
-    <label class="ack"><input type="checkbox" id="fbAck"> <span>I used general terms and included no proprietary or confidential information.</span></label>
+    <div class="warn"><b>Keep it general when you can.</b> Broad terms are best. If your report needs proprietary or confidential details, check the box below so it's handled carefully.</div>
+    <label class="ack"><input type="checkbox" id="fbProp"> <span><b>This report contains proprietary or confidential information.</b></span></label>
     <div class="err" id="fbErr" role="alert"></div>
     <div class="row" style="justify-content:flex-end"><button type="button" id="fbCancel">Cancel</button><button type="submit" class="primary" id="fbSend">Open in Outlook</button></div>
     <p class="hint" id="fbAlt" style="margin:8px 0 0"></p>
@@ -440,11 +441,12 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
 
 <script>
 // ---------- version ----------
-const APP_VERSION = "3.1";
+const APP_VERSION = "3.2";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["3.2", "Feedback: the confirmation checkbox is replaced by an optional flag for reports that contain proprietary information. Flagged reports are clearly marked in the email."],
   ["3.1", "Feedback button: report a bug, an error, or a suggestion. It opens Outlook with your report ready to send."],
   ["3.0", "Send to phone (online version): your open calls and route settings move from your computer to your phone by scanning QR codes with the phone's camera. Codes open your state's planner. Nothing is uploaded; the data travels only inside the codes."],
   ["2.9.2", "Phone numbers for newly added stores are formatted like the rest, for example (239) 397-6860."],
@@ -1406,7 +1408,7 @@ function setupMode(){
 function setupFeedback(){
   const dlg=$("fbDlg"), err=$("fbErr");
   $("fbName").value=store.get("fbName",""); $("fbP").value=store.get("fbP","");
-  $("fbBtn").onclick=()=>{ err.textContent=""; $("fbAlt").textContent=""; $("fbAck").checked=false; dlg.classList.add("show"); ($("fbName").value?$("fbMsg"):$("fbName")).focus(); };
+  $("fbBtn").onclick=()=>{ err.textContent=""; $("fbAlt").textContent=""; $("fbProp").checked=false; dlg.classList.add("show"); ($("fbName").value?$("fbMsg"):$("fbName")).focus(); };
   $("fbCancel").onclick=()=>dlg.classList.remove("show");
   dlg.onclick=e=>{ if(e.target.id==="fbDlg") dlg.classList.remove("show"); };
   $("fbP").addEventListener("input",e=>{ const v=e.target.value.replace(/\D/g,"").slice(0,10); if(v!==e.target.value) e.target.value=v; });
@@ -1418,13 +1420,13 @@ function setupFeedback(){
     if(!name){ err.textContent="Enter your name."; $("fbName").focus(); return; }
     if(!/^[0-9]{3,10}$/.test(pn)){ err.textContent="P Number must be 3 to 10 digits."; $("fbP").focus(); return; }
     if(msg.length<5){ err.textContent="Describe the bug, error, or suggestion."; $("fbMsg").focus(); return; }
-    if(!$("fbAck").checked){ err.textContent="Check the box to confirm you included no proprietary or confidential information."; $("fbAck").focus(); return; }
+    const prop=$("fbProp").checked;
     err.textContent=""; store.set("fbName",name); store.set("fbP",pn);
-    const subject=`[Route2 Feedback] ${type} – ${name} (P${pn})`;
-    const body=[`Type: ${type}`,`Name: ${name}`,`P Number: P${pn}`,"",msg,"","---",
+    const subject=`[Route2 Feedback]${prop?" [PROPRIETARY]":""} ${type} – ${name} (P${pn})`;
+    const body=[...(prop?["🚩 RED FLAG: The sender marked this report as containing PROPRIETARY or CONFIDENTIAL information. Review before sharing it anywhere else.",""]:[]),`Type: ${type}`,`Name: ${name}`,`P Number: P${pn}`,"",msg,"","---",
       `Planner: ${EDITION.name} v${APP_VERSION} (${IS_ONLINE?"online":"offline"})`,
       `Device: ${/iPhone|iPad/.test(navigator.userAgent)?"iPhone/iPad":/Android/.test(navigator.userAgent)?"Android":/Windows/.test(navigator.userAgent)?"Windows":/Mac/.test(navigator.userAgent)?"Mac":"Other"}`,
-      `Sent: ${new Date().toLocaleString()}`,"Confirmed: no proprietary or confidential information included."].join("\n");
+      `Sent: ${new Date().toLocaleString()}`,`Proprietary information: ${prop?"YES – flagged by sender":"No"}`].join("\n");
     const q=`to=${encodeURIComponent(FEEDBACK_TO)}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     const mobile=/iPhone|iPad|iPod|Android/.test(navigator.userAgent);
     const web="https://outlook.office.com/mail/deeplink/compose?"+q;
