@@ -323,7 +323,7 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
 <div class="bmk" id="setDlg" role="dialog" aria-modal="true" aria-labelledby="setTitle">
   <div class="box" style="max-height:92vh;overflow:auto">
     <h3 id="setTitle">Settings</h3>
-    <p class="hint" style="margin:0 0 4px">Turn features on or off on this device.</p>
+    <p class="hint" style="margin:0 0 4px">Extra features start turned off to keep the screen simple. Turn on the ones you use; it's saved on this device.</p>
     <div id="setList"></div>
     <div class="row"><button class="primary" id="setClose">Done</button></div>
   </div>
@@ -573,11 +573,12 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
 
 <script>
 // ---------- version ----------
-const APP_VERSION = "3.11";
+const APP_VERSION = "3.12";
 const FEEDBACK_TO = "@@FEEDBACK_TO@@";
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["3.12", "Optional features now start turned off for a simpler screen: What changed, Repeat-issue alerts, Due soon, Re-plan from here, End-of-day summary, Hand off, Day view, and Send to phone. Turn on the ones you want in Settings."],
   ["3.11", "Send to phone fits a typical day in one QR code: calls are packed tighter and shown as one larger code. Check Smaller codes if your phone has trouble scanning."],
   ["3.10", "Calls sent from the Companion app (or a transfer link) are picked up even when the planner is already open."],
   ["3.9", "Paste dispatch texts: copy one or more dispatch text messages and paste them into Import calls. They are added to your list (your SAP calls stay), marked SMS, with no due date until the next SAP import."],
@@ -1224,6 +1225,12 @@ function loadSettings(){
 $("loadBtn").onclick=()=>{
   // Dispatch texts (no tab-separated rows) are ADDED to the current list instead of replacing it.
   const raw=$("callsInput").value;
+  // A pasted handoff / transfer message works here too, whatever features are turned on.
+  if(S.initDone && raw.includes(SYNC_TAG)){
+    readTransfer(raw).then(r=>{ $("callsInput").value=store.get("callsText",""); offerSync(r.d,r.packed,true); })
+      .catch(()=>{ const m0=$("importMsg"); m0.className="msg err"; m0.textContent="That transfer couldn't be read. Copy the whole message again and paste it here."; });
+    return;
+  }
   if(S.initDone && !raw.includes("\t")){
     const rows=parseDispatch(raw);
     if(rows.length){
@@ -1478,15 +1485,17 @@ const FEATURES=[
   ["dayview","Day view","Stop-by-stop view with big Done checkboxes."],
   ["send","Send to phone","QR codes to move your calls to your phone (online version)."]
 ];
-const FEAT=Object.assign(Object.fromEntries(FEATURES.map(f=>[f[0],true])), store.get("features",{}));
-const F=k=>FEAT[k]!==false;
+// Optional features start OFF; each person turns on what they use in Settings.
+const FEAT=Object.assign(Object.fromEntries(FEATURES.map(f=>[f[0],false])), store.get("features",{}));
+const F=k=>FEAT[k]===true;
 function applyFeatures(){
   const show=(id,on)=>{ const e=$(id); if(e) e.style.display=on?"":"none"; };
   show("replanBtn",F("replan")); show("dvReplan",F("replan")); show("eodBtn",F("eod"));
   show("pasteRow",F("handoff")); if(!F("changes")) $("chgBox").hidden=true;
   if($("sendBtn") && !/iPhone|iPad|iPod|Android/.test(navigator.userAgent)) show("sendBtn",F("send"));
   if(!F("dayview")){ show("dvBtn",false); $("dvFab").classList.remove("has"); }
-  if($("pasteBtn")) $("pasteBtn").hidden = !(F("handoff")||F("send")) || !(IS_APP || /iPhone|iPad|iPod|Android/.test(navigator.userAgent));
+  // The installed phone app always keeps Paste transfer (Send to phone from a computer lands in Safari on iPhone).
+  if($("pasteBtn")) $("pasteBtn").hidden = !(IS_APP || ((F("handoff")||F("send")) && /iPhone|iPad|iPod|Android/.test(navigator.userAgent)));
 }
 function setupSettings(){
   $("setList").innerHTML=FEATURES.map(([k,t,d])=>`<label class="setl"><span><b>${t}</b><small>${d}</small></span><input type="checkbox" data-feat="${k}" ${F(k)?"checked":""}></label>`).join("");
@@ -1600,7 +1609,7 @@ async function openHandoff(calls){
   $("handSum").textContent = `${n} call${n>1?"s":""} at store ${st}${S.stores[st]?" – "+S.stores[st].city:""}.`;
   const packed=await packCalls(handCalls,true); handCalls.packed=packed;
   const qr=$("handQR"); qr.style.display="none";
-  $("handHow").textContent="Copy and send it to your teammate in Teams, a text, or email. They paste the whole message into the planner with Paste a handoff.";
+  $("handHow").textContent="Copy and send it to your teammate in Teams, a text, or email. They paste the whole message into Import calls and select Load calls.";
   if(IS_ONLINE){
     try{
       await new Promise((res,rej)=>{ if(window.RouteQR) return res(); const s=document.createElement("script"); s.src="../qr.js"; s.onload=res; s.onerror=rej; document.head.appendChild(s); });
@@ -1615,7 +1624,7 @@ function handoffText(){
   const c0=handCalls[0], s=S.stores[c0.store];
   let t=`Handing off ${handCalls.length} call${handCalls.length>1?"s":""} – Store ${c0.store}${s?" – "+fullAddr(c0.store):""}`;
   handCalls.forEach(c=>{ t+=`\n• ${c.prioLabel.replace(/^\d\s*-\s*/,"")}: ${c.desc} (#${c.order})${fmtPast(c)?" – "+fmtPast(c):""}\n  ${ORDER_URL(c.order)}`; });
-  t+=`\n\nTo add these to Route Planner, copy this whole message and use Paste a handoff.\n${SYNC_TAG}${handCalls.packed}`;
+  t+=`\n\nTo add these to Route Planner, copy this whole message, paste it into Import calls, and select Load calls.\n${SYNC_TAG}${handCalls.packed}`;
   return t;
 }
 function setupHandoff(){

@@ -2,7 +2,7 @@
 
 Plan a day of service calls: paste your calls, see them grouped by store, filter by how long they're past due, and get a driving order with Google Maps directions. Your calls and settings are saved in your own browser and never leave your device.
 
-**Current version: 3.11**
+**Current version: 3.12**
 
 ## Pick your planner
 
@@ -26,7 +26,7 @@ Plan a day of service calls: paste your calls, see them grouped by store, filter
 - **▶ Day view** goes stop by stop in route order: swipe between stops, tap **🧭 Navigate** to start turn-by-turn directions, call the store, open each order, and check calls off. It moves to the next stop when one is finished.
 - **📋 Copy list**, above the store list and in the Day view, copies your route to paste into Teams, a text, or an email. The Day view copy marks each call ☑ done or ☐ open.
 - **🗓 History** shows every call you've completed, by day, for about the last 13 months.
-- **⚙ Settings** turns features on or off on each device: What changed (NEW tags and calls no longer in SAP), repeat-issue alerts, Due soon countdowns, 📍 Re-plan from here, 📊 End-of-day summary, ↗ Hand off a call or stop, Day view, and Send to phone.
+- **⚙ Settings** turns extra features on or off on each device (all start off): What changed (NEW tags and calls no longer in SAP), repeat-issue alerts, Due soon countdowns, 📍 Re-plan from here, 📊 End-of-day summary, ↗ Hand off a call or stop, Day view, and Send to phone.
 - Either way, your calls and settings are saved in your own browser and never leave your device.
 - Pick one way and stick with it, since each keeps its own saved data. To move data between them, use **Save backup file** and **Load backup file** in the planner.
 
@@ -61,7 +61,7 @@ If your columns are in a different order, change the layout in SAP (Ctrl+F8) and
 
 ## What's in this repository
 
-- `planners/` – every edition. `ALL.html` and `<STATE>.html` are always the newest; the versioned files (`route-planner-VA-v3.11.html`) are kept for reference.
+- `planners/` – every edition. `ALL.html` and `<STATE>.html` are always the newest; the versioned files (`route-planner-VA-v3.12.html`) are kept for reference.
 - `version.json` – newest version number, used by offline copies to check for updates
 - `sw.js` – offline helper for the installed app; keeps copies of the planner's own files, never your calls
 - `qr.js` – QR code maker used by Send to phone (written for this project, no outside code)
