@@ -150,6 +150,14 @@ details.ropts[open]{padding-bottom:10px}
 .bmk ol{padding-left:20px;margin:8px 0}
 .bmk li{margin:6px 0}
 .bmk .row{justify-content:flex-end}
+#wnBody ul{padding-left:20px;margin:8px 0}#wnBody li{margin:6px 0}#wnBody .v{font-weight:700}
+#tour{position:fixed;inset:0;z-index:60}
+.tour-spot{position:fixed;border-radius:10px;box-shadow:0 0 0 9999px rgba(0,0,0,.55);outline:3px solid #F2C14E;transition:all .25s;pointer-events:none}
+.tour-tip{position:fixed;background:var(--panel);color:var(--ink);border-radius:12px;padding:14px 16px;width:min(340px,calc(100vw - 32px));box-shadow:0 10px 40px rgba(0,0,0,.35)}
+.tour-tip h3{font:700 19px/1.2 var(--sign);margin:2px 0 6px}.tour-tip p{margin:0 0 10px;font-size:14px}
+.tour-step{font-size:12px;color:var(--muted)}
+.tour-btns{display:flex;gap:8px;align-items:center}
+.linkbtn{background:none;border:0;color:var(--muted);text-decoration:underline;cursor:pointer;padding:4px;font:inherit;font-size:13px}
 .fb label.lbl{display:block;font-weight:600;font-size:14px;margin:10px 0 4px}
 .fb .types{display:flex;gap:6px;flex-wrap:wrap}
 .fb .types label{display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--line);border-radius:999px;padding:5px 12px;cursor:pointer;font-size:14px}
@@ -322,6 +330,8 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
     <button class="hbtn" id="menuBtn" type="button" aria-haspopup="true" aria-expanded="false">☰ Menu</button>
     <div class="menu" id="menu" hidden>
       <span id="modeActions"></span>
+      <button class="hbtn" id="wnBtn" type="button">✨ What's new</button>
+      <button class="hbtn" id="tourBtn" type="button">🧭 Quick tour</button>
       <button class="hbtn" id="setBtn" type="button">⚙ Settings</button>
       <button class="hbtn" id="fbBtn" type="button">💬 Feedback</button>
     </div>
@@ -331,6 +341,25 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
   </div>
   <div class="upd" id="updBar" role="status"></div>
 </header>
+<div class="bmk" id="wnDlg" role="dialog" aria-modal="true" aria-labelledby="wnTitle">
+  <div class="box" style="max-height:88vh;overflow:auto">
+    <h3 id="wnTitle">What's new</h3>
+    <div id="wnBody"></div>
+    <div class="row" style="margin-top:12px;gap:8px;flex-wrap:wrap">
+      <button class="secondary" type="button" id="wnClose">Got it</button>
+      <button class="primary" type="button" id="wnTour">Take the 1-minute tour</button>
+    </div>
+  </div>
+</div>
+<div id="tour" hidden>
+  <div class="tour-spot" id="tourSpot"></div>
+  <div class="tour-tip" id="tourTip" role="dialog" aria-live="polite" aria-labelledby="tourHead">
+    <div class="tour-step" id="tourStep"></div>
+    <h3 id="tourHead"></h3>
+    <p id="tourText"></p>
+    <div class="tour-btns"><button class="linkbtn" type="button" id="tourSkip">End tour</button><span style="flex:1"></span><button class="secondary" type="button" id="tourBack">Back</button><button class="primary" type="button" id="tourNext">Next</button></div>
+  </div>
+</div>
 <div class="bmk fb" id="fbDlg" role="dialog" aria-modal="true" aria-labelledby="fbTitle">
   <form class="box" id="fbForm" novalidate style="max-height:92vh;overflow:auto">
     <h3 id="fbTitle">Send feedback</h3>
@@ -626,11 +655,12 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
 
 <script>
 // ---------- version ----------
-const APP_VERSION = "4.0";
+const APP_VERSION = "4.1";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["4.1", "What's new: after an update, a short note shows what changed. Quick tour: a one-minute walk through the screen, offered on first use and any time from ☰ Menu."],
   ["4.0", "Simpler screen: one ☰ Menu for Install, Send to phone, Bookmark, Download, Settings and Feedback; the paste box shrinks to one line after loading; all filters in one Filters bar with a summary; tighter store cards (tap a store for address and phone); route options folded away with the stop list on top; version history and store data moved into Settings."],
   ["3.12", "Optional features now start turned off for a simpler screen: What changed, Repeat-issue alerts, Due soon, Re-plan from here, End-of-day summary, Hand off, Day view, and Send to phone. Turn on the ones you want in Settings."],
   ["3.11", "Send to phone fits a typical day in one QR code: calls are packed tighter and shown as one larger code. Check Smaller codes if your phone has trouble scanning."],
@@ -2176,11 +2206,8 @@ $("changelog").innerHTML=CHANGELOG.map(([v,t])=>`<p style="margin:6px 0"><b>v${v
 (function(){
   const prev=store.get("version",null);
   store.set("version",APP_VERSION);
-  if(prev && prev!==APP_VERSION){
-    const note=CHANGELOG.filter(([v])=>parseFloat(v)>parseFloat(prev)).map(([v,t])=>`v${v}: ${t}`).join(" ");
-    $("savedNote").textContent=`Updated from v${prev} to v${APP_VERSION}. Your data carried over.`;
-    $("aboutBox").open=true;
-  }
+  if(prev && prev!==APP_VERSION) $("savedNote").textContent=`Updated from v${prev} to v${APP_VERSION}. Your data carried over.`;
+  S.wnPrev=prev;
 })();
 loadSettings(); fillStartSelect();
 if(!Object.keys(S.stores).length) $("storeData").open=true;
@@ -2188,6 +2215,72 @@ if($("startSel").value==="gps"){ gpsStatus(); locate(); }
 const saved=store.get("callsText","");
 if(saved){ $("callsInput").value=saved; $("loadBtn").click(); } else render();
 S.initDone=true; applyFeatures(); renderChanges();
+// ---------- What's new and Quick tour ----------
+function showWhatsNew(prev,welcome){
+  const items=CHANGELOG.filter(([v])=>!prev || newer(v,prev)).slice(0,prev?6:1);
+  $("wnTitle").textContent=welcome?"Welcome to the Route Planner":`What's new in v${APP_VERSION}`;
+  $("wnBody").innerHTML=welcome
+    ? `<p>Paste your SAP IW49N export, and the planner groups calls by store, flags what's past due, and builds a route you can open in Google Maps. Everything stays on this device.</p><p class="hint">New here? The tour takes about a minute.</p>`
+    : (prev?`<p class="hint" style="margin:0">You were on v${esc(prev)}. Your data carried over.</p>`:"")+
+      `<ul>${(items.length?items:CHANGELOG.slice(0,1)).map(([v,t])=>`<li><span class="v">v${esc(v)}</span> ${esc(t)}</li>`).join("")}</ul><p class="hint">Want a quick look at where things are?</p>`;
+  $("wnDlg").classList.add("show"); $("wnTour").focus();
+}
+const hideWn=()=>$("wnDlg").classList.remove("show");
+$("wnClose").onclick=hideWn;
+$("wnDlg").addEventListener("click",e=>{ if(e.target.id==="wnDlg") hideWn(); });
+$("wnTour").onclick=()=>{ hideWn(); startTour(); };
+$("wnBtn").onclick=()=>showWhatsNew(null,false);
+$("tourBtn").onclick=()=>startTour();
+const TOUR=[
+  ["#menuBtn","☰ Menu","Install app, Send to phone, Bookmark, Download offline copy, Settings, and Feedback all live here."],
+  ["#importCard","Load your calls","Paste your SAP IW49N export (or dispatch texts) and select Load calls. After loading, this shrinks to one line. Select Paste new export to load a fresh list."],
+  ["#filterBar","Filters","Tap to filter by days past due, due dates, groups, priority, and status. The line next to Filters shows what's hidden."],
+  ["#storeList","Store cards","Each card is one store. Check the box to mark a call done, tap the order number to open it in Edge, tap the store name for address and phone, and uncheck Route to leave a store out."],
+  [".panel.route","Your route","Open the route in Google Maps. Route options sets where you start and how stops are ordered. Copy route for team shares it."],
+  ["#menuBtn","Turn on extras","Day view, Send to phone, Hand off, and more are off to keep things simple. Turn them on in ☰ Menu → Settings. You can replay this tour from ☰ Menu → Quick tour."]
+];
+let tourI=0, tourSteps=[];
+function startTour(){
+  tourSteps=TOUR.filter(([sel])=>{ const el=document.querySelector(sel); return el && el.offsetParent!==null; });
+  if(!tourSteps.length) return;
+  tourI=0; $("tour").hidden=false; showTourStep();
+  window.addEventListener("resize",placeTour); window.addEventListener("scroll",placeTour,true);
+}
+function endTour(){
+  $("tour").hidden=true; store.set("tourSeen",APP_VERSION);
+  window.removeEventListener("resize",placeTour); window.removeEventListener("scroll",placeTour,true);
+}
+function showTourStep(){
+  const [sel,head,text]=tourSteps[tourI];
+  $("tourStep").textContent=`Step ${tourI+1} of ${tourSteps.length}`;
+  $("tourHead").textContent=head; $("tourText").textContent=text;
+  $("tourBack").hidden=tourI===0;
+  $("tourNext").textContent=tourI===tourSteps.length-1?"Done":"Next";
+  const el=document.querySelector(sel);
+  const r=el.getBoundingClientRect();
+  if(r.top<0||r.top>innerHeight*0.5) el.scrollIntoView({block:r.height>innerHeight*0.5?"start":"center"});
+  placeTour(); $("tourNext").focus();
+}
+function placeTour(){
+  if($("tour").hidden) return;
+  const el=document.querySelector(tourSteps[tourI][0]); const pad=6;
+  const r=el.getBoundingClientRect(); const sp=$("tourSpot"), tip=$("tourTip");
+  const top=Math.max(4,r.top-pad), bot=Math.min(innerHeight-4,r.bottom+pad);
+  Object.assign(sp.style,{left:Math.max(4,r.left-pad)+"px",top:top+"px",width:Math.min(innerWidth-8,r.width+pad*2)+"px",height:Math.max(0,bot-top)+"px"});
+  const tw=tip.offsetWidth, th=tip.offsetHeight;
+  let y = bot+10+th<innerHeight ? bot+10 : top-10-th>0 ? top-10-th : innerHeight-th-12;
+  let x = Math.min(Math.max(12,r.left), innerWidth-tw-12);
+  tip.style.left=x+"px"; tip.style.top=y+"px";
+}
+$("tourNext").onclick=()=>{ if(tourI<tourSteps.length-1){ tourI++; showTourStep(); } else endTour(); };
+$("tourBack").onclick=()=>{ if(tourI>0){ tourI--; showTourStep(); } };
+$("tourSkip").onclick=endTour;
+document.addEventListener("keydown",e=>{ if($("tour").hidden) return; if(e.key==="Escape") endTour(); else if(e.key==="ArrowRight") $("tourNext").click(); else if(e.key==="ArrowLeft") $("tourBack").click(); });
+// Show automatically: after an update, or once for a first-time user. Not over a transfer being received.
+if(!/sync=/.test(location.hash)){
+  if(S.wnPrev && newer(APP_VERSION,S.wnPrev)) showWhatsNew(S.wnPrev,false);
+  else if(!S.wnPrev && !saved && !store.get("tourSeen",null)) showWhatsNew(null,true);
+}
 </script>
 </body>
 </html>
