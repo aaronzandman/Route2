@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Service Route Planner</title>
+<style>
+:root{
+  --bg:#E9EDF0; --panel:#FFFFFF; --ink:#1C2430; --muted:#5D6875; --line:#CDD4DA;
+  --road:#1F6B4F; --road-ink:#FFFFFF; --shield:#1E4E8C; --shield-top:#B8322A;
+  --p1:#8E1B1B; --p2:#C8372D; --p3:#C98A12; --p4:#6B7785;
+  --over:#FBE6E3; --soft:#F3F6F8;
+  --t1:#D9A400; --t1bg:#FFF6D6; --t2:#E06A12; --t2bg:#FFE7D4; --t3:#C8372D; --t3bg:#FBE1DE;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --sign:"Bahnschrift","Arial Narrow","Roboto Condensed",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#161B21; --panel:#1F262E; --ink:#E6EAEE; --muted:#9AA5B1; --line:#343E49;
+  --road:#2E8A66; --soft:#252D36; --over:#3A2323;
+  --t1:#E8C14A; --t1bg:#3A3317; --t2:#F08A3C; --t2bg:#3D2A1A; --t3:#EE6A5F; --t3bg:#422222;
+}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 var(--body)}
+header{background:var(--road);color:var(--road-ink);padding:14px 20px;display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
+header h1{font:700 26px/1 var(--sign);margin:0;letter-spacing:.5px}
+header .sub{opacity:.85;font-size:14px}
+.layout{display:grid;grid-template-columns:300px minmax(0,1fr) 360px;gap:16px;padding:16px;align-items:start}
+@media (max-width:1150px){.layout{grid-template-columns:280px minmax(0,1fr)}.route{grid-column:1/-1}}
+@media (max-width:760px){.layout{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
+.panel h2{font:700 19px/1.2 var(--sign);margin:0 0 10px}
+.route{position:sticky;top:12px}
+@media (max-width:1150px){.route{position:static}}
+textarea{width:100%;min-height:130px;font:12px/1.4 ui-monospace,Consolas,monospace;border:1px solid var(--line);border-radius:6px;padding:8px;background:var(--soft);color:var(--ink);resize:vertical;white-space:pre;overflow:auto}
+button,select,input{font:inherit;color:inherit}
+button{border:1px solid var(--line);background:var(--soft);border-radius:6px;padding:6px 12px;cursor:pointer}
+button.primary{background:var(--road);border-color:var(--road);color:#fff;font-weight:600}
+button:hover{filter:brightness(.96)}
+:focus-visible{outline:3px solid #4C9BE8;outline-offset:2px}
+select,input[type=text],input[type=date]{border:1px solid var(--line);border-radius:6px;padding:6px 8px;background:var(--panel);width:100%}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
+.msg{font-size:13px;color:var(--muted);margin-top:6px}
+.msg.err{color:var(--p2)}
+fieldset{border:0;padding:0;margin:14px 0 0}
+legend{font-weight:600;font-size:14px;margin-bottom:6px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:3px 10px 3px 4px;cursor:pointer;user-select:none;font-size:14px}
+.chip input{position:absolute;opacity:0;pointer-events:none}
+.chip.on{background:var(--soft);border-color:var(--ink)}
+.chip.off{opacity:.45}
+.chip .n{color:var(--muted);font-size:12px}
+.chip.plain{padding-left:10px}
+
+/* Group shield — the one bold element */
+.shield{display:inline-grid;place-items:center;width:30px;height:32px;flex:none;
+  color:#fff;font:700 18px/1 var(--sign);padding-top:5px;
+  background:linear-gradient(var(--shield-top) 0 8px,var(--shield) 8px);
+  border-radius:5px 5px 50% 50% / 5px 5px 45% 45%;border:2px solid #fff;box-shadow:0 0 0 1.5px var(--shield)}
+.shield.wide{width:auto;min-width:30px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;text-align:center;line-height:1.3;padding:5px 7px 0;font-size:13px;border-radius:5px 5px 40% 40% / 5px 5px 30% 30%}
+.shield.sm{width:20px;height:22px;font-size:12px;padding-top:3px;border-width:1px;vertical-align:-5px;background:linear-gradient(var(--shield-top) 0 5px,var(--shield) 5px)}
+.shield.sm.wide{width:auto;font-size:11px;padding:3px 5px 0}
+.chip .shield{width:24px;height:26px;font-size:14px;padding-top:4px;border-width:1.5px;background:linear-gradient(var(--shield-top) 0 6px,var(--shield) 6px)}
+
+.toolbar{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.toolbar h2{margin:0}
+.store{border:1px solid var(--line);border-radius:10px;background:var(--panel);margin-bottom:12px;overflow:hidden}
+.store.excluded{opacity:.5}
+.store-head{display:flex;gap:12px;padding:12px 14px;align-items:flex-start}
+.store-head .info{flex:1;min-width:0}
+.store-name{font:700 20px/1.1 var(--sign)}
+.store-name small{font:500 14px var(--body);color:var(--muted);margin-left:6px}
+.addr{color:var(--muted);font-size:14px}
+.addr a{color:inherit}
+.incl{display:flex;align-items:center;gap:6px;font-size:14px;white-space:nowrap;cursor:pointer}
+.incl input{width:18px;height:18px;accent-color:var(--road)}
+.calls{width:100%;border-collapse:collapse;font-size:14px}
+.calls-wrap{overflow-x:auto;border-top:1px solid var(--line)}
+.calls td{padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+.calls tr:last-child td{border-bottom:0}
+.calls tr.overdue td{background:var(--over)}
+.pri{display:inline-block;min-width:66px;text-align:center;border-radius:4px;padding:1px 6px;color:#fff;font-weight:600;font-size:12px;white-space:nowrap}
+.pri.p1{background:var(--p1)}.pri.p2{background:var(--p2)}.pri.p3{background:var(--p3)}.pri.p4,.pri.p9{background:var(--p4)}
+.status{font-weight:600;font-size:12px;border:1px solid var(--line);border-radius:4px;padding:1px 5px}
+.muted{color:var(--muted)}
+.due{white-space:nowrap}
+.flag{color:var(--p2);font-weight:600;font-size:12px}
+.calls tr.done td{background:var(--soft)}
+.calls tr.done b,.calls tr.done .muted{text-decoration:line-through;color:var(--muted)}
+.calls td.chk{width:1%;white-space:nowrap}
+.done-box{display:flex;align-items:center;gap:5px;cursor:pointer;font-size:13px}
+.done-box input{width:20px;height:20px;accent-color:var(--road)}
+.calls a.ord{color:var(--shield);font-weight:600}
+.changes{margin:6px 0 0;padding-left:18px;font-size:14px}
+.changes li{margin:2px 0}
+.saved{font-size:12px;opacity:.85;margin-left:auto}
+.pastq{display:flex;flex-wrap:wrap;gap:6px}
+.pastq button{padding:4px 10px 4px 6px;font-size:14px;border-radius:999px;display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--line)}
+.pastq button .dot{width:12px;height:12px;border-radius:50%;background:var(--muted)}
+.pastq button .n{color:var(--muted);font-size:12px}
+.pastq button.on{border-color:var(--ink);background:var(--soft);font-weight:600}
+.pastq button.on::after{content:"✓";font-weight:700}
+.pastq button .dot.t1,.tier.t1{background:var(--t1)}.pastq button .dot.t2,.tier.t2{background:var(--t2)}.pastq button .dot.t3,.tier.t3{background:var(--t3)}.pastq button .dot.t0{background:transparent;border:2px solid var(--muted)}
+.tier{display:inline-block;color:#fff;border-radius:4px;padding:1px 6px;font-size:12px;font-weight:700;white-space:nowrap}
+.tier.t1{color:#3A2E00}
+.calls tr.t1 td{background:var(--t1bg)} .calls tr.t2 td{background:var(--t2bg)} .calls tr.t3 td{background:var(--t3bg)}
+.calls tr.t1 td:first-child{box-shadow:inset 4px 0 var(--t1)} .calls tr.t2 td:first-child{box-shadow:inset 4px 0 var(--t2)} .calls tr.t3 td:first-child{box-shadow:inset 4px 0 var(--t3)}
+.calls tr.subhead td{background:var(--soft);font-size:13px;font-weight:600;color:var(--muted);padding:5px 10px}
+.calls tr.extra b{font-weight:600}
+.dayrange{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:14px;margin-top:8px}
+.dayrange input{width:64px;border:1px solid var(--line);border-radius:6px;padding:5px 6px;background:var(--panel)}
+button.sorton{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.pastbadge{margin-left:6px}
+.prio-switch{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;padding:9px 10px;border:1.5px solid var(--line);border-radius:8px;cursor:pointer;font-weight:600}
+.prio-switch.on{border-color:var(--t3);background:var(--t3bg)}
+.prio-switch input{width:20px;height:20px;accent-color:var(--t3)}
+.empty{padding:40px 20px;text-align:center;color:var(--muted);border:2px dashed var(--line);border-radius:10px}
+
+.stops{list-style:none;margin:12px 0 0;padding:0}
+.stop{display:grid;grid-template-columns:28px 1fr auto;gap:10px;align-items:start;padding:9px 0;border-top:1px solid var(--line)}
+.stop .num{width:28px;height:28px;border-radius:50%;background:var(--road);color:#fff;display:grid;place-items:center;font:700 15px var(--sign)}
+.stop.home .num{background:var(--ink);color:var(--panel)}
+.stop .t{font-weight:600}
+.stop .leg{font-size:12px;color:var(--muted)}
+.mv{display:flex;flex-direction:column;gap:2px}
+.mv button{padding:0 7px;line-height:1.3;font-size:13px}
+.totals{display:flex;gap:18px;margin-top:10px;padding:10px;background:var(--soft);border-radius:8px}
+.totals b{font:700 22px/1 var(--sign);display:block}
+.totals span{font-size:12px;color:var(--muted)}
+.links{display:flex;flex-direction:column;gap:6px;margin-top:12px}
+.links a{display:block;text-align:center;background:var(--road);color:#fff;text-decoration:none;border-radius:6px;padding:8px;font-weight:600}
+.share{margin-top:12px;padding:10px;border:1px solid var(--line);border-radius:8px}
+.share button.primary{width:100%;padding:10px;font-size:16px}
+.share .opts{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:8px}
+.share .opts label{font-size:13px;display:flex;align-items:center;gap:5px;cursor:pointer}
+#sharePreview{min-height:0;height:0;padding:0;border:0;margin:0;transition:height .15s}
+#sharePreview.open{height:180px;padding:8px;border:1px solid var(--line);margin-top:8px}
+#gpsBox .msg{margin-top:4px}
+details.settings{margin:0 16px 24px}
+details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
+.set-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.set-grid label{font-weight:600;font-size:14px;display:block;margin-bottom:4px}
+.hint{font-size:12px;color:var(--muted)}
+@media print{
+  header,.import,.settings,.mv,.links,.row,.incl{display:none!important}
+  .layout{display:block}.panel,.store{break-inside:avoid;border-color:#999}
+  body{background:#fff}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1><span id="appName">Service Route Planner</span> <span id="verTag" style="font-size:15px;opacity:.8"></span></h1>
+  <span class="sub" id="summary">No calls loaded</span>
+  <span class="saved" id="savedNote">Saved on this computer</span>
+</header>
+
+<div class="layout">
+  <!-- Left: import + filters -->
+  <div class="panel import">
+    <h2>Import calls</h2>
+    <textarea id="callsInput" placeholder="Paste service call rows here (tab-separated, header row optional)"></textarea>
+    <div class="row">
+      <button class="primary" id="loadBtn">Load calls</button>
+      <button id="clearBtn">Clear</button>
+    </div>
+    <div class="msg" id="importMsg"></div>
+
+    <fieldset>
+      <legend>Days past due</legend>
+      <div class="pastq" id="pastQuick" role="group" aria-label="Days past due levels"></div>
+      <div class="dayrange">
+        <label for="pastMin">Or custom: expired</label>
+        <input type="number" id="pastMin" min="0" step="1" inputmode="numeric" placeholder="1">
+        <label for="pastMax">to</label>
+        <input type="number" id="pastMax" min="0" step="1" inputmode="numeric" placeholder="any">
+        <span>days</span>
+        <button id="pastClear">Clear</button>
+      </div>
+      <div class="msg" id="pastMsg"></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Completed calls</legend>
+      <label class="incl"><input type="checkbox" id="showDone"> Show completed calls</label>
+      <div class="row"><button id="clearDone">Clear completed list</button></div>
+      <div class="msg" id="doneMsg"></div>
+    </fieldset>
+    <fieldset>
+      <legend>Order links</legend>
+      <label class="incl"><input type="checkbox" id="edgeLinks"> Open order links in Microsoft Edge</label>
+      <div class="hint">Turn this off if tapping an order number does nothing on this device.</div>
+    </fieldset>
+    <fieldset>
+      <legend>Backup</legend>
+      <div class="hint">Everything saves automatically. A backup file lets you move your data to another browser or computer.</div>
+      <div class="row">
+        <button id="exportBtn">Save backup file</button>
+        <button id="importBackupBtn">Load backup file</button>
+        <input type="file" id="backupFile" accept=".json,application/json" hidden>
+      </div>
+      <div class="msg" id="backupMsg"></div>
+    </fieldset>
+
+    <fieldset><legend>Groups</legend><div class="chips" id="fGroups"></div></fieldset>
+    <fieldset><legend>Priority</legend><div class="chips" id="fPrio"></div></fieldset>
+    <fieldset><legend>Status</legend><div class="chips" id="fStatus"></div></fieldset>
+    <fieldset>
+      <legend>Due on or before</legend>
+      <div class="row" style="margin-top:0">
+        <input type="date" id="fDue" style="flex:1">
+        <button id="fDueClear">Any date</button>
+      </div>
+    </fieldset>
+  </div>
+
+  <!-- Middle: stores and calls -->
+  <div>
+    <div class="toolbar">
+      <h2 style="font:700 19px var(--sign)">Stores with open calls</h2>
+      <div class="row" style="margin:0">
+        <label for="listSort" class="hint" style="margin:0">Sort</label>
+        <select id="listSort" style="width:auto">
+          <option value="group">By group</option>
+          <option value="most">Days past due: most first</option>
+          <option value="least">Days past due: least first</option>
+        </select>
+        <button id="allIn">Include all</button>
+        <button id="allOut">Exclude all</button>
+      </div>
+    </div>
+    <div id="storeList"></div>
+  </div>
+
+  <!-- Right: route -->
+  <div class="panel route">
+    <h2>Route</h2>
+    <label class="hint" for="startSel">Start from</label>
+    <select id="startSel"></select>
+    <div id="storeStart" style="display:none">
+      <input type="text" id="startStore" list="storeDL" inputmode="numeric" placeholder="Type a store number" style="margin-top:6px">
+      <datalist id="storeDL"></datalist>
+      <div class="msg" id="storeStartMsg"></div>
+    </div>
+    <div id="gpsBox" style="display:none">
+      <div class="row"><button id="gpsBtn">Update my location</button></div>
+      <div class="msg" id="gpsMsg"></div>
+    </div>
+    <div id="customStart" style="display:none">
+      <input type="text" id="startAddr" placeholder="Start address (used for the map link)" style="margin-top:6px">
+      <input type="text" id="startCoords" placeholder="Optional lat, lng for mileage, e.g. 37.54, -77.43" style="margin-top:6px">
+    </div>
+    <label class="prio-switch" id="prioSwitch"><span>Most past due first<br><span class="hint" style="font-weight:400">Oldest calls first, then shortest drive</span></span><input type="checkbox" id="prioPast"></label>
+    <label class="hint" for="modeSel" style="display:block;margin-top:10px">Stop order</label>
+    <select id="modeSel">
+      <option value="optimize">Shortest drive (approx.)</option>
+      <option value="priority">Highest priority first, then shortest</option>
+      <option value="pasttier">Most past due first, then shortest</option>
+      <option value="due">Strictly oldest due first</option>
+      <option value="manual">Manual (use arrows)</option>
+    </select>
+    <label class="incl" style="margin-top:10px"><input type="checkbox" id="roundTrip"> Return to start</label>
+
+    <div class="totals" id="totals"></div>
+    <ol class="stops" id="stops"></ol>
+    <div class="share">
+      <button class="primary" id="copyBtn">Copy route for team</button>
+      <div class="opts">
+        <label><input type="checkbox" id="optCalls" checked> Call details</label>
+        <label><input type="checkbox" id="optLinks"> Order links</label>
+        <label><input type="checkbox" id="optMaps" checked> Map link for each stop</label>
+      </div>
+      <div class="row">
+        <button id="shareBtn" hidden>Share…</button>
+        <button id="previewBtn">Preview</button>
+        <button id="printBtn">Print</button>
+      </div>
+      <div class="msg" id="routeMsg"></div>
+      <textarea id="sharePreview" readonly aria-label="Route text"></textarea>
+    </div>
+    <div class="links" id="links"></div>
+  </div>
+</div>
+
+<details class="settings panel" id="aboutBox">
+  <summary>Version history</summary>
+  <div id="changelog"></div>
+</details>
+
+<details class="settings panel" id="storeData">
+  <summary>Store data and groups</summary>
+  <p class="hint">Edit and save to change store info, groups, or map positions. Saved in this browser only. Mileage is straight-line × 1.25 at 45 mph, so treat it as a rough guide; the Google Maps link gives real directions.</p>
+  <div class="set-grid">
+    <div><label for="groupsInput">Store groups (store, group)</label><textarea id="groupsInput"></textarea></div>
+    <div><label for="storesInput">Store list (paste with the header row, or load a file)</label><textarea id="storesInput"></textarea>
+      <div class="row"><button id="storeFileBtn">Load store file (.csv, .txt, or .json)</button><input type="file" id="storeFile" accept=".csv,.txt,.tsv,.json,text/csv,text/plain,application/json" hidden></div>
+      <div class="hint">Recognized columns: Store number, Division, Shopping center, Address, City, State, Zip code, County, Phone, and optional Latitude, Longitude, and Group. From Excel, use Save As &gt; CSV, or copy and paste the cells.</div></div>
+    <div><label for="coordsInput">Map positions (store, lat, lng)</label><textarea id="coordsInput"></textarea></div>
+  </div>
+  <div class="row">
+    <button class="primary" id="saveSettings">Save store data</button>
+    <button id="resetSettings"></button>
+    <span class="msg" id="setMsg"></span>
+  </div>
+</details>
+
+<script>
+// ---------- version ----------
+const APP_VERSION = "2.2";
+const LATEST_URL = "https://drive.google.com/drive/folders/1PUB4oO-vNFCRwoDu8PbWOcxdKwZk6vrY";
+const CHANGELOG = [
+  ["2.2", "Past-due color levels: 1–2 days (yellow), 3 days (orange), 4+ days (red); pick more than one. Custom day range only ever shows expired calls. Each store shows all of its other open calls too. Sort the store list by days past due, most or least first. Most past due first switch builds the route oldest-first, then shortest drive."],
+  ["2.1", "Days past due filter with quick buttons (7+, 14+, 30+) and your own day range. Sort stores by most past due. Each call shows how many days it is past due, also in the copied route."],
+  ["2.0", "Link to the shared Google Drive folder where the latest version of every edition is kept."],
+  ["1.9", "State editions for AL, FL, GA, KY, NC, SC, and TN, alongside the company-wide and VA editions. In state editions, stores without a group are grouped by city. Long group names are shortened to fit."],
+  ["1.8", "Company-wide edition includes all 1,443 stores with exact map positions. Local edition uses exact map positions for its 25 stores. Store lists can be loaded from JSON files. Stores without a group or division are grouped by state."],
+  ["1.7", "Company-wide edition added. Import store lists from CSV or tab-separated files with a header row, including optional latitude, longitude, and group columns. Type a store number to start from any store. Stops without map positions are ordered by ZIP code. Group badges fit longer names like divisions."],
+  ["1.6", "Copied route text gives each stop its own Google Maps link instead of one link for the whole route."],
+  ["1.5", "Version numbers and this history. Backup files record the version."],
+  ["1.4", "Order links use Edge on Android and iPhone too. Setting to turn Edge links off."],
+  ["1.3", "Order links open in Microsoft Edge on Windows."],
+  ["1.2", "Start from your current location. Copy route for team, preview, and share."],
+  ["1.1", "Runs fully offline. Auto-save, Done checkboxes for completed calls, order links, backup files."],
+  ["1.0", "Import calls, group by store, filters, route ordering, Google Maps directions."]
+];
+// ===EDITION-START===
+const EDITION = {id:"state-GA", name:"Service Route Planner \u2013 Georgia", key:"rp-GA.", resetLabel:"Restore Georgia store list", groupBy:"city"};
+const DEFAULT_GROUPS = ``;
+const DEFAULT_STORES = `Store #	Shopping Center	Address	City	State	Zip	Phone	Latitude	Longitude
+26	Cruse Marketplace	1735 Buford Hwy	Cumming	GA	30041-1266	(770) 781-5601	34.164	-84.11445
+33	Highland Plaza	3605 Sandy Plains Rd Ste 200	Marietta	GA	30066-3066	(770) 578-6000	34.038597	-84.463066
+42	Freehome Village	12424 Cumming Hwy	Canton	GA	30115-7778	(678) 455-0112	34.236805	-84.29072
+49	Lanier Commons	3480 Keith Bridge Rd	Cumming	GA	30041-5568	(678) 455-0610	34.258144	-84.0711
+74	Lilburn Corners Shopping Center	375 Rockbridge Rd NW	Lilburn	GA	30047-8225	(770) 806-4040	33.883102	-84.16379
+86	Publix at Shallowford	4401 Shallowford Rd	Roswell	GA	30075-3193	(770) 640-6200	34.028515	-84.42119
+92	Stockbridge Lakes	250 E Atlanta Rd	Stockbridge	GA	30281-3414	(770) 389-4666	33.55507	-84.23234
+108	The Vineyards	2095 Highway 211 NW	Braselton	GA	30517-3402	(678) 425-6200	34.102875	-83.81206
+122	Macland Pointe Shopping Center	1750 Powder Springs Rd SW	Marietta	GA	30064-4850	(770) 423-4160	33.90342	-84.607
+146	Wade Green Village	4430 Wade Green Rd NW Ste 100	Kennesaw	GA	30144-1267	(770) 419-4030	34.061768	-84.59052
+155	Woodlawn Point Shopping Center	1100 Johnson Ferry Rd	Marietta	GA	30068-2794	(770) 509-2350	33.977406	-84.41444
+226	Medlock Corners	5805 State Bridge Rd	Johns Creek	GA	30097-8220	(770) 813-7450	34.018204	-84.18761
+269	Flat Shoals Crossing Shopping Center	3649 Flakes Mill Rd	Decatur	GA	30034-5218	(770) 322-2380	33.679695	-84.231606
+280	Piedmont Commons Shopping Center	1050 E Piedmont Rd Ste 130	Marietta	GA	30062-4744	(770) 509-3980	33.976326	-84.478386
+282	The Peach	2900 Peachtree Rd NW	Atlanta	GA	30305-4915	(404) 848-0330	33.835217	-84.3838
+430	Baytree Village	1741 Gornto Rd	Valdosta	GA	31601-8408	(229) 242-2409	30.845682	-83.32282
+431	Village at Glynn Place	171 Village At Glynn Pl Ste 100	Brunswick	GA	31525-1988	(912) 261-4730	31.21316	-81.48226
+450	Albany Square	2715 Dawson Rd	Albany	GA	31707-1673	(229) 431-2880	31.621181	-84.22333
+451	Athens Pointe Shopping Center	3620 Atlanta Hwy	Athens	GA	30606-7219	(706) 208-3700	33.940693	-83.4556
+455	Camden Woods Shopping Center	1601 Ga Highway 40 E	Kingsland	GA	31548-6500	(912) 729-7878	30.784426	-81.63367
+456	Publix at Wilmington Island	155 Johnny Mercer Blvd	Savannah	GA	31410-2118	(912) 897-8100	32.01391	-80.9873
+461	Publix At Mt Zion	2035 Mount Zion Rd	Morrow	GA	30260-3313	(770) 472-4000	33.561684	-84.32501
+463	Rose Creek Shopping Center	4403 Towne Lake Pkwy	Woodstock	GA	30189-8132	(770) 516-2040	34.126797	-84.57109
+464	Mableton Walk	5015 Floyd Rd SW	Mableton	GA	30126-1673	(770) 819-5430	33.832897	-84.57421
+468	Abernathy Square Shopping Center	6615 Roswell Rd	Sandy Springs	GA	30328-3190	(404) 843-4340	33.935123	-84.377754
+469	Haynes Bridge Village	9925 Haynes Bridge Rd	Johns Creek	GA	30022-8532	(770) 751-7980	34.023163	-84.26752
+470	Coweta Crossing Shopping Center	370 Bullsboro Dr	Newnan	GA	30263-1069	(770) 502-0693	33.39598	-84.76407
+474	Bradley Park Square	1639 Bradley Park Dr Ste 600	Columbus	GA	31904-3625	(706) 571-3420	32.53442	-84.96686
+480	Winder Corners Shopping Center	17 Monroe Hwy Ste A	Winder	GA	30680-2494	(770) 307-2900	33.979355	-83.71411
+485	Cosby Station	3316 Highway 5	Douglasville	GA	30135-2308	(770) 920-3460	33.714413	-84.76599
+494	Deshon Plaza	380 N Deshon Rd	Stone Mountain	GA	30087-4797	(770) 879-2700	33.785652	-84.100174
+495	Merton Walk	911 Duluth Hwy	Lawrenceville	GA	30043-5320	(770) 339-5600	33.969692	-84.02386
+496	Lost Mountain Crossing	5100 Dallas Hwy	Powder Springs	GA	30127-4491	(770) 419-6000	33.94219	-84.703606
+503	Cascade Crossing Shopping Center	3695 Cascade Rd SW	Atlanta	GA	30331-2173	(404) 505-2870	33.724934	-84.50816
+505	Promenade at Pleasant Hill	1625 Pleasant Hill Rd Ste 200	Duluth	GA	30096-5863	(770) 806-2780	33.94389	-84.12815
+508	Presidential  Markets	1905 Scenic Hwy N Ste 4000	Snellville	GA	30078-5635	(770) 978-5800	33.8771	-84.01499
+514	Dunwoody Place Shopping Center	8725 Roswell Rd Ste G	Sandy Springs	GA	30350-7500	(770) 640-5950	33.994	-84.34916
+515	Abbotts Village at Ocee	11585 Jones Bridge Rd Ste 500	Johns Creek	GA	30022-8173	(770) 751-4580	34.0622	-84.21321
+519	Cumming 400 Shopping Center	580 Atlanta Rd	Cumming	GA	30040-2744	(770) 781-2040	34.186653	-84.13882
+521	Island Towne Center	4717 Hwy 80 E Ste B	Savannah	GA	31410-2944	(912) 897-8111	32.041576	-81.00696
+522	Twelve Oaks Shopping Center	5500 Abercorn St Ste 2	Savannah	GA	31405-6913	(912) 353-1260	32.024414	-81.10846
+525	National Plaza	2816 Washington Rd	Augusta	GA	30909-2199	(706) 731-5200	33.50787	-82.03118
+526	Evans Towne Centre	4274 Washington Rd	Evans	GA	30809-3070	(706) 650-5040	33.53346	-82.1277
+534	Fury's Ferry Plaza	403 Furys Ferry Rd	Martinez	GA	30907-9038	(706) 650-3360	33.530167	-82.07302
+536	Paces Ferry Center	2451 Cumberland Pkwy SE	Atlanta	GA	30339-6136	(770) 437-7000	33.862637	-84.47869
+538	Publix at Old Peachtree	2380 Buford Dr Ste 201	Lawrenceville	GA	30043-7638	(770) 338-4560	34.03631	-83.99021
+539	Publix At Centerville	3550 Centerville Hwy Ste 201	Snellville	GA	30039-4133	(770) 736-7800	33.80254	-84.04078
+540	LaGrange Plaza	139 Commerce Ave	LaGrange	GA	30241-2337	(706) 883-1120	33.050762	-85.02425
+541	Powers Ferry Village	6300 Powers Ferry Rd	Sandy Springs	GA	30339-2919	(770) 612-5140	33.90533	-84.42739
+546	Publix at Peachtree East	130 Peachtree East Ct, Ste #4	Peachtree City	GA	30269-4045	(770) 486-2020	33.423615	-84.55677
+547	Eagles Landing	909 Eagles Landing Pkwy Ste 300	Stockbridge	GA	30281-6398	(770) 389-6130	33.510536	-84.219986
+548	Towne Center Prado	50 Barrett Pkwy Ste 1000	Marietta	GA	30066-3344	(770) 419-4043	34.016747	-84.54932
+554	Main Street	300 Cherokee Pl	Cartersville	GA	30121-2964	(770) 606-2360	34.17333	-84.78407
+556	Publix at Alpharetta	11800 Haynes Bridge Rd Ste B	Alpharetta	GA	30009-7994	(770) 752-4960	34.07319	-84.29376
+559	Publix at Cobb Parkway	2774 N Cobb Pkwy Ste 201	Kennesaw	GA	30152-3469	(770) 426-3240	34.023453	-84.62359
+560	Peachtree Square Shopping Center	3200 Holcomb Bridge Rd	Peachtree Corners	GA	30092-3361	(770) 417-5100	33.952084	-84.23218
+561	West Cobb Marketplace	2500 Dallas Hwy SW Ste 300	Marietta	GA	30064-2571	(770) 426-3250	33.94836	-84.62555
+562	Milgen Plaza	5435 Woodruff Farm Rd	Columbus	GA	31907-1395	(706) 568-8820	32.51959	-84.893936
+564	Five Forks Corners Shopping Center	4045 Five Forks Trickum Rd SW	Lilburn	GA	30047-2538	(770) 381-4170	33.870716	-84.092865
+565	The Shops at Laurel Springs	3245 Peachtree Pkwy Ste A	Suwanee	GA	30024-1097	(770) 886-5335	34.08436	-84.15917
+566	Brookstone Village	1727 Mars Hill Rd NW	Acworth	GA	30101-8090	(770) 218-2420	33.99755	-84.70799
+569	Hamilton Mill Village Shopping Center	2463 Hamilton Mill Pkwy	Dacula	GA	30019-4648	(770) 614-1070	34.07402	-83.91534
+579	Fayette Pavilion	108 Pavilion Pkwy	Fayetteville	GA	30214-4056	(770) 460-4100	33.478443	-84.43852
+585	Duluth Station	2750 Buford Hwy	Duluth	GA	30096-2867	(770) 622-6750	34.007046	-84.1302
+593	Publix At Acworth	3507 Baker Rd NW Ste 300	Acworth	GA	30101-3706	(770) 917-4600	34.0746	-84.6518
+596	Sugar Hill Corners	5885 Cumming Hwy	Sugar Hill	GA	30518-5765	(770) 614-8860	34.118866	-84.07496
+599	Ansley Mall	1544 Piedmont Ave NE	Atlanta	GA	30324-5018	(404) 898-1850	33.79914	-84.37179
+601	Oglethorpe Crossing	3435 Ashford Dunwoody Rd NE	Brookhaven	GA	30319-2546	(770) 216-5050	33.890465	-84.3245
+603	Loganville Town Centre	4325 Atlanta Hwy	Loganville	GA	30052-2341	(770) 466-5150	33.839252	-83.908066
+608	McIntosh Plaza	1109 S Park St Ste 600	Carrollton	GA	30117-4449	(770) 214-3140	33.56083	-85.07486
+612	Sugarloaf Crossing	4850 Sugarloaf Pkwy	Lawrenceville	GA	30044-2859	(770) 277-5240	33.95381	-84.05516
+615	McGinnis Crossing	1000 Peachtree Industrial Blvd	Suwanee	GA	30024-6737	(770) 932-4300	34.049797	-84.08856
+616	Midway Shopping Center	4900 Atlanta Hwy	Alpharetta	GA	30004-2921	(770) 754-4321	34.15958	-84.23961
+617	Butler's Crossing	2061 Experiment Station Rd	Watkinsville	GA	30677-5328	(706) 769-2080	33.871212	-83.44112
+624	Riverstone Plaza Shopping Center	1451 Riverstone Pkwy	Canton	GA	30114-5624	(770) 720-1001	34.25296	-84.475655
+626	King Plaza	885 Woodstock Rd Ste 100	Roswell	GA	30075-2276	(770) 552-4580	34.061115	-84.386116
+634	Robson Crossing	3446 Winder Hwy	Flowery Branch	GA	30542-3007	(770) 538-4270	34.218025	-83.86333
+636	The Centre at Woodstock	12165 Highway 92	Woodstock	GA	30188-4298	(770) 517-1600	34.08966	-84.483986
+646	Trowbridge Crossing	7525 Roswell Rd	Sandy Springs	GA	30350-8500	(678) 443-8980	33.961	-84.36382
+647	Publix at Perimeter	1100 Hammond Dr Ste 300	Sandy Springs	GA	30328-8153	(678) 443-2100	33.920086	-84.35266
+650	Parkway Centre	7600 Schomburg Rd	Columbus	GA	31909-1833	(706) 565-3260	32.55766	-84.904655
+664	Lenox Marketplace	3535 Peachtree Rd NE	Atlanta	GA	30326-3287	(404) 848-0344	33.850986	-84.359795
+665	Shamrock Plaza	3870 N Druid Hills Rd	Decatur	GA	30033-3002	(404) 638-1293	33.811375	-84.274734
+670	Publix at Powder Springs	3721 New Macland Rd, Ste 300	Powder Springs	GA	30127-1966	(770) 222-2972	33.864437	-84.674095
+672	Sandy Plains Exchange	1860 Sandy Plains Rd	Marietta	GA	30066-7833	(770) 509-3991	33.99368	-84.50952
+691	Briarcliff Village Shopping Center	2162 Henderson Mill Rd NE	Atlanta	GA	30345-3762	(770) 724-1947	33.8474	-84.257324
+694	The Market at Bridgemill	3760 Sixes Rd Ste 110	Canton	GA	30114-8194	(770) 345-8380	34.178993	-84.54887
+706	Golden Park Village	4840 Golden Pkwy	Buford	GA	30518-5843	(770) 614-7700	34.14212	-83.95061
+711	Hickory Flat Village	6175 Hickory Flat Hwy Ste 140	Canton	GA	30115-7210	(770) 345-8600	34.178024	-84.41816
+717	The Village	1236 Thompson Bridge Rd	Gainesville	GA	30501-1708	(770) 538-0665	34.319126	-83.83031
+718	Chastain Square	4279 Roswell Rd NE Ste 300	Atlanta	GA	30342-3769	(404) 843-4353	33.871033	-84.37894
+719	Peachtree Battle Shopping Center	2365 Peachtree Rd NE	Atlanta	GA	30305-4147	(404) 869-6556	33.820896	-84.38667
+720	West Paces Ferry	1250 W Paces Ferry Rd NW	Atlanta	GA	30327-2306	(404) 848-1610	33.84829	-84.427986
+721	Alpharetta Commons	4305 State Bridge Rd	Alpharetta	GA	30022-4471	(770) 751-7991	34.05727	-84.23513
+722	Spalding Corners	7736 Spalding Dr	Norcross	GA	30092-4207	(770) 417-5155	33.96858	-84.260735
+723	Emory Commons	2155 N Decatur Rd	Decatur	GA	30033	(404) 638-6015	33.78977	-84.30441
+724	Publix at Ponce	1001 Ponce De Leon Ave NE	Atlanta	GA	30306-4215	(404) 892-9229	33.772896	-84.354355
+725	Sope Creek Crossing	2900 Delk Rd SE Ste 1150	Marietta	GA	30067-5320	(770) 612-5150	33.922897	-84.46681
+726	Tree Summit Village	3870 Peachtree Industrial Blvd	Duluth	GA	30096-1422	(770) 813-7465	33.98782	-84.16847
+730	Paradise Crossing	2675 Lee Rd	Lithia Springs	GA	30122-3356	(770) 920-3471	33.735348	-84.66886
+744	Salem Road Station	13015 Brown Bridge Rd	Covington	GA	30016-9111	(678) 342-0766	33.576603	-83.965004
+752	Centre at Panola	3045 Panola Rd	Lithonia	GA	30038-2317	(770) 322-1890	33.69856	-84.17458
+753	Highland Station	4480 S Cobb Dr SE	Smyrna	GA	30080-6990	(770) 434-6225	33.843464	-84.50447
+762	Bethany Village	13800 Highway 9 N Ste E	Alpharetta	GA	30004-4590	(770) 751-0312	34.116844	-84.271416
+764	Orchard Square Shopping Center	4290 Bells Ferry Rd NW	Kennesaw	GA	30144-7140	(770) 516-3883	34.055214	-84.55366
+765	Dunwoody Hall Shopping Center	5550 Chamblee Dunwoody Rd	Dunwoody	GA	30338-4111	(678) 443-0644	33.950638	-84.338135
+769	Publix at Barrett Parkway	1635 Old Highway 41 NW	Kennesaw	GA	30152-4480	(770) 426-5299	33.99389	-84.59943
+773	Toco Hills Shopping Center	2969 N Druid Hills Rd NE	Atlanta	GA	30329-3909	(404) 638-6022	33.81349	-84.311295
+776	Publix at Piedmont	595 Piedmont Ave NE	Atlanta	GA	30308-2478	(404) 881-1750	33.77037	-84.381134
+783	Publix at East Lake	2235 Glenwood Ave SE	Atlanta	GA	30316-2307	(404) 373-2858	33.73866	-84.31313
+786	Coweta Crossroads	100 Glenda Trce	Newnan	GA	30265-3863	(770) 502-0686	33.410664	-84.68771
+789	Grayson Village	2715 Loganville Hwy SW	Loganville	GA	30052-6660	(770) 822-0637	33.879047	-83.93842
+799	Wilshire Pavilion	1200 Highway 74 S Ste 20	Peachtree City	GA	30269-3071	(770) 486-0133	33.342716	-84.53696
+800	Shallowford Exchange	2562 Shallowford Rd NE	Atlanta	GA	30345-1202	(404) 636-1175	33.862183	-84.287834
+803	Dacula Village	720 Dacula Rd	Dacula	GA	30019-7055	(770) 822-5959	34.00342	-83.912575
+816	Paradise Pointe at Lake Dow	920 Highway 81 E	McDonough	GA	30252-2978	(770) 898-1213	33.437027	-84.12134
+825	Mountain Park Plaza	4750 Alabama Rd NE Ste 107	Roswell	GA	30075-1680	(770) 645-0144	34.065723	-84.42297
+844	Village Shops of Flowery Branch	5900 Spout Springs Rd	Flowery Branch	GA	30542-6448	(770) 967-1303	34.17658	-83.91226
+853	Lake Oconee Village	6350 Lake Oconee Pkwy Ste 106	Greensboro	GA	30642-6434	(706) 454-7140	33.455776	-83.24456
+859	Village Shoppes of Sugarloaf	3370 Sugarloaf Pkwy	Lawrenceville	GA	30044-5478	(678) 376-3844	33.921474	-84.01839
+863	The Shops at Huntcrest	1030 Old Peachtree Rd NW	Lawrenceville	GA	30043-3308	(678) 376-3220	33.99848	-84.06819
+880	Village Shoppes of East Cherokee	6236 Holly Springs Pkwy	Woodstock	GA	30188	(770) 928-5530	34.130215	-84.49953
+892	South Hampton Village	1512 Highway 74 N	Tyrone	GA	30290-1663	(770) 774-2780	33.4883	-84.58719
+1008	Paradise Shoppes of Warner Robins	1114 Georgia Highway 96	Kathleen	GA	31047-2111	(478) 987-6707	32.547165	-83.69206
+1010	Publix In Atlantic Station	1380 Atlantic Dr NW Ste 14135	Atlanta	GA	30363-1144	(404) 873-5055	33.792824	-84.39801
+1019	Village Walk Shopping Center	270 Rucker Rd	Alpharetta	GA	30004-4045	(770) 360-5591	34.079308	-84.35738
+1043	King's Market	1425 Market Blvd Ste 600	Roswell	GA	30076-6711	(770) 640-6035	34.0179	-84.31999
+1044	Cheshire Square	2325 Cheshire Bridge Rd NE	Atlanta	GA	30324-3733	(404) 638-1900	33.818565	-84.34904
+1052	The Shoppes At Locust Grove	2730 Highway 155	Locust Grove	GA	30248-2401	(770) 288-4180	33.365803	-84.18142
+1054	The Shops at Westridge	2158 Highway 20 W	McDonough	GA	30253-7205	(770) 898-6650	33.413666	-84.20258
+1056	Publix at Princeton Lakes	3730 Carmia Dr SW Ste 200	Atlanta	GA	30331-6259	(404) 346-9253	33.65642	-84.51075
+1060	The Marketplace at Birmingham Village	980 Birmingham Rd Ste 100	Alpharetta	GA	30004-4418	(770) 751-5543	34.167374	-84.3308
+1061	The Plaza Midtown	950 W Peachtree St NW	Atlanta	GA	30309-3846	(404) 253-3544	33.780445	-84.3888
+1063	Paradise Shoppes of New Hope	51 E Paulding Dr	Dallas	GA	30157-7190	(770) 505-5838	33.958782	-84.78758
+1064	Paradise Shoppes of Prominence Point	120 Prominence Point Pkwy	Canton	GA	30114-9008	(770) 345-5389	34.192	-84.51137
+1071	Smyrna Crossing	2880 Georgia Highway 212 SW	Conyers	GA	30094-3349	(770) 918-2512	33.617233	-84.08138
+1077	Kennesaw Walk	2090 Baker Rd NW	Kennesaw	GA	30144-4600	(678) 331-8750	34.049606	-84.610115
+1078	The Village Shoppes at Simonton	930 New Hope Rd	Lawrenceville	GA	30045-6407	(770) 682-2430	33.934673	-83.95627
+1087	Summit Point	840 Glynn St S	Fayetteville	GA	30214-2031	(678) 817-5415	33.43079	-84.45452
+1089	The Village at Flynn Crossing	5180 McGinnis Ferry Rd	Alpharetta	GA	30005-1792	(770) 360-1025	34.093224	-84.20639
+1091	Publix At Shakerag	7780 McGinnis Ferry Rd	Suwanee	GA	30024-1622	(770) 622-0218	34.057186	-84.128876
+1096	Governors Towne Square	6110 Cedarcrest Rd NW	Acworth	GA	30101-9539	(678) 439-3440	34.06399	-84.72657
+1110	Village Shoppes of Gainesville	879 Dawsonville Hwy	Gainesville	GA	30501-2616	(770) 534-1350	34.296577	-83.85969
+1112	Providence Pavilion	1025 Veterans Memorial Hwy SE Ste 400	Mableton	GA	30126-7709	(678) 398-3651	33.805737	-84.525444
+1118	Milstead Crossing	1591 Georgia Highway 20 NE	Conyers	GA	30012-3834	(678) 413-2421	33.68413	-83.99786
+1119	Howell Mill Village	2020 Howell Mill Rd NW Ste A	Atlanta	GA	30318-1732	(404) 609-7840	33.810345	-84.41467
+1130	Castleberry-Southard Crossing	5475 Bethelview Rd	Cumming	GA	30040-9731	(678) 455-1232	34.17436	-84.18716
+1139	The Shoppes at Deer Creek	4300 Chapel Hill Rd	Douglasville	GA	30135-4200	(770) 577-5133	33.689068	-84.7149
+1143	Stillwood Pavilion at Summer Grove	1111 Lower Fayetteville Rd	Newnan	GA	30265-6501	(770) 502-2370	33.374344	-84.752365
+1146	Georgetown Square	1860 Barnett Shoals Rd	Athens	GA	30605-6811	(706) 227-6260	33.924553	-83.34217
+1154	Publix at Richmond Hill Plantation	12800 Highway 144	Richmond Hill	GA	31324-7343	(912) 459-1171	31.909521	-81.27874
+1178	Village at Mulberry Park	831 Auburn Rd	Dacula	GA	30019-5434	(770) 682-2421	34.03096	-83.887024
+1183	Parkway Village	5370 Campbellton Fairburn Rd	Fairburn	GA	30213-2296	(770) 774-3600	33.61243	-84.609856
+1184	Seven Hills Station	80 Seven Hills Blvd	Dallas	GA	30132-0574	(770) 975-6786	34.02959	-84.77884
+1186	Largo Plaza	11701 Abercorn St	Savannah	GA	31419-1905	(912) 925-4112	31.981304	-81.15211
+1188	West Jackson Crossing	6055 Highway 124 W	Hoschton	GA	30548-5534	(706) 654-5900	34.106777	-83.70371
+1217	The Village at New Georgia	7953 Villa Rica Hwy	Dallas	GA	30157-8619	(678) 840-4676	33.809074	-84.886185
+1226	Moores Mill Center	2275 Marietta Blvd NW	Atlanta	GA	30318	(404) 351-4794	33.819637	-84.45077
+1227	The Village Shoppes at Windermere	3120 Mathis Airport Pkwy	Suwanee	GA	30024-9128	(770) 781-0368	34.11071	-84.15438
+1233	Paradise Shoppes of Perry	275 Perry Pkwy	Perry	GA	31069-9275	(478) 218-7577	32.47288	-83.70604
+1248	Laurel Canyon Village	15 Laurel Canyon Village Circle Suite 118	Canton	GA	30114	(770) 479-3700	34.271206	-84.50329
+1250	Jonquil Plaza	2955 Atlanta Rd SE	Smyrna	GA	30080	(770) 319-1123	33.8817	-84.51214
+1251	Barrow Crossing	916 Loganville Hwy Ste 200	Bethlehem	GA	30620-2145	(770) 307-1600	33.94369	-83.75431
+1256	The Market at Rice Hope	7936 Ga Highway 21	Port Wentworth	GA	31407-9720	(912) 966-5890	32.221424	-81.19363
+1263	Bass Plantation	5451 Bowman Rd	Macon	GA	31210-5783	(478) 474-3064	32.924507	-83.73561
+1279	Friendship Springs Village	7334 Spout Springs Rd	Flowery Branch	GA	30542-5543	(770) 967-1249	34.110947	-83.877075
+1286	Riverwood Town Center	5119 Washington Rd	Evans	GA	30809-6445	(706) 650-1460	33.573547	-82.19334
+1291	Publix at Gunn Battle	6015 Watson Blvd	Byron	GA	31008-6650	(478) 971-7706	32.61239	-83.71448
+1349	Lee Crossings	1212 US Highway 19 S	Leesburg	GA	31763-4877	(229) 431-0294	31.655548	-84.17523
+1363	Town Brookhaven	104 Town Blvd Ste A100	Brookhaven	GA	30319-3146	(404) 233-7475	33.87038	-84.33448
+1364	Pooler Marketplace	467 Pooler Pkwy	Pooler	GA	31322-5102	(912) 330-7313	32.13513	-81.251144
+1390	Cross Country Plaza	3201 Macon Rd Ste 201	Columbus	GA	31906-1725	(706) 561-2160	32.48272	-84.94437
+1403	Charles Hight Square	435 Turner McCall Blvd NE	Rome	GA	30165-2735	(706) 291-3380	34.261784	-85.17771
+1411	The Village at Millers Chapel	2159 Highway 20 SE	Conyers	GA	30013	(770) 785-6202	33.634464	-84.01685
+1422	Publix Plaza at Tifton	620 Virginia Ave. North	Tifton	GA	31794-4227	(229) 386-1166	31.462656	-83.52865
+1435	Publix at Perimeter Park	3330 Inner Perimeter Rd	Valdosta	GA	31602-7063	(229) 671-9835	30.880966	-83.285126
+1489	The Village on Skidaway Island	6 Westridge Rd	Savannah	GA	31411-2952	(912) 598-3130	31.94019	-81.05046
+1498	Publix at Park Place	13775 US Highway 19 S	Thomasville	GA	31792-5398	(229) 226-9800	30.837662	-83.94665
+1540	Parkway Centre	378 Veterans Pkwy N	Moultrie	GA	31788	(229) 217-4812	31.186567	-83.75918
+1542	Dawson Crossroads	145 Forest Blvd Ste 100	Dawsonville	GA	30534	(706) 216-4220	34.352066	-84.04483
+1584	Publix At Blue Moon Crossing	101 Blue Moon Crossing	Pooler	GA	31322	(912) 450-1070	32.079483	-81.28468
+1622	Merganser Commons at Bonaire	510 GA Hwy 247 S	Bonaire	GA	31005	(478) 322-3620	32.54645	-83.59516
+1641	Boynton Ridge Plaza	3775 Battlefield Pkwy	Ringgold	GA	30736	(706) 858-6568	34.938118	-85.20406
+1647	Madison Yards	905 Memorial Dr SE	Atlanta	GA	30316	(404) 521-3992	33.745857	-84.35766
+1678	Holland Point	4108 Hamilton Mill Rd	Buford	GA	30519	(770) 831-1054	34.103275	-83.97546
+1685	Publix at Winder Hill	401 Gainesville Hwy	Winder	GA	30680	(470) 429-6015	34.009827	-83.706345
+1690	Matt Town Center	5310 Matt Hwy	Cumming	GA	30028	(770) 889-5778	34.29989	-84.15084
+1700	Publix at Tobesofkee Crossing	5581 Thomaston Rd	Macon	GA	31220	(478) 474-4918	32.835865	-83.74381
+1718	Sandtown Crossing	5829 Campbellton Rd SW Ste 110	Atlanta	GA	30331	(404) 346-4170	33.701473	-84.57864
+1724	Sam's Crossing Village	2720 E Ponce de Leon Ave	Decatur	GA	30030	(404) 378-9225	33.77771	-84.27823
+1725	Shoppes at Ola Crossroads	3479 Hwy 81 E	McDonough	GA	30252	(770) 305-9357	33.437653	-84.03948
+1733	Eagles Corner Shopping Center	101 Tormenta Way	Statesboro	GA	30458-5697	(912) 681-6150	32.415836	-81.79966
+1736	Monroe Pavilion	900 Pavilion Pkwy	Monroe	GA	30656	(678) 635-4316	33.807186	-83.72562
+1745	East Cobb Crossing	4269 Roswell Rd Bldg 100 Ste 108-112	Marietta	GA	30062	(770) 579-1620	33.98652	-84.42581
+1758	Perimeter Marketplace	500 Ashwood Pkwy	Dunwoody	GA	30338	(770) 522-5133	33.932102	-84.33886
+1761	Senoia Village	8080 Wells St	Senoia	GA	30276	(770) 599-3311	33.295277	-84.54489
+1768	Braselton Village	1060 Braselton Village Pkwy	Braselton	GA	30517	(470) 429-6148	34.106354	-83.814575
+1772	Hugh Howell Village	4650 Hugh Howell Rd Bldg 100	Tucker	GA	30084	(770) 934-4799	33.85006	-84.199715
+1773	Tribble Crossing	3620 Era Dr	Cumming	GA	30028	(770) 406-5140	34.2391	-84.225525
+1777	Chamblee Plaza	5534 Peachtree Blvd	Chamblee	GA	30341	(770) 457-9835	33.90048	-84.302475
+1786	Kelleytown Village	3500 Hwy 155 N	McDonough	GA	30252	(770) 288-8588	33.54836	-84.13697
+1811	Covington Town Center	12701 Town Center Dr	Covington	GA	30014	(770) 385-5705	33.6227	-83.83895
+1816	Arbor Springs Plaza	4000 N Hwy 29	Newnan	GA	30265	(678) 633-6167	33.450287	-84.70315
+1825	Publix at Summerhill	572 Hank Aaron Dr SE	Atlanta	GA	30312-2896	(470) 945-8956	33.737705	-84.38737
+1827	Gateway Crossing	51 Old Farm Rd	Jefferson	GA	30549	(706) 708-5216	34.124413	-83.6043
+1838	Oak Grove	5345 Jefferson Rd	Athens	GA	30606	(762) 400-8555	33.9925	-83.43847
+1867	Buckhead Landing	3330 Piedmont Rd NE Ste 16	Atlanta	GA	30305-1726	(470) 945-8948	33.845627	-84.37455
+1868	Midland Commons	6901 Ray Wright Way	Columbus	GA	31909-7700	(706) 358-0289	32.54564	-84.87475
+1870	Douglas Square	1329 S Peterson Ave	Douglas	GA	31533	(912) 493-6058	31.489819	-82.852875
+1873	Merganser Commons at Hills & Dales Farm	2200 Vernon St	Lagrange	GA	30240	(706) 443-7764	33.035545	-85.06027
+1880	Old Town Marketplace	8132 Veterans Pkwy Bldg 3	Columbus	GA	31909-1802	(706) 223-6574	32.56606	-84.93403
+1890	Fischer Marketplace	4957 Hwy 34 E	Sharpsburg	GA	30277-3505	(678) 633-6140	33.397717	-84.62749
+1891	Shops at Walnut Creek	2400 Jonesboro Rd	Hampton	GA	30228	(470) 369-9579	33.46531	-84.233826
+1892	Gateway Crossing Hoschton	234 Gateway Crossing Pkwy	Hoschton	GA	30548	(706) 471-5334	34.08791	-83.75591
+1893	Publix at Harbins 316	952 Harbins Rd	Dacula	GA	30019	(770) 666-9280	33.968906	-83.88702
+2003	Lakeside Commons	2775 N Columbia St	Milledgeville	GA	31061	(478) 223-5015	33.148396	-83.27174
+2006	Limestone Marketplace	2155 Limestone Ridge NE	Gainesville	GA	30501-2135	(678) 971-6207	34.313644	-83.80074
+2011	Villa Rica Town Center	103 Villa Rica Pkwy Ste 200	Villa Rica	GA	30180-3250	(770) 462-6171	33.735233	-84.90623
+2024	Dahlonega Village	23 Maxwell Ln	Dahlonega	GA	30533	(706) 701-6331	34.471294	-83.96989
+2039	Cambridge Square Shopping Center	2010 Johnson Ferry Rd NE	Brookhaven	GA	30319	(404) 460-9991	33.89451	-84.33035
+2045	Publix Shops at Riverbrook Village	3715 Wahoo Falls Trace	Gainesville	GA	30506	(470) 892-3127	34.37693	-83.87544
+2047	Gateway Crossing Jasper	178 Virginia Way	Jasper	GA	30143	(706) 301-7235	34.45929	-84.452835`;
+const DEFAULT_COORDS = ``;
+// ===EDITION-END===
+
+const COLS = ["Order Type","MaintActivType","Basic fin. date","Earliest finish","Priority","Customer","Personnel No.","Activity","Serial Number","Order","Description","Oper.WorkCenter","User status","Material","Location"];
+
+// ---------- storage ----------
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem(EDITION.key+k); return v===null ? d : JSON.parse(v);}catch(e){return d;} },
+  set(k, v){ try{ localStorage.setItem(EDITION.key+k, JSON.stringify(v)); const n=document.getElementById("savedNote"); if(n) n.textContent="Saved "+new Date().toLocaleTimeString([], {hour:"numeric",minute:"2-digit"}); }
+    catch(e){ const n=document.getElementById("savedNote"); if(n) n.textContent="Not saving: this browser blocks storage for local files. Use Save backup file."; } }
+};
+
+// ---------- state ----------
+const S = {
+  calls: [], groups:{}, stores:{}, coords:{},
+  fGroups:new Set(), fPrio:new Set(), fStatus:new Set(), fDue:"",
+  known:{groups:new Set(), prio:new Set(), status:new Set()},
+  excluded:new Set(store.get("excluded", [])),
+  listSort: store.get("listSort","group"),
+  pastTiers: new Set(store.get("pastTiers",[])), pastLo: store.get("pastLo",""), pastHi: store.get("pastHi",""),
+  manual: store.get("manual", []),
+  lastOrder: [],
+  done: store.get("done", {}),
+  showDone: store.get("showDone", false),
+  gps: store.get("gps", null),
+  mapLinks: []
+};
+const ORDER_URL = n => "https://flpassociateapps.publix.com/sap/bc/ui2/flp#ZFIELDTECH-monitor&/ServiceOrder/" + encodeURIComponent(n);
+const isDone = c => !!S.done[c.order];
+// Order links open in Microsoft Edge using Edge's launch scheme (Windows, Android, iPhone).
+const UA = navigator.userAgent;
+const IN_EDGE = /Edg\/|EdgA\/|EdgiOS\//.test(UA);
+const IS_IOS = /iPhone|iPad|iPod/.test(UA);
+const useEdgeLinks = () => store.get("edgeLinks", true) && !IN_EDGE;
+const ORDER_HREF = n => {
+  const u = ORDER_URL(n);
+  if(!useEdgeLinks()) return u;
+  return IS_IOS ? "microsoft-edge-" + u : "microsoft-edge:" + u;
+};
+const orderTarget = () => useEdgeLinks() ? "" : ' target="_blank" rel="noopener"';
+
+// ---------- parsing ----------
+const cleanNum = s => String(s||"").trim().replace(/^P/i,"").replace(/^0+(?=\d)/,"");
+function parseGroups(t){
+  const g={}; t.split(/\r?\n/).forEach(l=>{const p=l.trim().split(/\s+/); if(p.length>=2 && /\d/.test(p[0])) g[cleanNum(p[0])]=p[1].toUpperCase();}); return g;
+}
+function splitRows(text){
+  const first=(text.split(/\r?\n/).find(l=>l.trim())||"");
+  const d=first.includes("\t")?"\t":",";
+  const rows=[]; let row=[], cell="", q=false;
+  for(let i=0;i<text.length;i++){
+    const ch=text[i];
+    if(q){ if(ch==='"'){ if(text[i+1]==='"'){cell+='"';i++;} else q=false; } else cell+=ch; }
+    else if(ch==='"' && cell==="") q=true;
+    else if(ch===d){ row.push(cell.trim()); cell=""; }
+    else if(ch==="\n"||ch==="\r"){ if(ch==="\r"&&text[i+1]==="\n") i++; row.push(cell.trim()); rows.push(row); row=[]; cell=""; }
+    else cell+=ch;
+  }
+  if(cell!==""||row.length){ row.push(cell.trim()); rows.push(row); }
+  return rows.filter(r=>r.some(c=>c!==""));
+}
+function jsonRows(t){
+  if(!/^\s*\[/.test(t)) return null;
+  try{
+    const a=JSON.parse(t); if(!Array.isArray(a)) return null;
+    const keys=[...new Set(a.flatMap(o=>o&&typeof o==="object"?Object.keys(o):[]))];
+    return [keys].concat(a.map(o=>keys.map(k=>o[k]==null?"":String(o[k]))));
+  }catch(e){ return null; }
+}
+function parseStores(t){
+  const rows=(jsonRows(t)||splitRows(t)).map(r=>r.map(c=>/^(not available|n\/a|null)$/i.test(c)?"":c)), s={}, coords={};
+  const hi=rows.findIndex(r=>r.some(c=>/store|address|city/i.test(c)) && !/^\d+$/.test(r[0]||""));
+  let idx={num:0,division:1,center:2,addr:3,city:4,state:5,zip:6,county:7,phone:8,lat:-1,lng:-1,group:-1};
+  if(hi>=0){
+    const hd=rows[hi].map(x=>x.toLowerCase().trim());
+    const f=re=>hd.findIndex(x=>re.test(x));
+    const num=f(/^(store|site|location|loc)\s*(number|num|no\.?|#|id)?$/);
+    idx={num:num>=0?num:0, division:f(/division|district|region/), center:f(/shopping\s*center|center|plaza|store\s*name|^name$/),
+      addr:f(/^(street\s*)?address(\s*1|\s*line\s*1)?$|^street$/), city:f(/^city$/), state:f(/^state$|^st$/), zip:f(/zip|postal/),
+      county:f(/county/), phone:f(/phone/), lat:f(/^lat(itude)?$/), lng:f(/^(lng|lon|long|longitude)$/), group:f(/^(route\s*)?group$/)};
+  }
+  const g=(r,k)=>idx[k]>=0?(r[idx[k]]||""):"";
+  rows.forEach((r,i)=>{
+    if(i===hi) return;
+    const n=cleanNum(g(r,"num")); if(!/^\d+$/.test(n)) return;
+    s[n]={num:n,division:g(r,"division"),center:g(r,"center"),addr:g(r,"addr"),city:g(r,"city"),state:g(r,"state"),
+      zip:g(r,"zip").split("-")[0],county:g(r,"county"),phone:g(r,"phone"),group:g(r,"group").toUpperCase()};
+    const la=parseFloat(g(r,"lat")), lo=parseFloat(g(r,"lng"));
+    if(!isNaN(la)&&!isNaN(lo)&&la!==0) coords[n]=[la,lo];
+  });
+  return {stores:s, coords};
+}
+function parseCoords(t){
+  const o={}; t.split(/\r?\n/).forEach(l=>{const p=l.trim().split(/[\s,]+/); if(p.length>=3){const a=+p[1],b=+p[2]; if(!isNaN(a)&&!isNaN(b)) o[cleanNum(p[0])]=[a,b];}}); return o;
+}
+function parseDue(d,t){
+  const m=/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec((d||"").trim()); if(!m) return null;
+  let [h,mi]=(t||"0:0").split(":").map(Number); h=h||0; mi=mi||0;
+  if(h>=24){h=23;mi=59;}
+  return new Date(+m[3],+m[1]-1,+m[2],h,mi);
+}
+function parseCalls(text){
+  const calls=[], errors=[];
+  text.split(/\r?\n/).forEach((line,i)=>{
+    if(!line.trim()) return;
+    const c=line.split("\t").map(x=>x.trim());
+    if(c[0]==="Order Type") return;
+    if(c.length<11){errors.push(i+1); return;}
+    const cust=cleanNum(c[5]), loc=cleanNum(c[14]);
+    const pr=parseInt(c[4])||9;
+    calls.push({
+      type:c[0], activ:c[1], date:c[2], time:c[3], due:parseDue(c[2],c[3]),
+      prioLabel:c[4]||"—", prio:pr, store:cust||loc, location:loc,
+      serial:c[8], order:c[9], desc:c[10], wc:c[11], status:c[12]||"—", material:c[13]
+    });
+  });
+  return {calls, errors};
+}
+
+// ---------- helpers ----------
+const $ = id => document.getElementById(id);
+const esc = s => String(s??"").replace(/[&<>"]/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch]));
+const groupOf = n => S.groups[n] || (S.stores[n] && (S.stores[n].group || S.stores[n].division || (EDITION.groupBy==="city" ? S.stores[n].city : S.stores[n].state))) || "?";
+const shieldHTML = (g, size) => `<span class="shield${size?" "+size:""}${String(g).length>2?" wide":""}" title="Group ${esc(g)}">${esc(g)}</span>`;
+const fullAddr = n => { const s=S.stores[n]; return s && s.addr ? `${s.addr}, ${s.city}, ${s.state} ${s.zip}` : `Store ${n}`; };
+const fmtDue = d => d ? d.toLocaleDateString(undefined,{weekday:"short",month:"numeric",day:"numeric"})+" "+d.toLocaleTimeString([], {hour:"numeric",minute:"2-digit"}) : "—";
+function miles(a,b){
+  if(!a||!b) return null;
+  const R=3958.8, r=x=>x*Math.PI/180;
+  const dLat=r(b[0]-a[0]), dLng=r(b[1]-a[1]);
+  const h=Math.sin(dLat/2)**2+Math.cos(r(a[0]))*Math.cos(r(b[0]))*Math.sin(dLng/2)**2;
+  return 2*R*Math.asin(Math.sqrt(h))*1.25;
+}
+const fmtTime = m => { m=Math.round(m); return m<60 ? `${m} min` : `${Math.floor(m/60)} h ${m%60} min`; };
+
+// ---------- filters ----------
+// Days a call is past its due date (fractional); null if no due date, negative if not due yet.
+const pastDays = (c, now=new Date()) => c.due ? (now - c.due)/864e5 : null;
+function fmtPast(c){
+  const d=pastDays(c); if(d===null||d<=0) return "";
+  if(d<1){ const hrs=Math.max(1,Math.floor(d*24)); return `${hrs} hr${hrs>1?"s":""} past due`; }
+  const n=Math.floor(d); return `${n} day${n>1?"s":""} past due`;
+}
+// Past-due levels: 0 not yet due, 1 = expired under 3 days, 2 = 3 days, 3 = 4+ days.
+const TIERS=[{k:1,label:"1–2 days"},{k:2,label:"3 days"},{k:3,label:"4+ days"},{k:0,label:"Not yet due"}];
+function tierOf(c){ const d=pastDays(c); if(d===null||d<=0) return 0; const w=Math.floor(d); return w>=4?3:w===3?2:1; }
+const tierLabel = t => (TIERS.find(x=>x.k===t)||{}).label;
+const pastSortMode = () => ["pasttier","due"].includes($("modeSel").value);
+function customRange(){
+  const lo=parseInt(S.pastLo), hi=parseInt(S.pastHi);
+  return (isNaN(lo)&&isNaN(hi)) ? null : {lo:isNaN(lo)?null:Math.max(0,lo), hi:isNaN(hi)?null:Math.max(0,hi)};
+}
+function pastFilter(c){
+  const r=customRange();
+  if(r){
+    // Custom range only ever includes calls that have expired.
+    const d=pastDays(c); if(d===null||d<=0) return false;
+    const w=Math.floor(d);
+    if(r.lo!==null && w<r.lo) return false;
+    if(r.hi!==null && w>r.hi) return false;
+    return true;
+  }
+  return !S.pastTiers.size || S.pastTiers.has(tierOf(c));
+}
+function visibleCalls(){
+  const due = S.fDue ? new Date(S.fDue+"T23:59:59") : null;
+  return S.calls.filter(c => (S.showDone || !isDone(c)) &&
+    S.fGroups.has(groupOf(c.store)) && S.fPrio.has(c.prio) && S.fStatus.has(c.status) &&
+    (!due || !c.due || c.due<=due) && pastFilter(c));
+}
+function syncFilterSets(){
+  const g=new Set(S.calls.map(c=>groupOf(c.store))), p=new Set(S.calls.map(c=>c.prio)), s=new Set(S.calls.map(c=>c.status));
+  // New values default to on; values the person turned off stay off.
+  g.forEach(x=>{ if(!S.known.groups.has(x)) S.fGroups.add(x); });
+  p.forEach(x=>{ if(!S.known.prio.has(x)) S.fPrio.add(x); });
+  s.forEach(x=>{ if(!S.known.status.has(x)) S.fStatus.add(x); });
+  S.known={groups:g,prio:p,status:s};
+}
+function renderChips(){
+  const count=(fn)=>{const m={}; S.calls.forEach(c=>{const k=fn(c); m[k]=(m[k]||0)+1;}); return m;};
+  const gc=count(c=>groupOf(c.store)), pc=count(c=>c.prio), sc=count(c=>c.status);
+  const plabel={}; S.calls.forEach(c=>plabel[c.prio]=c.prioLabel);
+  const mk=(host,keys,set,label,n,cls)=>{
+    host.innerHTML = keys.length ? "" : '<span class="hint">Load calls to filter</span>';
+    keys.forEach(k=>{
+      const el=document.createElement("label"); el.className="chip "+(cls||"")+(set.has(k)?" on":" off");
+      el.innerHTML=`<input type="checkbox" ${set.has(k)?"checked":""}>${label(k)} <span class="n">${n[k]}</span>`;
+      el.querySelector("input").onchange=e=>{ e.target.checked?set.add(k):set.delete(k); render(); };
+      host.appendChild(el);
+    });
+  };
+  mk($("fGroups"),[...S.known.groups].sort(),S.fGroups,k=>shieldHTML(k),gc);
+  mk($("fPrio"),[...S.known.prio].sort(),S.fPrio,k=>`<span class="pri p${k}">${esc(plabel[k])}</span>`,pc);
+  mk($("fStatus"),[...S.known.status].sort(),S.fStatus,k=>esc(k),sc,"plain");
+}
+
+// ---------- store list ----------
+// Least-past-due ordering: expired items by fewest days first; not-yet-due and no-date items last.
+function leastKey(due){ const now=Date.now(); if(!due) return Infinity; const t=due.getTime(); return t<now ? now-t : 1e15+t; }
+function storeGroups(calls){
+  const m=new Map();
+  calls.forEach(c=>{ if(!m.has(c.store)) m.set(c.store,[]); m.get(c.store).push(c); });
+  return [...m.entries()].map(([num,cs])=>{
+    const ls=S.listSort, dueKey=c=>c.due?c.due.getTime():Infinity;
+    cs.sort((a,b)=> ls==="most" ? (dueKey(a)-dueKey(b) || a.prio-b.prio)
+      : ls==="least" ? (leastKey(a.due)-leastKey(b.due) || a.prio-b.prio)
+      : (a.prio-b.prio || (a.due||0)-(b.due||0)));
+    return {num, calls:cs, best:Math.min(...cs.map(c=>c.prio)), tier:Math.max(...cs.map(tierOf)), earliest:cs.reduce((m,c)=>c.due&&(!m||c.due<m)?c.due:m,null)};
+  }).sort((a,b)=> S.listSort==="most"
+    ? ((a.earliest||Infinity)-(b.earliest||Infinity) || a.best-b.best || a.num.localeCompare(b.num,undefined,{numeric:true}))
+    : S.listSort==="least"
+    ? (leastKey(a.earliest)-leastKey(b.earliest) || a.best-b.best || a.num.localeCompare(b.num,undefined,{numeric:true}))
+    : (groupOf(a.num).localeCompare(groupOf(b.num)) || a.best-b.best || a.num.localeCompare(b.num)));
+}
+function addExtras(groups, shown){
+  const set=new Set(shown);
+  groups.forEach(g=>{
+    g.extra=S.calls.filter(c=>c.store===g.num && !set.has(c) && !isDone(c)).sort((a,b)=>(a.due||Infinity)-(b.due||Infinity));
+  });
+  return groups;
+}
+function renderStores(groups){
+  const host=$("storeList");
+  if(!Object.keys(S.stores).length){ host.innerHTML='<div class="empty">Your store list is empty. Open <b>Store data and groups</b> at the bottom of the page and load your company store file.</div>'; return; }
+  if(!S.calls.length){ host.innerHTML='<div class="empty">Paste your service call rows on the left and select <b>Load calls</b>.</div>'; return; }
+  if(!groups.length){ host.innerHTML='<div class="empty">No calls match the current filters.</div>'; return; }
+  const now=new Date();
+  host.innerHTML = groups.map(g=>{
+    const s=S.stores[g.num]; const inc=!S.excluded.has(g.num);
+    const rowFor=(c,extra)=>{
+      const over=c.due && c.due<now;
+      const locNote = c.location && c.location!==c.store ? `<div class="flag">Location field says ${esc(c.location)}</div>` : "";
+      const dn=isDone(c);
+      const t=tierOf(c);
+      return `<tr class="${dn?"done":t?"t"+t:""}${extra?" extra":""}">
+        <td class="chk"><label class="done-box" title="Mark call complete"><input type="checkbox" data-done="${esc(c.order)}" ${dn?"checked":""}> Done</label></td>
+        <td><span class="pri p${c.prio}">${esc(c.prioLabel)}</span></td>
+        <td><b>${esc(c.desc)}</b>${locNote}<div class="muted">Order <a class="ord" href="${ORDER_HREF(c.order)}"${orderTarget()} title="Opens in Microsoft Edge">${esc(c.order)}</a>${dn?" · completed "+new Date(S.done[c.order]).toLocaleDateString():""}${c.serial?" · SN "+esc(c.serial):""}${c.wc?" · "+esc(c.wc):""}</div></td>
+        <td class="due">${fmtDue(c.due)}${t&&!dn?`<div style="margin-top:2px"><span class="tier t${t}">${fmtPast(c)}</span></div>`:""}</td>
+        <td><span class="status">${esc(c.status)}</span></td></tr>`;
+    };
+    const ex=g.extra||[];
+    const rows=g.calls.map(c=>rowFor(c,false)).join("")+
+      (ex.length?`<tr class="subhead"><td colspan="5">Also open at this store (${ex.length})</td></tr>`+ex.map(c=>rowFor(c,true)).join(""):"");
+    return `<div class="store ${inc?"":"excluded"}">
+      <div class="store-head">
+        ${shieldHTML(groupOf(g.num))}
+        <div class="info">
+          <div class="store-name">${esc(g.num)}<small>${esc(s?s.center:"Store not in list")}</small></div>
+          <div class="addr">${s?`<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddr(g.num))}" target="_blank" rel="noopener">${esc(fullAddr(g.num))}</a> · <a href="tel:${esc(s.phone)}">${esc(s.phone)}</a>`:"Add this store under Store data to get an address"}</div>
+          <div class="muted" style="font-size:13px">${g.calls.length} call${g.calls.length>1?"s":""}${ex.length?` + ${ex.length} more open`:""}${(()=>{const o=g.calls.concat(ex).filter(c=>!isDone(c)&&pastDays(c)>0); if(!o.length) return ""; const old=o.reduce((m,c)=>c.due<m.due?c:m); return `<span class="tier t${tierOf(old)} pastbadge">Oldest ${fmtPast(old)}</span>`;})()}</div>
+        </div>
+        <label class="incl"><input type="checkbox" data-store="${esc(g.num)}" ${inc?"checked":""}> In route</label>
+      </div>
+      <div class="calls-wrap"><table class="calls">${rows}</table></div>
+    </div>`;
+  }).join("");
+  host.querySelectorAll("input[data-store]").forEach(cb=>cb.onchange=()=>{
+    const n=cb.dataset.store; cb.checked?S.excluded.delete(n):S.excluded.add(n);
+    store.set("excluded",[...S.excluded]); render();
+  });
+  host.querySelectorAll("input[data-done]").forEach(cb=>cb.onchange=()=>{
+    const o=cb.dataset.done;
+    if(cb.checked) S.done[o]=new Date().toISOString(); else delete S.done[o];
+    store.set("done",S.done); render();
+  });
+}
+
+// ---------- routing ----------
+function getStart(){
+  const v=$("startSel").value;
+  if(v==="") return null;
+  if(v==="gps"){
+    if(!S.gps) return null;
+    return {label:"Start: my location", addr:`${S.gps.lat.toFixed(5)},${S.gps.lng.toFixed(5)}`, pt:[S.gps.lat,S.gps.lng]};
+  }
+  if(v==="store"){
+    const n=cleanNum($("startStore").value);
+    if(!S.stores[n]) return null;
+    return {label:"Start: store "+n, addr:fullAddr(n), pt:S.coords[n]||null, num:n};
+  }
+  if(v==="custom"){
+    const addr=$("startAddr").value.trim(); if(!addr) return null;
+    const p=$("startCoords").value.split(/[\s,]+/).map(Number);
+    return {label:"Start", addr, pt: p.length>=2&&!isNaN(p[0])&&!isNaN(p[1])&&p[0]!==0 ? [p[0],p[1]] : null};
+  }
+  return {label:"Start: store "+v, addr:fullAddr(v), pt:S.coords[v]||null, num:v};
+}
+function pathCost(start, seq, round){
+  let d=0, prev=start?start.pt:null;
+  for(const s of seq){ if(prev) d+=miles(prev,S.coords[s.num]); prev=S.coords[s.num]; }
+  if(round && start && start.pt && prev) d+=miles(prev,start.pt);
+  return d;
+}
+function optimize(start, stops, round){
+  if(stops.length<2) return stops.slice();
+  // nearest neighbour
+  let rest=stops.slice(), seq=[], cur=start&&start.pt ? start.pt : null;
+  if(!cur){ seq.push(rest.shift()); cur=S.coords[seq[0].num]; }
+  while(rest.length){
+    let bi=0,bd=Infinity; rest.forEach((s,i)=>{const d=miles(cur,S.coords[s.num]); if(d<bd){bd=d;bi=i;}});
+    const s=rest.splice(bi,1)[0]; seq.push(s); cur=S.coords[s.num];
+  }
+  // 2-opt
+  let improved=true, best=pathCost(start,seq,round), guard=0;
+  while(improved && guard++<200){
+    improved=false;
+    for(let i=0;i<seq.length-1;i++) for(let k=i+1;k<seq.length;k++){
+      const cand=seq.slice(0,i).concat(seq.slice(i,k+1).reverse(),seq.slice(k+1));
+      const c=pathCost(start,cand,round);
+      if(c<best-0.01){ seq=cand; best=c; improved=true; }
+    }
+  }
+  return seq;
+}
+function orderStops(start, stops, mode, round){
+  const zipOf=n=>(S.stores[n]&&S.stores[n].zip)||"99999";
+  const withPt=stops.filter(s=>S.coords[s.num]);
+  const noPt=stops.filter(s=>!S.coords[s.num]).sort((a,b)=>zipOf(a.num).localeCompare(zipOf(b.num)) || a.num.localeCompare(b.num,undefined,{numeric:true}));
+  let seq;
+  if(mode==="manual"){
+    const byNum=new Map(stops.map(s=>[s.num,s]));
+    seq=S.manual.filter(n=>byNum.has(n)).map(n=>byNum.get(n));
+    stops.forEach(s=>{ if(!S.manual.includes(s.num)) seq.push(s); });
+    return seq;
+  }
+  if(mode==="due"){
+    seq=stops.slice().sort((a,b)=>(a.earliest||Infinity)-(b.earliest||Infinity) || a.best-b.best);
+    return seq;
+  }
+  if(mode==="priority" || mode==="pasttier"){
+    const key = mode==="pasttier" ? (s=>-s.tier) : (s=>s.best);
+    const levels=[...new Set(withPt.map(key))].sort((a,b)=>a-b);
+    seq=[]; let from=start;
+    levels.forEach((lv,idx)=>{
+      const part=optimize(from, withPt.filter(s=>key(s)===lv), round && idx===levels.length-1);
+      seq=seq.concat(part);
+      if(part.length){ const last=part[part.length-1]; from={pt:S.coords[last.num]}; }
+    });
+    return seq.concat(mode==="pasttier" ? noPt.sort((a,b)=>b.tier-a.tier) : noPt);
+  }
+  return optimize(start, withPt, round).concat(noPt);
+}
+function renderRoute(groups){
+  const stops=groups.filter(g=>!S.excluded.has(g.num));
+  const start=getStart(), mode=$("modeSel").value, round=$("roundTrip").checked;
+  const seq=orderStops(start, stops, mode, round);
+  S.lastOrder=seq.map(s=>s.num);
+  const list=$("stops"); list.innerHTML="";
+  let total=0, known=true, prev=start?start.pt:null;
+  if(start) list.insertAdjacentHTML("beforeend",`<li class="stop home"><span class="num">⌂</span><div><div class="t">${esc(start.label)}</div><div class="leg">${esc(start.addr)}</div></div><span></span></li>`);
+  seq.forEach((s,i)=>{
+    const pt=S.coords[s.num]; let leg="";
+    if(prev&&pt){ const d=miles(prev,pt); total+=d; leg=`≈ ${d.toFixed(0)} mi · ${fmtTime(d/45*60)} from previous`; }
+    else if(i>0||start){ known=false; leg="Distance unknown (no map position)"; }
+    prev=pt||prev;
+    const s0=S.stores[s.num];
+    const li=document.createElement("li"); li.className="stop";
+    li.innerHTML=`<span class="num">${i+1}</span>
+      <div><div class="t">${shieldHTML(groupOf(s.num),"sm")} ${esc(s.num)} ${s0?"· "+esc(s0.city):""}</div>
+      <div class="leg">${s.calls.length} call${s.calls.length>1?"s":""}${s.extra&&s.extra.length?` + ${s.extra.length} more open`:""}, top priority ${esc(s.calls[0].prioLabel)}${s.tier?` <span class="tier t${s.tier}">${tierLabel(s.tier)}</span>`:""}</div>
+      ${leg?`<div class="leg">${leg}</div>`:""}</div>
+      <div class="mv">${mode==="manual"?`<button aria-label="Move up" data-up="${i}">▲</button><button aria-label="Move down" data-down="${i}">▼</button>`:""}</div>`;
+    list.appendChild(li);
+  });
+  if(round && start && seq.length){
+    const last=S.coords[seq[seq.length-1].num];
+    let leg="";
+    if(start.pt&&last){ const d=miles(last,start.pt); total+=d; leg=`≈ ${d.toFixed(0)} mi · ${fmtTime(d/45*60)}`; }
+    list.insertAdjacentHTML("beforeend",`<li class="stop home"><span class="num">⌂</span><div><div class="t">Back to start</div><div class="leg">${leg}</div></div><span></span></li>`);
+  }
+  list.querySelectorAll("[data-up],[data-down]").forEach(b=>b.onclick=()=>{
+    const i=+(b.dataset.up??b.dataset.down), j=b.dataset.up!==undefined?i-1:i+1;
+    if(j<0||j>=S.lastOrder.length) return;
+    const o=S.lastOrder.slice(); [o[i],o[j]]=[o[j],o[i]]; S.manual=o; store.set("manual",o); render();
+  });
+  const calls=seq.reduce((n,s)=>n+s.calls.length,0);
+  S.routeTotals={stops:seq.length, calls, miles:known?total:null, start};
+  $("totals").innerHTML = seq.length
+    ? `<div><b>${seq.length}</b><span>stops</span></div><div><b>${calls}</b><span>calls</span></div><div><b>${known?"≈ "+total.toFixed(0):"?"}</b><span>miles</span></div><div><b>${known?fmtTime(total/45*60):"?"}</b><span>driving</span></div>`
+    : `<span class="hint">No stops selected. Check "In route" on a store to add it.</span>`;
+  // Google Maps links (max 10 places per link)
+  const pts=[]; if(start) pts.push(start.addr); seq.forEach(s=>pts.push(fullAddr(s.num))); if(round&&start) pts.push(start.addr);
+  const links=$("links"); links.innerHTML=""; S.mapLinks=[];
+  if(pts.length>=2){
+    const chunks=[]; for(let i=0;i<pts.length-1;i+=9) chunks.push(pts.slice(i,i+10));
+    S.mapLinks=chunks.map(c=>"https://www.google.com/maps/dir/"+c.map(encodeURIComponent).join("/"));
+    chunks.forEach((c,idx)=>{
+      const a=document.createElement("a"); a.target="_blank"; a.rel="noopener";
+      a.href="https://www.google.com/maps/dir/"+c.map(encodeURIComponent).join("/");
+      a.textContent=chunks.length>1?`Open part ${idx+1} of ${chunks.length} in Google Maps`:"Open route in Google Maps";
+      links.appendChild(a);
+    });
+  }
+}
+
+// ---------- main render ----------
+function render(){
+  syncFilterSets(); renderChips();
+  const vis=visibleCalls(), groups=addExtras(storeGroups(vis), vis);
+  renderStores(groups);
+  const pm=$("pastMsg"); if(pm){
+    pastUI();
+    const r=customRange(); let t="";
+    if(r) t = r.lo!==null && r.hi!==null ? `Showing calls expired ${r.lo} to ${r.hi} days.` : r.lo!==null ? `Showing calls expired ${r.lo} or more days.` : `Showing calls expired up to ${r.hi} days.`;
+    else if(S.pastTiers.size) t="Showing: "+TIERS.filter(x=>S.pastTiers.has(x.k)).map(x=>x.label).join(", ")+". Tap again to remove.";
+    else t="Showing all calls. Tap one or more levels to filter.";
+    pm.textContent=t;
+  }
+  const openVis=vis.filter(c=>!isDone(c));
+  renderRoute(addExtras(storeGroups(openVis), openVis));
+  if($("sharePreview").classList.contains("open")) $("sharePreview").value=buildShareText();
+  const doneN=S.calls.filter(isDone).length;
+  $("doneMsg").textContent = doneN ? `${doneN} completed call${doneN>1?"s":""}${S.showDone?" shown, crossed off":" hidden"}.` : "Check Done on a call to cross it off.";
+  const over=S.calls.filter(c=>!isDone(c)&&c.due&&c.due<new Date()).length;
+  $("summary").textContent = S.calls.length
+    ? `${S.calls.filter(c=>!isDone(c)).length} open of ${S.calls.length} calls at ${new Set(S.calls.map(c=>c.store)).size} stores · showing ${vis.length}${over?` · ${over} overdue`:""}`
+    : "No calls loaded";
+}
+function fillStartSelect(){
+  const sel=$("startSel");
+  let cur=store.get("start","");
+  if(/^\d+$/.test(cur)){ store.set("startStore",cur); cur="store"; store.set("start",cur); }
+  sel.innerHTML=`<option value="">First stop (no fixed start)</option><option value="gps">My current location</option><option value="store">A store…</option><option value="custom">Custom address…</option>`;
+  sel.value=["","gps","store","custom"].includes(cur)?cur:"";
+  $("storeDL").innerHTML=Object.values(S.stores).sort((a,b)=>a.num.localeCompare(b.num,undefined,{numeric:true}))
+    .map(s=>`<option value="${esc(s.num)}">${esc(s.city)}${s.state?", "+esc(s.state):""} · ${esc(s.center)}</option>`).join("");
+  $("startStore").value=store.get("startStore","");
+  showStartExtras(sel.value); storeStartStatus();
+}
+function storeStartStatus(){
+  const n=cleanNum($("startStore").value), m=$("storeStartMsg");
+  if(!n){ m.textContent=""; return; }
+  const s=S.stores[n];
+  m.className="msg"+(s?"":" err");
+  m.textContent = s ? `${s.center||"Store "+n}, ${s.city}${S.coords[n]?"":" (no map position, so mileage is unknown)"}` : `Store ${n} isn't in your store list.`;
+}
+function showStartExtras(v){
+  $("customStart").style.display=v==="custom"?"block":"none";
+  $("gpsBox").style.display=v==="gps"?"block":"none";
+  $("storeStart").style.display=v==="store"?"block":"none";
+}
+function locate(){
+  const m=$("gpsMsg");
+  if(!navigator.geolocation){ m.className="msg err"; m.textContent="This browser can't share your location. Use a custom address instead."; return; }
+  m.className="msg"; m.textContent="Finding your location…";
+  navigator.geolocation.getCurrentPosition(pos=>{
+    S.gps={lat:pos.coords.latitude,lng:pos.coords.longitude,acc:pos.coords.accuracy,at:Date.now()};
+    store.set("gps",S.gps); gpsStatus(); render();
+  },err=>{
+    m.className="msg err";
+    m.textContent = err.code===1 ? "Location permission was blocked. Allow location for this page in your browser's address bar, then select Update my location."
+      : "Couldn't get your location. Check that location services are on, then try again.";
+  },{enableHighAccuracy:true,timeout:15000,maximumAge:60000});
+}
+function gpsStatus(){
+  const m=$("gpsMsg"); m.className="msg";
+  if(!S.gps){ m.textContent="Location not found yet."; return; }
+  const near=Object.keys(S.coords).map(n=>[n,miles([S.gps.lat,S.gps.lng],S.coords[n])]).sort((a,b)=>a[1]-b[1])[0];
+  m.textContent=`Located at ${new Date(S.gps.at).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}`+(near?` · about ${near[1].toFixed(0)} mi from store ${near[0]}`:"");
+}
+function loadSettings(){
+  const pick=(k,d)=>{ const v=store.get(k,null); return (typeof v==="string" && v.trim()) ? v : d; };
+  const g=pick("groups",DEFAULT_GROUPS), s=pick("stores",DEFAULT_STORES), c=pick("coords",DEFAULT_COORDS);
+  $("groupsInput").value=g; $("storesInput").value=s; $("coordsInput").value=c;
+  const ps=parseStores(s);
+  S.groups=parseGroups(g); S.stores=ps.stores; S.coords=Object.assign({},ps.coords,parseCoords(c));
+}
+
+// ---------- events ----------
+$("loadBtn").onclick=()=>{
+  const {calls,errors}=parseCalls($("callsInput").value);
+  S.calls=calls; S.known={groups:new Set(),prio:new Set(),status:new Set()};
+  S.fGroups.clear(); S.fPrio.clear(); S.fStatus.clear();
+  store.set("callsText",$("callsInput").value);
+  const unknown=[...new Set(calls.map(c=>c.store))].filter(n=>!S.stores[n]);
+  const m=$("importMsg");
+  m.className="msg"+(errors.length||unknown.length?" err":"");
+  m.textContent = `Loaded ${calls.length} call${calls.length===1?"":"s"}.` +
+    (errors.length?` Skipped line${errors.length>1?"s":""} ${errors.join(", ")}: fewer than 11 tab-separated columns.`:"") +
+    (unknown.length?` Stores not in your store list: ${unknown.join(", ")}.`:"");
+  render();
+};
+$("clearBtn").onclick=()=>{ $("callsInput").value=""; S.calls=[]; store.set("callsText",""); $("importMsg").textContent=""; render(); };
+function pastUI(){
+  const counts={}; S.calls.filter(c=>!isDone(c)).forEach(c=>{const t=tierOf(c); counts[t]=(counts[t]||0)+1;});
+  const host=$("pastQuick"), r=customRange();
+  host.innerHTML=TIERS.map(x=>{const on=!r&&S.pastTiers.has(x.k); return `<button data-tier="${x.k}" class="${on?"on":""}" aria-pressed="${on}"><span class="dot t${x.k}"></span>${x.label}<span class="n">${counts[x.k]||0}</span></button>`;}).join("");
+  host.querySelectorAll("button").forEach(b=>b.onclick=()=>{
+    const k=+b.dataset.tier;
+    S.pastTiers.has(k)?S.pastTiers.delete(k):S.pastTiers.add(k);
+    S.pastLo=""; S.pastHi=""; $("pastMin").value=""; $("pastMax").value="";
+    savePast();
+  });
+  const on=pastSortMode();
+  $("listSort").value=S.listSort;
+  $("prioPast").checked=on; $("prioSwitch").classList.toggle("on",on);
+}
+function savePast(){ store.set("pastTiers",[...S.pastTiers]); store.set("pastLo",S.pastLo); store.set("pastHi",S.pastHi); render(); }
+$("pastMin").value=S.pastLo; $("pastMax").value=S.pastHi;
+["pastMin","pastMax"].forEach(id=>$(id).oninput=()=>{
+  S.pastLo=$("pastMin").value.trim(); S.pastHi=$("pastMax").value.trim();
+  if(customRange()) S.pastTiers.clear();
+  savePast();
+});
+$("pastClear").onclick=()=>{ S.pastLo=""; S.pastHi=""; S.pastTiers.clear(); $("pastMin").value=""; $("pastMax").value=""; savePast(); };
+function setPastPriority(on){
+  const sel=$("modeSel");
+  if(on){ if(!pastSortMode()) store.set("prevMode",sel.value); sel.value="pasttier"; S.listSort="most"; store.set("listSort","most"); }
+  else { const p=store.get("prevMode","optimize"); sel.value=["pasttier","due"].includes(p)?"optimize":p; }
+  store.set("mode",sel.value); render();
+}
+$("listSort").onchange=e=>{ S.listSort=e.target.value; store.set("listSort",S.listSort); render(); };
+$("prioPast").onchange=e=>setPastPriority(e.target.checked);
+$("fDue").onchange=e=>{ S.fDue=e.target.value; render(); };
+$("fDueClear").onclick=()=>{ $("fDue").value=""; S.fDue=""; render(); };
+$("allIn").onclick=()=>{ S.excluded.clear(); store.set("excluded",[]); render(); };
+$("allOut").onclick=()=>{ storeGroups(visibleCalls()).forEach(g=>S.excluded.add(g.num)); store.set("excluded",[...S.excluded]); render(); };
+$("startSel").onchange=e=>{ store.set("start",e.target.value); showStartExtras(e.target.value); if(e.target.value==="gps") locate(); render(); };
+$("gpsBtn").onclick=locate;
+$("startStore").oninput=e=>{ store.set("startStore",e.target.value.trim()); storeStartStatus(); render(); };
+["startAddr","startCoords"].forEach(id=>{ $(id).value=store.get(id,""); $(id).oninput=e=>{ store.set(id,e.target.value); render(); }; });
+$("modeSel").value=store.get("mode","optimize");
+$("modeSel").onchange=e=>{
+  if(e.target.value==="manual"){ S.manual=S.lastOrder.slice(); store.set("manual",S.manual); }
+  store.set("mode",e.target.value); render();
+};
+$("roundTrip").checked=store.get("round",false);
+$("roundTrip").onchange=e=>{ store.set("round",e.target.checked); render(); };
+function buildShareText(){
+  const withCalls=$("optCalls").checked, withLinks=$("optLinks").checked, withMaps=$("optMaps").checked;
+  const t=S.routeTotals||{stops:0,calls:0};
+  if(!t.stops) return "";
+  const vis=visibleCalls();
+  const day=new Date().toLocaleDateString(undefined,{weekday:"short",month:"numeric",day:"numeric"});
+  let out=`Route ${day}: ${t.stops} stop${t.stops>1?"s":""}, ${t.calls} call${t.calls>1?"s":""}`+(t.miles!=null?`, ≈ ${t.miles.toFixed(0)} mi`:"");
+  if(t.start) out+=`\nStarting from ${t.start.num?"store "+t.start.num:t.start.label.replace("Start: ","")}`;
+  S.lastOrder.forEach((n,i)=>{
+    const s=S.stores[n];
+    out+=`\n\n${i+1}. Store ${n}${s?" – "+s.city:""} (group ${groupOf(n)})`;
+    if(withMaps) out+=`\n   Map: https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(fullAddr(n))}`;
+    if(withCalls){
+      S.calls.filter(c=>c.store===n && !isDone(c) && vis.includes(c)).forEach(c=>{
+        out+=`\n   • ${c.prioLabel.replace(/^\d\s*-\s*/,"")}: ${c.desc} (#${c.order})${fmtPast(c)?" – "+fmtPast(c):""}`;
+        if(withLinks) out+=`\n     ${ORDER_URL(c.order)}`;
+      });
+      const ex=S.calls.filter(c=>c.store===n && !isDone(c) && !vis.includes(c));
+      if(ex.length){
+        out+=`\n   Also open here:`;
+        ex.forEach(c=>{ out+=`\n   ◦ ${c.prioLabel.replace(/^\d\s*-\s*/,"")}: ${c.desc} (#${c.order})${fmtPast(c)?" – "+fmtPast(c):""}`; if(withLinks) out+=`\n     ${ORDER_URL(c.order)}`; });
+      }
+    }
+  });
+  return out;
+}
+$("copyBtn").onclick=()=>{
+  const text=buildShareText(), m=$("routeMsg");
+  if(!text){ m.textContent="Add at least one stop to the route first."; return; }
+  const done=()=>{ m.textContent="Copied. Paste it into Teams, a text, or an email."; };
+  const fail=()=>{ openPreview(); $("sharePreview").select(); m.textContent="Copy was blocked. The text is selected below: press Ctrl+C (or ⌘C)."; };
+  if(navigator.clipboard && window.isSecureContext!==false) navigator.clipboard.writeText(text).then(done,()=>fallbackCopy(text,done,fail));
+  else fallbackCopy(text,done,fail);
+};
+function openPreview(){ const p=$("sharePreview"); p.value=buildShareText(); p.classList.add("open"); $("previewBtn").textContent="Hide preview"; }
+$("previewBtn").onclick=()=>{
+  const p=$("sharePreview");
+  if(p.classList.contains("open")){ p.classList.remove("open"); $("previewBtn").textContent="Preview"; } else openPreview();
+};
+["optCalls","optLinks","optMaps"].forEach(id=>{
+  $(id).checked=store.get(id,$(id).checked);
+  $(id).onchange=e=>{ store.set(id,e.target.checked); if($("sharePreview").classList.contains("open")) openPreview(); };
+});
+if(navigator.share){ $("shareBtn").hidden=false; $("shareBtn").onclick=()=>{ const t=buildShareText(); if(t) navigator.share({text:t}).catch(()=>{}); }; }
+function fallbackCopy(t,done,fail){ const ta=document.createElement("textarea"); ta.value=t; ta.style.position="fixed"; ta.style.opacity="0"; document.body.appendChild(ta); ta.select(); let ok=false; try{ok=document.execCommand("copy");}catch(e){} ta.remove(); ok?done():fail&&fail(); }
+$("printBtn").onclick=()=>window.print();
+$("edgeLinks").checked=store.get("edgeLinks",true);
+$("edgeLinks").onchange=e=>{ store.set("edgeLinks",e.target.checked); render(); };
+$("showDone").checked=S.showDone;
+$("showDone").onchange=e=>{ S.showDone=e.target.checked; store.set("showDone",S.showDone); render(); };
+$("clearDone").onclick=()=>{
+  if(!Object.keys(S.done).length) return;
+  if(!confirm("Un-mark every completed call? They will show as open again.")) return;
+  S.done={}; store.set("done",S.done); render();
+};
+$("exportBtn").onclick=()=>{
+  const keys=["callsText","done","showDone","excluded","manual","mode","round","start","startAddr","startCoords","groups","stores","coords"];
+  const data={app:"service-route-planner",edition:EDITION.id,version:APP_VERSION,savedAt:new Date().toISOString()};
+  keys.forEach(k=>{ const v=store.get(k,undefined); if(v!==undefined) data[k]=v; });
+  data.callsText=$("callsInput").value; data.done=S.done;
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
+  a.download="route-planner-"+(EDITION.id==="company"?"":EDITION.id==="local"?"VA-":EDITION.id.replace("state-","")+"-")+"backup-"+new Date().toISOString().slice(0,10)+".json";
+  document.body.appendChild(a); a.click(); a.remove();
+  $("backupMsg").textContent="Backup file saved to your downloads.";
+};
+$("importBackupBtn").onclick=()=>$("backupFile").click();
+$("backupFile").onchange=e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const d=JSON.parse(r.result);
+      if(d.app!=="service-route-planner") throw new Error();
+      if((d.edition||"local")!==EDITION.id){ $("backupMsg").textContent="That backup is from a different edition of the planner. Load it in the edition that made it."; return; }
+      Object.keys(d).forEach(k=>{ if(!["app","savedAt","version","edition"].includes(k)) store.set(k,d[k]); });
+      location.reload();
+    }catch(err){ $("backupMsg").textContent="That file isn't a route planner backup."; }
+  };
+  r.readAsText(f); e.target.value="";
+};
+function saveStoreData(){
+  store.set("groups",$("groupsInput").value); store.set("stores",$("storesInput").value); store.set("coords",$("coordsInput").value);
+  loadSettings(); fillStartSelect();
+  const n=Object.keys(S.stores).length, c=Object.keys(S.stores).filter(k=>S.coords[k]).length;
+  $("setMsg").textContent=`Saved ${n} store${n===1?"":"s"}, ${c} with map positions.`; render();
+}
+$("saveSettings").onclick=saveStoreData;
+$("storeFileBtn").onclick=()=>$("storeFile").click();
+$("storeFile").onchange=e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{ $("storesInput").value=r.result; saveStoreData(); };
+  r.readAsText(f); e.target.value="";
+};
+$("resetSettings").onclick=()=>{
+  if(EDITION.id!=="local" && !confirm("Replace your saved store list, groups, and map positions with the built-in store list?")) return;
+  ["groups","stores","coords"].forEach(k=>{ try{localStorage.removeItem(EDITION.key+k);}catch(e){} });
+  loadSettings(); fillStartSelect(); $("setMsg").textContent=EDITION.id!=="local"?"Built-in store list restored.":"Defaults restored."; render();
+};
+
+// ---------- init ----------
+$("verTag").textContent="v"+APP_VERSION;
+$("appName").textContent=EDITION.name;
+document.title=EDITION.name+" v"+APP_VERSION;
+$("resetSettings").textContent=EDITION.resetLabel;
+$("changelog").innerHTML=`<p style="margin:6px 0"><a href="${LATEST_URL}" target="_blank" rel="noopener">Get the latest version from the Google Drive folder</a></p>`+CHANGELOG.map(([v,t])=>`<p style="margin:6px 0"><b>v${v}</b>${v===APP_VERSION?" (this version)":""}<br><span class="muted">${esc(t)}</span></p>`).join("");
+(function(){
+  const prev=store.get("version",null);
+  store.set("version",APP_VERSION);
+  if(prev && prev!==APP_VERSION){
+    const note=CHANGELOG.filter(([v])=>parseFloat(v)>parseFloat(prev)).map(([v,t])=>`v${v}: ${t}`).join(" ");
+    $("savedNote").textContent=`Updated from v${prev} to v${APP_VERSION}. Your data carried over.`;
+    $("aboutBox").open=true;
+  }
+})();
+loadSettings(); fillStartSelect();
+if(!Object.keys(S.stores).length) $("storeData").open=true;
+if($("startSel").value==="gps"){ gpsStatus(); locate(); }
+const saved=store.get("callsText","");
+if(saved){ $("callsInput").value=saved; $("loadBtn").click(); } else render();
+</script>
+</body>
+</html>
