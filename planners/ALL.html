@@ -352,11 +352,11 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
 
 <script>
 // ---------- version ----------
-const APP_VERSION = "2.4";
+const APP_VERSION = "2.5";
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
-const LATEST_URL = "https://drive.google.com/drive/folders/1PUB4oO-vNFCRwoDu8PbWOcxdKwZk6vrY";
 const CHANGELOG = [
+  ["2.5", "Removed links to the Google Drive folder. New versions come from GitHub."],
   ["2.4", "Banner shows Online or Offline version. The online version has a Download button to save an offline copy. The offline version links to the GitHub repository and checks for updates automatically."],
   ["2.3", "Step-by-step help for copying open calls out of SAP (IW49N), with the required column order. The planner now warns when pasted columns are in the wrong order or a date can't be read."],
   ["2.2", "Past-due color levels: 1–2 days (yellow), 3 days (orange), 4+ days (red); pick more than one. Custom day range only ever shows expired calls. Each store shows all of its other open calls too. Sort the store list by days past due, most or least first. Most past due first switch builds the route oldest-first, then shortest drive."],
@@ -2511,7 +2511,7 @@ $("verTag").textContent="v"+APP_VERSION;
 $("appName").textContent=EDITION.name;
 document.title=EDITION.name+" v"+APP_VERSION;
 $("resetSettings").textContent=EDITION.resetLabel;
-$("changelog").innerHTML=`<p style="margin:6px 0"><a href="${LATEST_URL}" target="_blank" rel="noopener">Get the latest version from the Google Drive folder</a></p>`+CHANGELOG.map(([v,t])=>`<p style="margin:6px 0"><b>v${v}</b>${v===APP_VERSION?" (this version)":""}<br><span class="muted">${esc(t)}</span></p>`).join("");
+$("changelog").innerHTML=CHANGELOG.map(([v,t])=>`<p style="margin:6px 0"><b>v${v}</b>${v===APP_VERSION?" (this version)":""}<br><span class="muted">${esc(t)}</span></p>`).join("");
 (function(){
   const prev=store.get("version",null);
   store.set("version",APP_VERSION);
