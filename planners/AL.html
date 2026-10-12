@@ -149,6 +149,20 @@ legend{font-weight:600;font-size:14px;margin-bottom:6px}
 .dv-top button{background:rgba(255,255,255,.18);color:#fff;border:0;border-radius:8px;width:40px;height:40px;font-size:18px;flex:none}
 .dv-prog{flex:1;min-width:0;order:-1}
 .dv-top #dvClose{order:-2}
+.tag{display:inline-block;border-radius:4px;padding:1px 6px;font-size:12px;font-weight:700;white-space:nowrap;margin:2px 4px 0 0}
+.tag.new{background:#1E4E8C;color:#fff}
+.tag.soon{background:#DCEBFF;color:#173E70}
+.tag.rep{background:#EFE3FF;color:#4B2A84}
+@media (prefers-color-scheme:dark){.tag.soon{background:#1F3550;color:#CFE3FF}.tag.rep{background:#33264D;color:#E6D9FF}}
+.chg{margin-top:10px;border:1.5px solid #1E4E8C;border-radius:8px;padding:10px;font-size:14px;background:var(--soft)}
+.chg ul{margin:6px 0;padding-left:18px;max-height:160px;overflow:auto}
+.chg li{margin:3px 0}
+.hand{font-size:12px;font-weight:600;color:var(--shield);background:none;border:0;padding:0;margin-left:6px;text-decoration:underline;cursor:pointer}
+.setl{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 2px;border-bottom:1px solid var(--line);cursor:pointer}
+.setl span b{display:block}
+.setl span small{color:var(--muted)}
+.setl input{width:22px;height:22px;flex:none;accent-color:var(--road)}
+.eod textarea{width:100%;min-height:260px;font:13px/1.45 ui-monospace,Consolas,monospace;border:1px solid var(--line);border-radius:8px;padding:10px;background:var(--soft);color:var(--ink)}
 .toast{position:fixed;left:50%;bottom:calc(80px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--panel);padding:10px 16px;border-radius:999px;font-weight:600;z-index:80;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90vw;text-align:center}
 .toast.show{opacity:1}
 .dv-prog b{font:700 18px var(--sign);display:block}
@@ -262,6 +276,7 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
   <h1><span id="appName">Service Route Planner</span> <span id="verTag" style="font-size:15px;opacity:.8"></span></h1>
   <span class="sub" id="summary">No calls loaded</span>
   <span class="saved" id="savedNote">Saved on this computer</span>
+  <button class="hbtn" id="setBtn" type="button">⚙ Settings</button>
   <button class="hbtn" id="fbBtn" type="button">💬 Feedback</button>
   <div class="modebar">
     <span class="modebadge" id="modeBadge"></span>
@@ -304,8 +319,32 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
     <div class="row" style="justify-content:center"><button id="sendPrev">◀ Previous</button><button class="primary" id="sendNext">Next code ▶</button><button id="sendClose">Close</button></div>
   </div>
 </div>
+<div class="bmk" id="setDlg" role="dialog" aria-modal="true" aria-labelledby="setTitle">
+  <div class="box" style="max-height:92vh;overflow:auto">
+    <h3 id="setTitle">Settings</h3>
+    <p class="hint" style="margin:0 0 4px">Turn features on or off on this device.</p>
+    <div id="setList"></div>
+    <div class="row"><button class="primary" id="setClose">Done</button></div>
+  </div>
+</div>
+<div class="bmk eod" id="eodDlg" role="dialog" aria-modal="true" aria-labelledby="eodTitle">
+  <div class="box" style="max-width:560px">
+    <h3 id="eodTitle">End-of-day summary</h3>
+    <textarea id="eodText" readonly aria-label="Summary"></textarea>
+    <div class="row"><button id="eodClose">Close</button><button id="eodMail">Open in Outlook</button><button class="primary" id="eodCopy">📋 Copy</button></div>
+  </div>
+</div>
+<div class="bmk" id="handDlg" role="dialog" aria-modal="true" aria-labelledby="handTitle">
+  <div class="box" style="max-width:460px;text-align:center">
+    <h3 id="handTitle">Hand off</h3>
+    <p class="hint" id="handSum" style="margin:0 0 6px"></p>
+    <canvas id="handQR" style="width:min(300px,75vw);height:auto;image-rendering:pixelated;border-radius:6px;display:none"></canvas>
+    <p class="hint" id="handHow" style="margin:6px 0"></p>
+    <div class="row" style="justify-content:center"><button class="primary" id="handCopy">📋 Copy for teammate</button><button id="handHide">Hide from my list</button><button id="handClose">Close</button></div>
+  </div>
+</div>
 <div class="dayv" id="dayView" role="dialog" aria-modal="true" aria-label="Day view">
-  <div class="dv-top"><button id="dvClose" aria-label="Close day view">✕</button><button id="dvCopy" aria-label="Copy list" style="width:auto;padding:0 12px;font-size:15px;font-weight:700">📋 Copy</button>
+  <div class="dv-top"><button id="dvClose" aria-label="Close day view">✕</button><button id="dvReplan" aria-label="Re-plan from here" title="Re-plan from here">📍</button><button id="dvCopy" aria-label="Copy list" style="width:auto;padding:0 12px;font-size:15px;font-weight:700">📋 Copy</button>
     <div class="dv-prog"><b id="dvTitle">Today's route</b><div class="dv-bar"><i id="dvBar"></i></div><span id="dvSub"></span></div></div>
   <div class="dv-track" id="dvTrack"></div>
   <div class="dv-nav"><button id="dvPrev">◀ Prev</button><div class="dv-dots" id="dvDots"></div><button class="primary" id="dvNext">Next ▶</button></div>
@@ -356,6 +395,8 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
       <button id="clearBtn">Clear</button>
     </div>
     <div class="msg" id="importMsg"></div>
+    <div class="chg" id="chgBox" hidden></div>
+    <div class="row" id="pasteRow"><button id="pasteBtn2" type="button">📥 Paste a handoff or transfer</button></div>
     <details class="help" id="sapHelp">
       <summary>How to get your calls from SAP</summary>
       <div class="hb">
@@ -484,6 +525,7 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
     <label class="incl" style="margin-top:10px"><input type="checkbox" id="roundTrip"> Return to start</label>
 
     <button class="dvbtn" id="dvBtn" type="button">▶ Day view: go stop by stop</button>
+    <div class="row"><button id="replanBtn" type="button">📍 Re-plan from here</button><button id="eodBtn" type="button">📊 End-of-day summary</button></div>
     <div class="totals" id="totals"></div>
     <ol class="stops" id="stops"></ol>
     <div class="share">
@@ -529,11 +571,12 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
 
 <script>
 // ---------- version ----------
-const APP_VERSION = "3.7";
+const APP_VERSION = "3.8";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["3.8", "Settings to turn features on or off. New: What changed since your last import (NEW tags, and calls no longer in SAP you can mark done), repeat-issue alerts by device and store, Due soon countdowns, Re-plan from here, End-of-day summary, and Hand off a call or stop to a teammate."],
   ["3.7", "Copy list in both views: a Copy list button above the store list and in the Day view copies your route for pasting into Teams, a text, or an email. The Day view copy shows which calls are done."],
   ["3.6", "Day view: swipe through your route one stop at a time with big Done checkboxes, one-tap navigation (Google Maps, plus Apple Maps on iPhone), store phone and order links for each stop, a progress bar, and automatic move to the next stop when all its calls are done."],
   ["3.5", "Completed calls history: every call you mark Done is saved with its details, so you can scroll back through each day of the month even after loading a new SAP export. Calendar with daily counts, copy a day's list."],
@@ -687,6 +730,9 @@ const S = {
   listSort: store.get("listSort","group"),
   fDates: new Set(store.get("fDates",[])),
   history: store.get("history",{}),
+  handed: store.get("handed",{}),
+  newOrders: new Set(store.get("newOrders",[])),
+  gone: store.get("goneCalls",[]),
   pastTiers: new Set(store.get("pastTiers",[])), pastLo: store.get("pastLo",""), pastHi: store.get("pastHi",""),
   manual: store.get("manual", []),
   lastOrder: [],
@@ -861,7 +907,7 @@ function renderDates(){
 }
 function visibleCalls(){
   const due = S.fDue ? new Date(S.fDue+"T23:59:59") : null;
-  return S.calls.filter(c => (S.showDone || !isDone(c)) &&
+  return S.calls.filter(c => (S.showDone || !isDone(c)) && !S.handed[c.order] &&
     S.fGroups.has(groupOf(c.store)) && S.fPrio.has(c.prio) && S.fStatus.has(c.status) &&
     (!S.fDates.size || S.fDates.has(dateKey(c.due))) &&
     (!due || !c.due || c.due<=due) && pastFilter(c));
@@ -913,7 +959,7 @@ function storeGroups(calls){
 function addExtras(groups, shown){
   const set=new Set(shown);
   groups.forEach(g=>{
-    g.extra=S.calls.filter(c=>c.store===g.num && !set.has(c) && !isDone(c)).sort((a,b)=>(a.due||Infinity)-(b.due||Infinity));
+    g.extra=S.calls.filter(c=>c.store===g.num && !set.has(c) && !isDone(c) && !S.handed[c.order]).sort((a,b)=>(a.due||Infinity)-(b.due||Infinity));
   });
   return groups;
 }
@@ -933,7 +979,7 @@ function renderStores(groups){
       return `<tr class="${dn?"done":t?"t"+t:""}${extra?" extra":""}">
         <td class="chk"><label class="done-box" title="Mark call complete"><input type="checkbox" data-done="${esc(c.order)}" ${dn?"checked":""}> Done</label></td>
         <td><span class="pri p${c.prio}">${esc(c.prioLabel)}</span></td>
-        <td><b>${esc(c.desc)}</b>${locNote}<div class="muted">Order <a class="ord" href="${ORDER_HREF(c.order)}"${orderTarget()} title="Opens in Microsoft Edge">${esc(c.order)}</a>${dn?" · completed "+new Date(S.done[c.order]).toLocaleDateString():""}${c.serial?" · SN "+esc(c.serial):""}${c.wc?" · "+esc(c.wc):""}</div></td>
+        <td><b>${esc(c.desc)}</b>${locNote}${callTags(c)}<div class="muted">Order <a class="ord" href="${ORDER_HREF(c.order)}"${orderTarget()} title="Opens in Microsoft Edge">${esc(c.order)}</a>${dn?" · completed "+new Date(S.done[c.order]).toLocaleDateString():""}${c.serial?" · SN "+esc(c.serial):""}${c.wc?" · "+esc(c.wc):""}${F("handoff")&&!dn?` <button class="hand" type="button" data-hand="${esc(c.order)}">↗ Hand off</button>`:""}</div></td>
         <td class="due">${fmtDue(c.due)}${t&&!dn?`<div style="margin-top:2px"><span class="tier t${t}">${fmtPast(c)}</span></div>`:""}</td>
         <td><span class="status">${esc(c.status)}</span></td></tr>`;
     };
@@ -946,7 +992,7 @@ function renderStores(groups){
         <div class="info">
           <div class="store-name">${esc(g.num)}<small>${esc(s?s.center:"Store not in list")}</small></div>
           <div class="addr">${s?`<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddr(g.num))}" target="_blank" rel="noopener">${esc(fullAddr(g.num))}</a> · <a href="tel:${esc(s.phone)}">${esc(s.phone)}</a>`:"Add this store under Store data to get an address"}</div>
-          <div class="muted" style="font-size:13px">${g.calls.length} call${g.calls.length>1?"s":""}${ex.length?` + ${ex.length} more open`:""}${(()=>{const o=g.calls.concat(ex).filter(c=>!isDone(c)&&pastDays(c)>0); if(!o.length) return ""; const old=o.reduce((m,c)=>c.due<m.due?c:m); return `<span class="tier t${tierOf(old)} pastbadge">Oldest ${fmtPast(old)}</span>`;})()}</div>
+          <div class="muted" style="font-size:13px">${storeRepeat(g.num)}${g.calls.length} call${g.calls.length>1?"s":""}${ex.length?` + ${ex.length} more open`:""}${(()=>{const o=g.calls.concat(ex).filter(c=>!isDone(c)&&pastDays(c)>0); if(!o.length) return ""; const old=o.reduce((m,c)=>c.due<m.due?c:m); return `<span class="tier t${tierOf(old)} pastbadge">Oldest ${fmtPast(old)}</span>`;})()}</div>
         </div>
         <label class="incl"><input type="checkbox" data-store="${esc(g.num)}" ${inc?"checked":""}> In route</label>
       </div>
@@ -1040,7 +1086,7 @@ function orderStops(start, stops, mode, round){
   }
   return optimize(start, withPt, round).concat(noPt);
 }
-function dvToggle(){ const on=S.lastOrder.length>0; $("dvFab").classList.toggle("has",on); $("dvBtn").style.display=on?"":"none"; }
+function dvToggle(){ const on=S.lastOrder.length>0 && F("dayview"); $("dvFab").classList.toggle("has",on); $("dvBtn").style.display=on?"":"none"; }
 function renderRoute(groups){
   const stops=groups.filter(g=>!S.excluded.has(g.num));
   const start=getStart(), mode=$("modeSel").value, round=$("roundTrip").checked;
@@ -1110,6 +1156,7 @@ function render(){
   }
   const openVis=vis.filter(c=>!isDone(c));
   renderRoute(addExtras(storeGroups(openVis), openVis)); dvToggle();
+  if(S.initDone) renderChanges();
   if($("sharePreview").classList.contains("open")) $("sharePreview").value=buildShareText();
   const doneN=S.calls.filter(isDone).length;
   $("doneMsg").textContent = doneN ? `${doneN} completed call${doneN>1?"s":""}${S.showDone?" shown, crossed off":" hidden"}.` : "Check Done on a call to cross it off.";
@@ -1178,6 +1225,7 @@ function loadSettings(){
 // ---------- events ----------
 $("loadBtn").onclick=()=>{
   const {calls,errors,warnings}=parseCalls($("callsInput").value);
+  const prevCalls=S.calls;
   S.calls=calls; S.known={groups:new Set(),prio:new Set(),status:new Set()};
   S.fGroups.clear(); S.fPrio.clear(); S.fStatus.clear();
   store.set("callsText",$("callsInput").value);
@@ -1190,6 +1238,7 @@ $("loadBtn").onclick=()=>{
     (warnings.length?" "+warnings.join(" ")+" See How to get your calls from SAP.":"");
   if(warnings.length||errors.length) $("sapHelp").open=true;
   backfillHistory();
+  if(S.initDone) compareImport(prevCalls, calls);
   render();
 };
 $("clearBtn").onclick=()=>{ $("callsInput").value=""; S.calls=[]; store.set("callsText",""); $("importMsg").textContent=""; render(); };
@@ -1253,10 +1302,10 @@ function buildShareText(){
     if(withMaps) out+=`\n   Map: ${navLink(n)}`;
     if(withCalls){
       S.calls.filter(c=>c.store===n && !isDone(c) && vis.includes(c)).forEach(c=>{
-        out+=`\n   • ${c.prioLabel.replace(/^\d\s*-\s*/,"")}: ${c.desc} (#${c.order})${fmtPast(c)?" – "+fmtPast(c):""}`;
+        out+=`\n   • ${c.prioLabel.replace(/^\d\s*-\s*/,"")}: ${c.desc} (#${c.order})${fmtPast(c)?" – "+fmtPast(c):F("soon")&&fmtSoon(c)?" – "+fmtSoon(c):""}`;
         if(withLinks) out+=`\n     ${ORDER_URL(c.order)}`;
       });
-      const ex=S.calls.filter(c=>c.store===n && !isDone(c) && !vis.includes(c));
+      const ex=S.calls.filter(c=>c.store===n && !isDone(c) && !S.handed[c.order] && !vis.includes(c));
       if(ex.length){
         out+=`\n   Also open here:`;
         ex.forEach(c=>{ out+=`\n   ◦ ${c.prioLabel.replace(/^\d\s*-\s*/,"")}: ${c.desc} (#${c.order})${fmtPast(c)?" – "+fmtPast(c):""}`; if(withLinks) out+=`\n     ${ORDER_URL(c.order)}`; });
@@ -1396,6 +1445,171 @@ function setupMode(){
   }
 }
 // ---------- completed calls history ----------
+// ---------- feature switches ----------
+const FEATURES=[
+  ["changes","What changed","After each import, tag new calls and list calls no longer in SAP."],
+  ["repeats","Repeat-issue alerts","Flag devices and stores with several calls in 30 days."],
+  ["soon","Due soon","Show countdowns like \"due in 3 hrs\" for calls not yet past due."],
+  ["replan","Re-plan from here","Reorder the remaining stops from where you are now."],
+  ["eod","End-of-day summary","One-tap summary of the day to copy or email."],
+  ["handoff","Hand off","Send a call or stop to a teammate; paste handoffs you receive."],
+  ["dayview","Day view","Stop-by-stop view with big Done checkboxes."],
+  ["send","Send to phone","QR codes to move your calls to your phone (online version)."]
+];
+const FEAT=Object.assign(Object.fromEntries(FEATURES.map(f=>[f[0],true])), store.get("features",{}));
+const F=k=>FEAT[k]!==false;
+function applyFeatures(){
+  const show=(id,on)=>{ const e=$(id); if(e) e.style.display=on?"":"none"; };
+  show("replanBtn",F("replan")); show("dvReplan",F("replan")); show("eodBtn",F("eod"));
+  show("pasteRow",F("handoff")); if(!F("changes")) $("chgBox").hidden=true;
+  if($("sendBtn") && !/iPhone|iPad|iPod|Android/.test(navigator.userAgent)) show("sendBtn",F("send"));
+  if(!F("dayview")){ show("dvBtn",false); $("dvFab").classList.remove("has"); }
+  if($("pasteBtn")) $("pasteBtn").hidden = !(F("handoff")||F("send")) || !(IS_APP || /iPhone|iPad|iPod|Android/.test(navigator.userAgent));
+}
+function setupSettings(){
+  $("setList").innerHTML=FEATURES.map(([k,t,d])=>`<label class="setl"><span><b>${t}</b><small>${d}</small></span><input type="checkbox" data-feat="${k}" ${F(k)?"checked":""}></label>`).join("");
+  $("setList").querySelectorAll("input[data-feat]").forEach(cb=>cb.onchange=()=>{ FEAT[cb.dataset.feat]=cb.checked; store.set("features",FEAT); applyFeatures(); render(); });
+  $("setBtn").onclick=()=>$("setDlg").classList.add("show");
+  $("setClose").onclick=()=>$("setDlg").classList.remove("show");
+  $("setDlg").onclick=e=>{ if(e.target.id==="setDlg") $("setDlg").classList.remove("show"); };
+}
+
+// ---------- due soon / repeats ----------
+function fmtSoon(c){
+  const d=pastDays(c); if(d===null||d>0) return "";
+  const hrs=-d*24; if(hrs>48) return "";
+  if(hrs<1) return "due in under 1 hr";
+  if(hrs<24) return `due in ${Math.floor(hrs)} hr${Math.floor(hrs)>1?"s":""}`;
+  return dateKey(c.due)===dateKey(new Date(Date.now()+864e5)) ? "due tomorrow" : "due in 2 days";
+}
+const DAY30=30*864e5;
+function repeatCount(c){
+  if(!c.serial) return 0; const cut=Date.now()-DAY30, sn=c.serial.trim();
+  const past=Object.values(S.history).filter(x=>x.sn&&x.sn.trim()===sn&&x.o!==c.order&&Date.parse(x.at)>=cut).length;
+  const open=S.calls.filter(x=>x.serial&&x.serial.trim()===sn&&x.order!==c.order).length;
+  return past+open;
+}
+function storeRepeat(n){
+  if(!F("repeats")) return ""; const cut=Date.now()-DAY30;
+  const orders=new Set(Object.values(S.history).filter(x=>x.s===n&&Date.parse(x.at)>=cut).map(x=>x.o));
+  S.calls.filter(c=>c.store===n).forEach(c=>orders.add(c.order));
+  return orders.size>=5 ? `<span class="tag rep">🏪 ${orders.size} calls here in 30 days</span> ` : "";
+}
+function callTags(c){
+  let t="";
+  if(F("changes")&&S.newOrders.has(c.order)) t+=`<span class="tag new">NEW</span>`;
+  if(F("soon")){ const s=fmtSoon(c); if(s) t+=`<span class="tag soon">⏱ ${s}</span>`; }
+  if(F("repeats")){ const r=repeatCount(c); if(r) t+=`<span class="tag rep">🔁 device: ${r+1}${r+1===2?"nd":r+1===3?"rd":"th"} call in 30 days</span>`; }
+  return t?`<div>${t}</div>`:"";
+}
+
+// ---------- what changed since the last import ----------
+function compareImport(prev, calls){
+  if(!F("changes") || !prev.length){ S.newOrders=new Set(); store.set("newOrders",[]); S.gone=[]; store.set("goneCalls",[]); renderChanges(); return; }
+  const was=new Set(prev.map(c=>c.order)), now=new Set(calls.map(c=>c.order));
+  S.newOrders=new Set(calls.filter(c=>!was.has(c.order)).map(c=>c.order)); store.set("newOrders",[...S.newOrders]);
+  S.gone=prev.filter(c=>!now.has(c.order)&&!isDone(c)&&!S.handed[c.order]).map(c=>({order:c.order,store:c.store,desc:c.desc,prioLabel:c.prioLabel,prio:c.prio,due:c.due?c.due.toISOString():"",serial:c.serial||""}));
+  store.set("goneCalls",S.gone); renderChanges();
+}
+function renderChanges(){
+  const box=$("chgBox"); if(!F("changes")){ box.hidden=true; return; }
+  const nNew=S.calls.filter(c=>S.newOrders.has(c.order)).length;
+  if(!nNew && !S.gone.length){ box.hidden=true; return; }
+  box.hidden=false;
+  box.innerHTML=`<b>Since your last import</b><div>${nNew} new call${nNew===1?"":"s"}${nNew?" (tagged NEW)":""}</div>`+
+    (S.gone.length?`<div style="margin-top:6px">${S.gone.length} call${S.gone.length>1?"s are":" is"} no longer in SAP, probably closed:</div><ul>${S.gone.map(g=>`<li>Store ${esc(g.store)}: ${esc(g.desc)} (#${esc(g.order)})</li>`).join("")}</ul>
+      <div class="row"><button class="primary" id="goneDone">Mark these done</button><button id="chgDismiss">Dismiss</button></div>`
+     :`<div class="row"><button id="chgDismiss">Dismiss</button></div>`);
+  const gd=$("goneDone"); if(gd) gd.onclick=()=>{ const at=new Date().toISOString();
+    S.gone.forEach(g=>{ S.done[g.order]=at; recordHistory({order:g.order,store:g.store,desc:g.desc,prioLabel:g.prioLabel,due:g.due?new Date(g.due):null,serial:g.serial},at); });
+    store.set("done",S.done); toast(`Marked ${S.gone.length} call${S.gone.length>1?"s":""} done.`); S.gone=[]; store.set("goneCalls",[]); render(); };
+  $("chgDismiss").onclick=()=>{ S.newOrders=new Set(); store.set("newOrders",[]); S.gone=[]; store.set("goneCalls",[]); render(); };
+}
+
+// ---------- re-plan from here ----------
+function replanHere(){
+  if(!navigator.geolocation){ toast("This device can't share its location."); return; }
+  toast("Finding your location…");
+  navigator.geolocation.getCurrentPosition(pos=>{
+    S.gps={lat:pos.coords.latitude,lng:pos.coords.longitude,acc:pos.coords.accuracy,at:Date.now()}; store.set("gps",S.gps);
+    $("startSel").value="gps"; store.set("start","gps"); showStartExtras("gps"); gpsStatus();
+    if($("modeSel").value==="manual"||$("modeSel").value==="due"){ $("modeSel").value="optimize"; store.set("mode","optimize"); }
+    render();
+    const next=S.lastOrder[0]; toast(next?`Re-planned from here. Next stop: store ${next}${S.stores[next]?" in "+S.stores[next].city:""}.`:"Re-planned from here.");
+    if($("dayView").classList.contains("show")){ openDayView(); }
+  },err=>toast(err.code===1?"Location is blocked. Allow location for this page, then try again.":"Couldn't get your location. Try again."),{enableHighAccuracy:true,timeout:15000,maximumAge:30000});
+}
+
+// ---------- end-of-day summary ----------
+function buildEOD(){
+  const today=dateKey(new Date()), dayTxt=new Date().toLocaleDateString(undefined,{weekday:"long",month:"numeric",day:"numeric"});
+  const done=Object.values(S.history).filter(x=>dateKey(new Date(x.at))===today).sort((a,b)=>a.at.localeCompare(b.at));
+  const open=S.calls.filter(c=>!isDone(c)&&!S.handed[c.order]);
+  const tiers=[0,0,0,0]; open.forEach(c=>tiers[tierOf(c)]++);
+  const handed=S.calls.filter(c=>S.handed[c.order]&&dateKey(new Date(S.handed[c.order]))===today);
+  const stores=new Set(done.map(x=>x.s));
+  let t=`End of day – ${dayTxt}\n\nCompleted today: ${done.length} call${done.length===1?"":"s"} at ${stores.size} store${stores.size===1?"":"s"}`;
+  done.forEach(x=>{ t+=`\n  ✔ ${new Date(x.at).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}  Store ${x.s}${x.city?" – "+x.city:""}: ${x.d} (#${x.o})`; });
+  t+=`\n\nStill open: ${open.length} call${open.length===1?"":"s"}`;
+  const past=tiers[1]+tiers[2]+tiers[3];
+  if(past) t+=`\n  Past due: ${past} (4+ days: ${tiers[3]} · 3 days: ${tiers[2]} · 1–2 days: ${tiers[1]})`;
+  const soon=open.filter(c=>fmtSoon(c)); if(soon.length) t+=`\n  Due in the next 2 days: ${soon.length}`;
+  if(handed.length){ t+=`\n\nHanded off today: ${handed.length}`; handed.forEach(c=>{ t+=`\n  ↗ Store ${c.store}: ${c.desc} (#${c.order})`; }); }
+  const rt=S.routeTotals; if(rt&&rt.stops) t+=`\n\nRemaining route: ${rt.stops} stop${rt.stops>1?"s":""}${rt.miles!=null?`, ≈ ${rt.miles.toFixed(0)} mi`:""}`;
+  return t;
+}
+function openEOD(){ $("eodText").value=buildEOD(); $("eodDlg").classList.add("show"); }
+function outlookCompose(subject, body){
+  const q=`subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  if(/iPhone|iPad|iPod|Android/.test(navigator.userAgent)) location.href="ms-outlook://compose?"+q;
+  else window.open("https://outlook.office.com/mail/deeplink/compose?"+q,"_blank","noopener");
+}
+
+// ---------- hand off a call or a stop ----------
+let handCalls=[];
+async function packCalls(calls, add){
+  const rows=calls.map(c=>["","",c.date,c.time,c.prioLabel,"P"+c.store,"","",c.serial||"",c.order,c.desc,c.wc||"",c.status==="—"?"":c.status,"",c.location||""].join("\t"));
+  return zip(JSON.stringify({v:1,a:add?1:0,c:rows.join("\n")}));
+}
+async function openHandoff(calls){
+  handCalls=calls.filter(c=>!isDone(c)); if(!handCalls.length) return;
+  const n=handCalls.length, st=handCalls[0].store;
+  $("handTitle").textContent = n>1 ? `Hand off store ${st}` : "Hand off this call";
+  $("handSum").textContent = `${n} call${n>1?"s":""} at store ${st}${S.stores[st]?" – "+S.stores[st].city:""}.`;
+  const packed=await packCalls(handCalls,true); handCalls.packed=packed;
+  const qr=$("handQR"); qr.style.display="none";
+  $("handHow").textContent="Copy and send it to your teammate in Teams, a text, or email. They paste the whole message into the planner with Paste a handoff.";
+  if(IS_ONLINE){
+    try{
+      await new Promise((res,rej)=>{ if(window.RouteQR) return res(); const s=document.createElement("script"); s.src="../qr.js"; s.onload=res; s.onerror=rej; document.head.appendChild(s); });
+      const dest = EDITION_CODE!=="ALL" ? EDITION_CODE : ((S.stores[st]||{}).state||"VA");
+      const link=`${SITE_URL}planners/${dest}.html#sync=h${Math.random().toString(36).slice(2,6)}.1.1.${packed}`;
+      if(link.length<1500){ RouteQR.draw(qr,RouteQR.make(link,"L"),6); qr.style.display=""; $("handHow").textContent="Teammate nearby? They scan this code with their phone camera. Otherwise, copy it and send it in Teams, a text, or email."; }
+    }catch(e){}
+  }
+  $("handDlg").classList.add("show");
+}
+function handoffText(){
+  const c0=handCalls[0], s=S.stores[c0.store];
+  let t=`Handing off ${handCalls.length} call${handCalls.length>1?"s":""} – Store ${c0.store}${s?" – "+fullAddr(c0.store):""}`;
+  handCalls.forEach(c=>{ t+=`\n• ${c.prioLabel.replace(/^\d\s*-\s*/,"")}: ${c.desc} (#${c.order})${fmtPast(c)?" – "+fmtPast(c):""}\n  ${ORDER_URL(c.order)}`; });
+  t+=`\n\nTo add these to Route Planner, copy this whole message and use Paste a handoff.\n${SYNC_TAG}${handCalls.packed}`;
+  return t;
+}
+function setupHandoff(){
+  document.addEventListener("click",e=>{
+    const b=e.target.closest("[data-hand],[data-handstop]"); if(!b) return;
+    e.preventDefault(); e.stopPropagation();
+    if(b.dataset.hand) openHandoff(S.calls.filter(c=>c.order===b.dataset.hand));
+    else openHandoff(dvCallsAt(b.dataset.handstop));
+  },true);
+  $("handCopy").onclick=()=>copyText(handoffText(),"Copied. Send it to your teammate.");
+  $("handHide").onclick=()=>{ const at=new Date().toISOString(); handCalls.forEach(c=>S.handed[c.order]=at); store.set("handed",S.handed);
+    $("handDlg").classList.remove("show"); toast(`Hidden from your list as handed off (${handCalls.length}).`); render(); if($("dayView").classList.contains("show")) openDayView(); };
+  $("handClose").onclick=()=>$("handDlg").classList.remove("show");
+  $("handDlg").onclick=e=>{ if(e.target.id==="handDlg") $("handDlg").classList.remove("show"); };
+}
+
 // ---------- day view ----------
 const DV={stops:[], idx:0};
 // Opens Google Maps (the app on phones) and starts driving directions right away.
@@ -1403,7 +1617,7 @@ function navLink(n){ const pt=S.coords[n]; const dest=pt?`${pt[0]},${pt[1]}`:ful
   return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dest)}&travelmode=driving&dir_action=navigate`; }
 function dvCallsAt(n){
   const today=dateKey(new Date());
-  return S.calls.filter(c=>c.store===n && (!isDone(c) || dateKey(new Date(S.done[c.order]))===today))
+  return S.calls.filter(c=>c.store===n && !S.handed[c.order] && (!isDone(c) || dateKey(new Date(S.done[c.order]))===today))
     .sort((a,b)=>(isDone(a)-isDone(b)) || (tierOf(b)-tierOf(a)) || (a.prio-b.prio) || ((a.due||0)-(b.due||0)));
 }
 function openDayView(){
@@ -1424,13 +1638,15 @@ function dvCard(n,i){
   const tel=(s.phone||"").replace(/[^0-9+]/g,"");
   const rows=cs.map(c=>{ const dn=isDone(c), t=tierOf(c);
     return `<label class="dv-call${dn?" isdone":""}"><input type="checkbox" data-dv="${esc(c.order)}" ${dn?"checked":""}>
-      <span class="d"><b>${esc(c.desc)}</b><span class="m"><span class="pri p${c.prio}">${esc(c.prioLabel)}</span> ${t&&!dn?`<span class="tier t${t}">${fmtPast(c)}</span> `:""}Order <a class="ord" href="${ORDER_HREF(c.order)}"${orderTarget()} onclick="event.stopPropagation()">${esc(c.order)}</a>${c.serial?" · SN "+esc(c.serial):""}</span></span></label>`; }).join("");
+      <span class="d"><b>${esc(c.desc)}</b>${dn?"":callTags(c)}<span class="m"><span class="pri p${c.prio}">${esc(c.prioLabel)}</span> ${t&&!dn?`<span class="tier t${t}">${fmtPast(c)}</span> `:""}Order <a class="ord" href="${ORDER_HREF(c.order)}"${orderTarget()} onclick="event.stopPropagation()">${esc(c.order)}</a>${c.serial?" · SN "+esc(c.serial):""}</span></span></label>`; }).join("");
   return `<section class="dv-card" data-i="${i}"><div class="dv-inner${allDone?" done":""}">
     <div class="dv-step">Stop ${i+1} of ${DV.stops.length}</div>
     <div class="dv-store">${shieldHTML(groupOf(n))}<b>${esc(n)}</b><span class="dv-addr">${esc(s.center||"")}</span></div>
     <div class="dv-addr">${esc(fullAddr(n))}</div>
     <div class="dv-acts"><a class="go" href="${navLink(n)}" target="_blank" rel="noopener">🧭 Navigate</a>${/iPhone|iPad|iPod/.test(navigator.userAgent)?`<a href="maps://?daddr=${encodeURIComponent(fullAddr(n))}&dirflg=d">Apple Maps</a>`:""}${tel?`<a href="tel:${esc(tel)}">📞 Call store</a>`:""}</div>
     ${rows||'<p class="hint">No open calls here anymore.</p>'}
+    ${storeRepeat(n)?`<div class="hint" style="margin-top:8px">${storeRepeat(n)}</div>`:""}
+    ${F("handoff")&&cs.some(c=>!isDone(c))?`<button class="hand" type="button" data-handstop="${esc(n)}" style="margin:10px 0 0">↗ Hand off this stop</button>`:""}
     <div class="dv-ok">✓ All calls at this stop are done</div>
   </div></section>`;
 }
@@ -1578,7 +1794,7 @@ function sendDestinations(){
 }
 let sendState={links:[],i:0};
 function syncPayload(){
-  const rows=S.calls.filter(c=>!isDone(c)).map(c=>["","",c.date,c.time,c.prioLabel,"P"+c.store,"","",c.serial||"",c.order,c.desc,c.wc||"",c.status==="—"?"":c.status,"",c.location||""].join("\t"));
+  const rows=S.calls.filter(c=>!isDone(c)&&!S.handed[c.order]).map(c=>["","",c.date,c.time,c.prioLabel,"P"+c.store,"","",c.serial||"",c.order,c.desc,c.wc||"",c.status==="—"?"":c.status,"",c.location||""].join("\t"));
   return {n:rows.length, json:JSON.stringify({v:1,c:rows.join("\n"),x:[...S.excluded],m:$("modeSel").value,r:$("roundTrip").checked,t:[...S.pastTiers],d:[...S.fDates],s:S.listSort,o:S.manual})};
 }
 async function buildSend(){
@@ -1616,6 +1832,15 @@ function setupSend(){
 }
 const SYNC_TAG="ROUTE2-TRANSFER:";
 function applySync(d){
+  if(d.a){   // handoff: add to the existing list, skipping calls already there
+    const have=new Set(S.calls.map(c=>c.order));
+    const add=(d.c||"").split("\n").filter(r=>{ const o=(r.split("\t")[9]||"").trim(); return o && !have.has(o); });
+    add.forEach(r=>{ const o=r.split("\t")[9].trim(); delete S.handed[o]; delete S.done[o]; });
+    store.set("handed",S.handed); store.set("done",S.done);
+    const cur=$("callsInput").value.replace(/\s+$/,"");
+    $("callsInput").value = cur ? cur+"\n"+add.join("\n") : add.join("\n");
+    $("loadBtn").click(); toast(`Added ${add.length} handed-off call${add.length===1?"":"s"}.`); return;
+  }
   $("callsInput").value=d.c||""; $("loadBtn").click();
   S.excluded=new Set(d.x||[]); store.set("excluded",[...S.excluded]);
   if(d.m){ $("modeSel").value=d.m; store.set("mode",d.m); }
@@ -1628,6 +1853,17 @@ function applySync(d){
 }
 function offerSync(d, packed, fromPaste){
   const count=d.c?d.c.split("\n").length:0;
+  if(d.a){
+    $("recvText").innerHTML=`Add <b>${count} handed-off call${count>1?"s":""}</b> to your list? Your current calls stay.`;
+    $("recvCopy").style.display = (!fromPaste && !IS_APP && /iPhone|iPad|iPod|Android/.test(navigator.userAgent)) ? "" : "none";
+    $("recvHint").textContent=""; $("recvYes").textContent="Add to my list";
+    $("recvDlg").classList.add("show");
+    $("recvNo").onclick=()=>$("recvDlg").classList.remove("show");
+    $("recvYes").onclick=()=>{ $("recvDlg").classList.remove("show"); applySync(d); };
+    $("recvCopy").onclick=()=>copyText(SYNC_TAG+packed,"Copied. Open the Route app and tap Paste transfer.");
+    return;
+  }
+  $("recvYes").textContent="Load here";
   $("recvText").innerHTML=`Load <b>${count} open call${count>1?"s":""}</b> and your route settings from your computer? This replaces the calls here. Calls you've marked Done stay done.`;
   // In a browser on a phone, offer to hand the transfer to the installed app (separate storage on iPhone).
   const showCopy=!fromPaste && !IS_APP && /iPhone|iPad|iPod|Android/.test(navigator.userAgent);
@@ -1648,10 +1884,10 @@ async function readTransfer(text){
   return {d:JSON.parse(await unzip(packed)), packed};
 }
 function setupPaste(){
-  const b=$("pasteBtn"); if(!b) return;
-  if(IS_APP || /iPhone|iPad|iPod|Android/.test(navigator.userAgent)) b.hidden=false;
+  const b=$("pasteBtn")||{};
+  if($("pasteBtn") && (IS_APP || /iPhone|iPad|iPod|Android/.test(navigator.userAgent))) b.hidden=false;
   const openBox=(msg)=>{ $("pasteBox").value=""; $("pasteMsg").textContent=msg||""; $("pasteDlg").classList.add("show"); };
-  b.onclick=async()=>{
+  b.onclick=$("pasteBtn2").onclick=async()=>{
     try{ const t=await navigator.clipboard.readText(); const r=await readTransfer(t); offerSync(r.d,r.packed,true); }
     catch(e){ openBox(e&&e.message==="none"?"Nothing to paste yet. On your phone's browser, scan the codes and choose Copy for the installed app first.":""); }
   };
@@ -1747,7 +1983,12 @@ async function checkUpdate(manual){
 // ---------- init ----------
 setupMode();
 setupFeedback();
-if(IS_ONLINE) setupPaste();
+setupPaste(); setupSettings(); setupHandoff();
+$("replanBtn").onclick=replanHere; $("dvReplan").onclick=replanHere;
+$("eodBtn").onclick=openEOD; $("eodClose").onclick=()=>$("eodDlg").classList.remove("show");
+$("eodCopy").onclick=()=>copyText($("eodText").value,"Summary copied.");
+$("eodMail").onclick=()=>outlookCompose(`End of day – ${new Date().toLocaleDateString()}`,$("eodText").value);
+$("eodDlg").onclick=e=>{ if(e.target.id==="eodDlg") $("eodDlg").classList.remove("show"); };
 if(IS_ONLINE) receiveSync();
 $("colList").innerHTML=COLS.map((n,i)=>`<span>${i+1}</span><span>${esc(n)}</span>`).join("");
 if(!store.get("callsText","")) $("sapHelp").open=true;
@@ -1770,6 +2011,7 @@ if(!Object.keys(S.stores).length) $("storeData").open=true;
 if($("startSel").value==="gps"){ gpsStatus(); locate(); }
 const saved=store.get("callsText","");
 if(saved){ $("callsInput").value=saved; $("loadBtn").click(); } else render();
+S.initDone=true; applyFeatures(); renderChanges();
 </script>
 </body>
 </html>

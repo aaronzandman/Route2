@@ -149,6 +149,20 @@ legend{font-weight:600;font-size:14px;margin-bottom:6px}
 .dv-top button{background:rgba(255,255,255,.18);color:#fff;border:0;border-radius:8px;width:40px;height:40px;font-size:18px;flex:none}
 .dv-prog{flex:1;min-width:0;order:-1}
 .dv-top #dvClose{order:-2}
+.tag{display:inline-block;border-radius:4px;padding:1px 6px;font-size:12px;font-weight:700;white-space:nowrap;margin:2px 4px 0 0}
+.tag.new{background:#1E4E8C;color:#fff}
+.tag.soon{background:#DCEBFF;color:#173E70}
+.tag.rep{background:#EFE3FF;color:#4B2A84}
+@media (prefers-color-scheme:dark){.tag.soon{background:#1F3550;color:#CFE3FF}.tag.rep{background:#33264D;color:#E6D9FF}}
+.chg{margin-top:10px;border:1.5px solid #1E4E8C;border-radius:8px;padding:10px;font-size:14px;background:var(--soft)}
+.chg ul{margin:6px 0;padding-left:18px;max-height:160px;overflow:auto}
+.chg li{margin:3px 0}
+.hand{font-size:12px;font-weight:600;color:var(--shield);background:none;border:0;padding:0;margin-left:6px;text-decoration:underline;cursor:pointer}
+.setl{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 2px;border-bottom:1px solid var(--line);cursor:pointer}
+.setl span b{display:block}
+.setl span small{color:var(--muted)}
+.setl input{width:22px;height:22px;flex:none;accent-color:var(--road)}
+.eod textarea{width:100%;min-height:260px;font:13px/1.45 ui-monospace,Consolas,monospace;border:1px solid var(--line);border-radius:8px;padding:10px;background:var(--soft);color:var(--ink)}
 .toast{position:fixed;left:50%;bottom:calc(80px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--panel);padding:10px 16px;border-radius:999px;font-weight:600;z-index:80;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90vw;text-align:center}
 .toast.show{opacity:1}
 .dv-prog b{font:700 18px var(--sign);display:block}
@@ -262,6 +276,7 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
   <h1><span id="appName">Service Route Planner</span> <span id="verTag" style="font-size:15px;opacity:.8"></span></h1>
   <span class="sub" id="summary">No calls loaded</span>
   <span class="saved" id="savedNote">Saved on this computer</span>
+  <button class="hbtn" id="setBtn" type="button">⚙ Settings</button>
   <button class="hbtn" id="fbBtn" type="button">💬 Feedback</button>
   <div class="modebar">
     <span class="modebadge" id="modeBadge"></span>
@@ -304,8 +319,32 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
     <div class="row" style="justify-content:center"><button id="sendPrev">◀ Previous</button><button class="primary" id="sendNext">Next code ▶</button><button id="sendClose">Close</button></div>
   </div>
 </div>
+<div class="bmk" id="setDlg" role="dialog" aria-modal="true" aria-labelledby="setTitle">
+  <div class="box" style="max-height:92vh;overflow:auto">
+    <h3 id="setTitle">Settings</h3>
+    <p class="hint" style="margin:0 0 4px">Turn features on or off on this device.</p>
+    <div id="setList"></div>
+    <div class="row"><button class="primary" id="setClose">Done</button></div>
+  </div>
+</div>
+<div class="bmk eod" id="eodDlg" role="dialog" aria-modal="true" aria-labelledby="eodTitle">
+  <div class="box" style="max-width:560px">
+    <h3 id="eodTitle">End-of-day summary</h3>
+    <textarea id="eodText" readonly aria-label="Summary"></textarea>
+    <div class="row"><button id="eodClose">Close</button><button id="eodMail">Open in Outlook</button><button class="primary" id="eodCopy">📋 Copy</button></div>
+  </div>
+</div>
+<div class="bmk" id="handDlg" role="dialog" aria-modal="true" aria-labelledby="handTitle">
+  <div class="box" style="max-width:460px;text-align:center">
+    <h3 id="handTitle">Hand off</h3>
+    <p class="hint" id="handSum" style="margin:0 0 6px"></p>
+    <canvas id="handQR" style="width:min(300px,75vw);height:auto;image-rendering:pixelated;border-radius:6px;display:none"></canvas>
+    <p class="hint" id="handHow" style="margin:6px 0"></p>
+    <div class="row" style="justify-content:center"><button class="primary" id="handCopy">📋 Copy for teammate</button><button id="handHide">Hide from my list</button><button id="handClose">Close</button></div>
+  </div>
+</div>
 <div class="dayv" id="dayView" role="dialog" aria-modal="true" aria-label="Day view">
-  <div class="dv-top"><button id="dvClose" aria-label="Close day view">✕</button><button id="dvCopy" aria-label="Copy list" style="width:auto;padding:0 12px;font-size:15px;font-weight:700">📋 Copy</button>
+  <div class="dv-top"><button id="dvClose" aria-label="Close day view">✕</button><button id="dvReplan" aria-label="Re-plan from here" title="Re-plan from here">📍</button><button id="dvCopy" aria-label="Copy list" style="width:auto;padding:0 12px;font-size:15px;font-weight:700">📋 Copy</button>
     <div class="dv-prog"><b id="dvTitle">Today's route</b><div class="dv-bar"><i id="dvBar"></i></div><span id="dvSub"></span></div></div>
   <div class="dv-track" id="dvTrack"></div>
   <div class="dv-nav"><button id="dvPrev">◀ Prev</button><div class="dv-dots" id="dvDots"></div><button class="primary" id="dvNext">Next ▶</button></div>
@@ -356,6 +395,8 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
       <button id="clearBtn">Clear</button>
     </div>
     <div class="msg" id="importMsg"></div>
+    <div class="chg" id="chgBox" hidden></div>
+    <div class="row" id="pasteRow"><button id="pasteBtn2" type="button">📥 Paste a handoff or transfer</button></div>
     <details class="help" id="sapHelp">
       <summary>How to get your calls from SAP</summary>
       <div class="hb">
@@ -484,6 +525,7 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
     <label class="incl" style="margin-top:10px"><input type="checkbox" id="roundTrip"> Return to start</label>
 
     <button class="dvbtn" id="dvBtn" type="button">▶ Day view: go stop by stop</button>
+    <div class="row"><button id="replanBtn" type="button">📍 Re-plan from here</button><button id="eodBtn" type="button">📊 End-of-day summary</button></div>
     <div class="totals" id="totals"></div>
     <ol class="stops" id="stops"></ol>
     <div class="share">
@@ -529,11 +571,12 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
 
 <script>
 // ---------- version ----------
-const APP_VERSION = "3.7";
+const APP_VERSION = "3.8";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["3.8", "Settings to turn features on or off. New: What changed since your last import (NEW tags, and calls no longer in SAP you can mark done), repeat-issue alerts by device and store, Due soon countdowns, Re-plan from here, End-of-day summary, and Hand off a call or stop to a teammate."],
   ["3.7", "Copy list in both views: a Copy list button above the store list and in the Day view copies your route for pasting into Teams, a text, or an email. The Day view copy shows which calls are done."],
   ["3.6", "Day view: swipe through your route one stop at a time with big Done checkboxes, one-tap navigation (Google Maps, plus Apple Maps on iPhone), store phone and order links for each stop, a progress bar, and automatic move to the next stop when all its calls are done."],
   ["3.5", "Completed calls history: every call you mark Done is saved with its details, so you can scroll back through each day of the month even after loading a new SAP export. Calendar with daily counts, copy a day's list."],
@@ -566,25 +609,75 @@ const CHANGELOG = [
   ["1.0", "Import calls, group by store, filters, route ordering, Google Maps directions."]
 ];
 // ===EDITION-START===
-const EDITION = {id:"state-KY", name:"Service Route Planner \u2013 Kentucky", key:"rp-KY.", resetLabel:"Restore Kentucky store list", groupBy:"city"};
+const EDITION = {id:"state-NC", name:"Service Route Planner \u2013 North Carolina", key:"rp-NC.", resetLabel:"Restore North Carolina store list", groupBy:"city"};
 const DEFAULT_GROUPS = ``;
 const DEFAULT_STORES = `Store #	Shopping Center	Address	City	State	Zip	Phone	Latitude	Longitude
-1846	Terra Crossing	2500 Terra Crossing Blvd	Louisville	KY	40245-5374	(502) 885-7662	38.27257	-85.49839
-1847	Publix at Marshall Commons	10005 Ballardsville Rd	Louisville	KY	40241-1202	(502) 302-7925	38.31706	-85.560394
-1887	The Fountains At Palomar	3855 Fountainblue Ln	Lexington	KY	40513	(859) 469-7337	38.003456	-84.57397
-2050	Publix at Flat Rock	150 Flat Rock Rd	Louisville	KY	40245	(502) 912-5403	38.236137	-85.445526
-2051	Citation Point	1952 Stockton Way	Lexington	KY	40511-2412	(859) 286-8293	38.095634	-84.51252
-2052	Triple Crown Shopping Center	430 Richwood Rd	Walton	KY	41094	(859) 379-1137	38.913414	-84.636505
-2053	Gateway Commons	3370 Hayden Rd	Owensboro	KY	42303	(270) 215-3915	37.767458	-87.062537
-2055	Farmview Commons	8740 US Hwy 42	Florence	KY	41042	(859) 938-1052	38.967207	-84.673345
-2057	Cold Spring Pointe	5401 Alexandria Pike	Cold Spring	KY	41076	(859) 908-6007	39.001796	-84.4217
-2058	Publix at Independence	5135 Jenkins Dr	Independence	KY	41051	(859) 898-5036	38.928628	-84.544058
-2059	The Shops at Pear Orchard	1311 Pear Orchard Rd Suite 100	Elizabethtown	KY	42701	(270) 740-5249	37.735684	-85.86062
-3646	Terra Crossing	2502 Terra Crossing Blvd	Louisville	KY	40245-5374	(502) 302-6531	38.27257	-85.49839
-3647	Publix at Marshall Commons	10015 Ballardsville Rd	Louisville	KY	40241-1202	(502) 313-7027		
-3651	Citation Point	1976 Stockton Way	Lexington	KY	40511-2412	(859) 286-8931	38.095634	-84.51252
-3652	Triple Crown Shopping Center	420 Richwood Rd	Walton	KY	41094	(859) 379-1139	38.913414	-84.636505
-3687	The Fountains At Palomar	3825 Fountainblue Ln	Lexington	KY	40513	(859) 469-7339	38.003456	-84.57397`;
+1442	Ballantyne Town Center	11222 Providence Rd W	Charlotte	NC	28277	(704) 716-2344	35.04258	-80.84965
+1453	Shops at Southline	2222 South Blvd	Charlotte	NC	28203-6581	(704) 373-2122	35.206657	-80.86254
+1466	Bradford	1020 Bradford Plaza Way	Cary	NC	27519	(919) 460-2082	35.793247	-78.8448
+1470	Mint Hill Commons	6828 Matthews Mint Hill Rd	Mint Hill	NC	28227-9324	(704) 573-0234	35.17094	-80.65955
+1473	Pinnacle Point	1830 Hendersonville Rd	Asheville	NC	28803-3207	(828) 274-6287	35.5049	-82.52241
+1474	Magnolia Plaza	8315 Magnolia Estates Dr	Cornelius	NC	28031-7837	(704) 895-7057	35.475414	-80.88894
+1475	Publix at Miller Street	34 Miller St	Winston-Salem	NC	27104-4212	(336) 724-3707	36.094845	-80.27575
+1480	Whitehall Commons	8120 S Tryon St	Charlotte	NC	28273-3325	(704) 583-2323	35.14604	-80.929794
+1481	Market Square	9815 Rose Commons Dr	Huntersville	NC	28078-3334	(704) 948-4801	35.40851	-80.864296
+1483	Steele Creek Crossing	12810 S Tryon St	Charlotte	NC	28273-6949	(704) 587-0339	35.104816	-80.98803
+1484	McKee Farms	3110 Fincher Farm Rd	Matthews	NC	28105-5462	(704) 814-6001	35.082245	-80.729935
+1490	Willow Oaks Crossing	5015 Weddington Rd	Concord	NC	28027	(704) 795-7127	35.396206	-80.66127
+1509	Prosperity Village Square	10110 Benfield Rd	Charlotte	NC	28269	(704) 992-6951	35.3748	-80.788574
+1514	The Shoppes at Heritage Village	1030 Forestville Rd	Wake Forest	NC	27587	(919) 556-6671	35.945904	-78.50794
+1516	Publix at Pine Valley	716 Bragg Dr	Wilmington	NC	28412	(910) 313-2201	34.180668	-77.89324
+1518	Cotswold	4425 Randolph Rd	Charlotte	NC	28211	(704) 367-5208	35.1778	-80.7994
+1519	Brawley Commons	631 Brawley School Rd	Mooresville	NC	28117-6204	(704) 660-6800	35.581768	-80.87465
+1520	Millpond Village	3480 Kildaire Farm Rd	Cary	NC	27518-1541	(919) 303-4024	35.70501	-78.797
+1521	Hoffman Village	1949 Hoffman Rd	Gastonia	NC	28054-6574	(704) 853-7000	35.225433	-81.132645
+1533	River Place	2004 S Glenburnie Rd	New Bern	NC	28562-5227	(252) 634-1646	35.100266	-77.10051
+1539	North Pointe Shopping Center	134 Venture Ln	Statesville	NC	28625	(704) 878-4073	35.818302	-80.87841
+1544	Publix Pointe	1441 Kelly Rd	Apex	NC	27502	(919) 303-6200	35.737526	-78.89342
+1546	Weaverville Plaza	165 Weaver Blvd	Weaverville	NC	28787	(828) 658-1020	35.705868	-82.568794
+1548	Publix at Three Creeks	1620 Blowing Rock Rd	Boone	NC	28607	(828) 263-8126	36.19921	-81.66139
+1550	Lake Hickory Crossings	36 29th Ave NE	Hickory	NC	28601-1100	(828) 322-3675	35.769314	-81.32824
+1551	Leesville Market Place	9640 Leesville Rd	Raleigh	NC	27613	(919) 848-3480	35.90569	-78.72725
+1552	Amberly Place	425 Emissary Dr	Cary	NC	27519	(919) 388-7201	35.825207	-78.90321
+1555	Harris Square	4055 Harris Square Dr	Harrisburg	NC	28075	(704) 454-7832	35.320442	-80.64581
+1556	Shoppes at Hanfield Village	5132 Old Charlotte Hwy	Monroe	NC	28110	(704) 289-6598	35.048042	-80.64222
+1569	Greenville Square	705 Greenville Blvd SE	Greenville	NC	27858	(252) 756-4682	35.588303	-77.370125
+1574	Peace Haven Village	3150 Gammon Ln	Clemmons	NC	27012	(336) 766-2069	36.04019	-80.38912
+1575	Tallywood Shopping Center	3114 Raeford Rd	Fayetteville	NC	28303	(910) 321-0114	35.04692	-78.93146
+1580	Ogden Market Place	7144 Market St	Wilmington	NC	28411	(910) 681-3555	34.271004	-77.81954
+1582	Westchester Square	2005 N Main St Ste 101	High Point	NC	27262	(336) 905-8610	35.981407	-80.024864
+1583	The Village Shoppes	7883 Village Center N	Sherrills Ford	NC	28673	(828) 478-2644	35.584713	-80.98934
+1586	South Market Village	635 Greenville Hwy	Hendersonville	NC	28792	(828) 694-4440	35.305576	-82.45932
+1603	Cambridge Village	513 Brentwood Rd	Denver	NC	28037	(704) 483-7152	35.448223	-80.99328
+1615	Publix at First Flight Square	1530 N Croatan Hwy	Kill Devil Hills	NC	27948	(252) 255-5006	36.027336	-75.671135
+1619	Arboretum at Surf City	2765 NC Hwy 210 E	Hampstead	NC	28443	(910) 329-1000	34.45176	-77.56461
+1623	Egret Landing	8800 Crew Drive	Emerald Isle	NC	28594	(252) 354-2104	34.66231	-77.05169
+1631	Ocean Isle Beach Market Place	1560 Market Place Blvd	Ocean Isle Beach	NC	28469	(910) 393-2059	33.90404	-78.43869
+1640	Waynesville Pavilion	124 Frazier St	Waynesville	NC	28786	(828) 454-5700	35.504246	-82.99398
+1652	Peace	417 W Peace St Ste 100	Raleigh	NC	27603	(919) 755-5444	35.78837	-78.64446
+1658	Grandover Village	6029 W Gate City Blvd	Greensboro	NC	27407	(336) 894-2591	36.000057	-79.90604
+1660	Gateway Marketplace	2001 Marlin Dr Unit 100	Jacksonville	NC	28546	(910) 353-0433	34.79604	-77.40825
+1677	Publix Commons at Federal Point	1018 Lake Park Blvd N Ste 107	Carolina Beach	NC	28428	(910) 458-8615	34.04399	-77.89519
+1703	Oak Island Marketplace	5003 E Oak Island Dr	Oak Island	NC	28465	(910) 278-6785	33.91143	-78.112785
+1704	Marvin Gardens	1615 Providence Rd S	Marvin	NC	28173	(704) 843-0119	34.98699	-80.77168
+1706	Church Street Commons	2750 S Church St	Burlington	NC	27215	(336) 586-1873	36.08065	-79.483215
+1727	Marketplace at Flowers Crossroads	24 Publix Dr	Clayton	NC	27527	(919) 550-2812	35.652176	-78.351944
+1744	Publix at Wendell Falls	2257 Wendell Falls Pkwy	Wendell	NC	27591	(919) 365-7055	35.776608	-78.43507
+1765	North Creek Village	15010 Village Crossing Rd	Huntersville	NC	28078	(704) 977-0021	35.454235	-80.80321
+1817	Marketplace at Ellis Crossing	1065 Yunus Rd	Durham	NC	27703-7200	(919) 598-0245	35.9408	-78.8543
+1824	Publix at Arboretum	7933 Providence Rd	Charlotte	NC	28277	(980) 273-7487	35.099136	-80.77755
+1855	Wallbrook	821 S Main Street	Rolesville	NC	27571-9264	(919) 263-6027	35.906536	-78.4801
+1858	West Edge	5525 Robin Lark Cir	Winston-Salem	NC	27106-9906	(336) 815-6007	36.1205	-80.36928
+1872	Harris Farms Shopping Center	1254 Coddle Creek Hwy	Mooresville	NC	28115	(704) 360-6915	35.561268	-80.78994
+1881	Clear Creek Crossings	12925 Albemarle Rd	Charlotte	NC	28227	(980) 365-7588	35.22505	-80.63641
+1886	Buffaloe Bend	7330 Buffaloe Rd	Raleigh	NC	27616	(919) 679-6584	35.844086	-78.51527
+1888	Latta Park	4628 Guess Rd	Durham	NC	27712-2624	(984) 243-5497	36.078212	-78.930075
+2017	Publix At Quail Commons	11525 Carmel Commons Blvd	Charlotte	NC	28226-5317	(704) 496-5209	35.087196	-80.84484
+2029	Commons at Carolina Shores	9770 Ocean Hwy W	Calabash	NC	28467	(910) 393-4010	33.90847	-78.586439
+2031	Middlecreek Crossings	16100 NC Hwy 50 N	Garner	NC	27529	(919) 334-4539	35.59163	-78.597275
+2101	Rockfish Village	7483 Rockfish Rd	Fayetteville	NC	28306-8075	(910) 912-2926	34.980518	-79.01654
+2105	The Marketplace at Mills River	70 Vance Hill Dr	Mills River	NC	28759	(828) 393-6342	35.402587	-82.567743
+2120	Village Commons	6460 Weddington Rd	Wesley Chapel	NC	28104	(704) 839-5004	34.999227	-80.692369`;
 const DEFAULT_COORDS = ``;
 // ===EDITION-END===
 
@@ -606,6 +699,9 @@ const S = {
   listSort: store.get("listSort","group"),
   fDates: new Set(store.get("fDates",[])),
   history: store.get("history",{}),
+  handed: store.get("handed",{}),
+  newOrders: new Set(store.get("newOrders",[])),
+  gone: store.get("goneCalls",[]),
   pastTiers: new Set(store.get("pastTiers",[])), pastLo: store.get("pastLo",""), pastHi: store.get("pastHi",""),
   manual: store.get("manual", []),
   lastOrder: [],
@@ -780,7 +876,7 @@ function renderDates(){
 }
 function visibleCalls(){
   const due = S.fDue ? new Date(S.fDue+"T23:59:59") : null;
-  return S.calls.filter(c => (S.showDone || !isDone(c)) &&
+  return S.calls.filter(c => (S.showDone || !isDone(c)) && !S.handed[c.order] &&
     S.fGroups.has(groupOf(c.store)) && S.fPrio.has(c.prio) && S.fStatus.has(c.status) &&
     (!S.fDates.size || S.fDates.has(dateKey(c.due))) &&
     (!due || !c.due || c.due<=due) && pastFilter(c));
@@ -832,7 +928,7 @@ function storeGroups(calls){
 function addExtras(groups, shown){
   const set=new Set(shown);
   groups.forEach(g=>{
-    g.extra=S.calls.filter(c=>c.store===g.num && !set.has(c) && !isDone(c)).sort((a,b)=>(a.due||Infinity)-(b.due||Infinity));
+    g.extra=S.calls.filter(c=>c.store===g.num && !set.has(c) && !isDone(c) && !S.handed[c.order]).sort((a,b)=>(a.due||Infinity)-(b.due||Infinity));
   });
   return groups;
 }
@@ -852,7 +948,7 @@ function renderStores(groups){
       return `<tr class="${dn?"done":t?"t"+t:""}${extra?" extra":""}">
         <td class="chk"><label class="done-box" title="Mark call complete"><input type="checkbox" data-done="${esc(c.order)}" ${dn?"checked":""}> Done</label></td>
         <td><span class="pri p${c.prio}">${esc(c.prioLabel)}</span></td>
-        <td><b>${esc(c.desc)}</b>${locNote}<div class="muted">Order <a class="ord" href="${ORDER_HREF(c.order)}"${orderTarget()} title="Opens in Microsoft Edge">${esc(c.order)}</a>${dn?" · completed "+new Date(S.done[c.order]).toLocaleDateString():""}${c.serial?" · SN "+esc(c.serial):""}${c.wc?" · "+esc(c.wc):""}</div></td>
+        <td><b>${esc(c.desc)}</b>${locNote}${callTags(c)}<div class="muted">Order <a class="ord" href="${ORDER_HREF(c.order)}"${orderTarget()} title="Opens in Microsoft Edge">${esc(c.order)}</a>${dn?" · completed "+new Date(S.done[c.order]).toLocaleDateString():""}${c.serial?" · SN "+esc(c.serial):""}${c.wc?" · "+esc(c.wc):""}${F("handoff")&&!dn?` <button class="hand" type="button" data-hand="${esc(c.order)}">↗ Hand off</button>`:""}</div></td>
         <td class="due">${fmtDue(c.due)}${t&&!dn?`<div style="margin-top:2px"><span class="tier t${t}">${fmtPast(c)}</span></div>`:""}</td>
         <td><span class="status">${esc(c.status)}</span></td></tr>`;
     };
@@ -865,7 +961,7 @@ function renderStores(groups){
         <div class="info">
           <div class="store-name">${esc(g.num)}<small>${esc(s?s.center:"Store not in list")}</small></div>
           <div class="addr">${s?`<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddr(g.num))}" target="_blank" rel="noopener">${esc(fullAddr(g.num))}</a> · <a href="tel:${esc(s.phone)}">${esc(s.phone)}</a>`:"Add this store under Store data to get an address"}</div>
-          <div class="muted" style="font-size:13px">${g.calls.length} call${g.calls.length>1?"s":""}${ex.length?` + ${ex.length} more open`:""}${(()=>{const o=g.calls.concat(ex).filter(c=>!isDone(c)&&pastDays(c)>0); if(!o.length) return ""; const old=o.reduce((m,c)=>c.due<m.due?c:m); return `<span class="tier t${tierOf(old)} pastbadge">Oldest ${fmtPast(old)}</span>`;})()}</div>
+          <div class="muted" style="font-size:13px">${storeRepeat(g.num)}${g.calls.length} call${g.calls.length>1?"s":""}${ex.length?` + ${ex.length} more open`:""}${(()=>{const o=g.calls.concat(ex).filter(c=>!isDone(c)&&pastDays(c)>0); if(!o.length) return ""; const old=o.reduce((m,c)=>c.due<m.due?c:m); return `<span class="tier t${tierOf(old)} pastbadge">Oldest ${fmtPast(old)}</span>`;})()}</div>
         </div>
         <label class="incl"><input type="checkbox" data-store="${esc(g.num)}" ${inc?"checked":""}> In route</label>
       </div>
@@ -959,7 +1055,7 @@ function orderStops(start, stops, mode, round){
   }
   return optimize(start, withPt, round).concat(noPt);
 }
-function dvToggle(){ const on=S.lastOrder.length>0; $("dvFab").classList.toggle("has",on); $("dvBtn").style.display=on?"":"none"; }
+function dvToggle(){ const on=S.lastOrder.length>0 && F("dayview"); $("dvFab").classList.toggle("has",on); $("dvBtn").style.display=on?"":"none"; }
 function renderRoute(groups){
   const stops=groups.filter(g=>!S.excluded.has(g.num));
   const start=getStart(), mode=$("modeSel").value, round=$("roundTrip").checked;
@@ -1029,6 +1125,7 @@ function render(){
   }
   const openVis=vis.filter(c=>!isDone(c));
   renderRoute(addExtras(storeGroups(openVis), openVis)); dvToggle();
+  if(S.initDone) renderChanges();
   if($("sharePreview").classList.contains("open")) $("sharePreview").value=buildShareText();
   const doneN=S.calls.filter(isDone).length;
   $("doneMsg").textContent = doneN ? `${doneN} completed call${doneN>1?"s":""}${S.showDone?" shown, crossed off":" hidden"}.` : "Check Done on a call to cross it off.";
@@ -1097,6 +1194,7 @@ function loadSettings(){
 // ---------- events ----------
 $("loadBtn").onclick=()=>{
   const {calls,errors,warnings}=parseCalls($("callsInput").value);
+  const prevCalls=S.calls;
   S.calls=calls; S.known={groups:new Set(),prio:new Set(),status:new Set()};
   S.fGroups.clear(); S.fPrio.clear(); S.fStatus.clear();
   store.set("callsText",$("callsInput").value);
@@ -1109,6 +1207,7 @@ $("loadBtn").onclick=()=>{
     (warnings.length?" "+warnings.join(" ")+" See How to get your calls from SAP.":"");
   if(warnings.length||errors.length) $("sapHelp").open=true;
   backfillHistory();
+  if(S.initDone) compareImport(prevCalls, calls);
   render();
 };
 $("clearBtn").onclick=()=>{ $("callsInput").value=""; S.calls=[]; store.set("callsText",""); $("importMsg").textContent=""; render(); };
@@ -1172,10 +1271,10 @@ function buildShareText(){
     if(withMaps) out+=`\n   Map: ${navLink(n)}`;
     if(withCalls){
       S.calls.filter(c=>c.store===n && !isDone(c) && vis.includes(c)).forEach(c=>{
-        out+=`\n   • ${c.prioLabel.replace(/^\d\s*-\s*/,"")}: ${c.desc} (#${c.order})${fmtPast(c)?" – "+fmtPast(c):""}`;
+        out+=`\n   • ${c.prioLabel.replace(/^\d\s*-\s*/,"")}: ${c.desc} (#${c.order})${fmtPast(c)?" – "+fmtPast(c):F("soon")&&fmtSoon(c)?" – "+fmtSoon(c):""}`;
         if(withLinks) out+=`\n     ${ORDER_URL(c.order)}`;
       });
-      const ex=S.calls.filter(c=>c.store===n && !isDone(c) && !vis.includes(c));
+      const ex=S.calls.filter(c=>c.store===n && !isDone(c) && !S.handed[c.order] && !vis.includes(c));
       if(ex.length){
         out+=`\n   Also open here:`;
         ex.forEach(c=>{ out+=`\n   ◦ ${c.prioLabel.replace(/^\d\s*-\s*/,"")}: ${c.desc} (#${c.order})${fmtPast(c)?" – "+fmtPast(c):""}`; if(withLinks) out+=`\n     ${ORDER_URL(c.order)}`; });
@@ -1315,6 +1414,171 @@ function setupMode(){
   }
 }
 // ---------- completed calls history ----------
+// ---------- feature switches ----------
+const FEATURES=[
+  ["changes","What changed","After each import, tag new calls and list calls no longer in SAP."],
+  ["repeats","Repeat-issue alerts","Flag devices and stores with several calls in 30 days."],
+  ["soon","Due soon","Show countdowns like \"due in 3 hrs\" for calls not yet past due."],
+  ["replan","Re-plan from here","Reorder the remaining stops from where you are now."],
+  ["eod","End-of-day summary","One-tap summary of the day to copy or email."],
+  ["handoff","Hand off","Send a call or stop to a teammate; paste handoffs you receive."],
+  ["dayview","Day view","Stop-by-stop view with big Done checkboxes."],
+  ["send","Send to phone","QR codes to move your calls to your phone (online version)."]
+];
+const FEAT=Object.assign(Object.fromEntries(FEATURES.map(f=>[f[0],true])), store.get("features",{}));
+const F=k=>FEAT[k]!==false;
+function applyFeatures(){
+  const show=(id,on)=>{ const e=$(id); if(e) e.style.display=on?"":"none"; };
+  show("replanBtn",F("replan")); show("dvReplan",F("replan")); show("eodBtn",F("eod"));
+  show("pasteRow",F("handoff")); if(!F("changes")) $("chgBox").hidden=true;
+  if($("sendBtn") && !/iPhone|iPad|iPod|Android/.test(navigator.userAgent)) show("sendBtn",F("send"));
+  if(!F("dayview")){ show("dvBtn",false); $("dvFab").classList.remove("has"); }
+  if($("pasteBtn")) $("pasteBtn").hidden = !(F("handoff")||F("send")) || !(IS_APP || /iPhone|iPad|iPod|Android/.test(navigator.userAgent));
+}
+function setupSettings(){
+  $("setList").innerHTML=FEATURES.map(([k,t,d])=>`<label class="setl"><span><b>${t}</b><small>${d}</small></span><input type="checkbox" data-feat="${k}" ${F(k)?"checked":""}></label>`).join("");
+  $("setList").querySelectorAll("input[data-feat]").forEach(cb=>cb.onchange=()=>{ FEAT[cb.dataset.feat]=cb.checked; store.set("features",FEAT); applyFeatures(); render(); });
+  $("setBtn").onclick=()=>$("setDlg").classList.add("show");
+  $("setClose").onclick=()=>$("setDlg").classList.remove("show");
+  $("setDlg").onclick=e=>{ if(e.target.id==="setDlg") $("setDlg").classList.remove("show"); };
+}
+
+// ---------- due soon / repeats ----------
+function fmtSoon(c){
+  const d=pastDays(c); if(d===null||d>0) return "";
+  const hrs=-d*24; if(hrs>48) return "";
+  if(hrs<1) return "due in under 1 hr";
+  if(hrs<24) return `due in ${Math.floor(hrs)} hr${Math.floor(hrs)>1?"s":""}`;
+  return dateKey(c.due)===dateKey(new Date(Date.now()+864e5)) ? "due tomorrow" : "due in 2 days";
+}
+const DAY30=30*864e5;
+function repeatCount(c){
+  if(!c.serial) return 0; const cut=Date.now()-DAY30, sn=c.serial.trim();
+  const past=Object.values(S.history).filter(x=>x.sn&&x.sn.trim()===sn&&x.o!==c.order&&Date.parse(x.at)>=cut).length;
+  const open=S.calls.filter(x=>x.serial&&x.serial.trim()===sn&&x.order!==c.order).length;
+  return past+open;
+}
+function storeRepeat(n){
+  if(!F("repeats")) return ""; const cut=Date.now()-DAY30;
+  const orders=new Set(Object.values(S.history).filter(x=>x.s===n&&Date.parse(x.at)>=cut).map(x=>x.o));
+  S.calls.filter(c=>c.store===n).forEach(c=>orders.add(c.order));
+  return orders.size>=5 ? `<span class="tag rep">🏪 ${orders.size} calls here in 30 days</span> ` : "";
+}
+function callTags(c){
+  let t="";
+  if(F("changes")&&S.newOrders.has(c.order)) t+=`<span class="tag new">NEW</span>`;
+  if(F("soon")){ const s=fmtSoon(c); if(s) t+=`<span class="tag soon">⏱ ${s}</span>`; }
+  if(F("repeats")){ const r=repeatCount(c); if(r) t+=`<span class="tag rep">🔁 device: ${r+1}${r+1===2?"nd":r+1===3?"rd":"th"} call in 30 days</span>`; }
+  return t?`<div>${t}</div>`:"";
+}
+
+// ---------- what changed since the last import ----------
+function compareImport(prev, calls){
+  if(!F("changes") || !prev.length){ S.newOrders=new Set(); store.set("newOrders",[]); S.gone=[]; store.set("goneCalls",[]); renderChanges(); return; }
+  const was=new Set(prev.map(c=>c.order)), now=new Set(calls.map(c=>c.order));
+  S.newOrders=new Set(calls.filter(c=>!was.has(c.order)).map(c=>c.order)); store.set("newOrders",[...S.newOrders]);
+  S.gone=prev.filter(c=>!now.has(c.order)&&!isDone(c)&&!S.handed[c.order]).map(c=>({order:c.order,store:c.store,desc:c.desc,prioLabel:c.prioLabel,prio:c.prio,due:c.due?c.due.toISOString():"",serial:c.serial||""}));
+  store.set("goneCalls",S.gone); renderChanges();
+}
+function renderChanges(){
+  const box=$("chgBox"); if(!F("changes")){ box.hidden=true; return; }
+  const nNew=S.calls.filter(c=>S.newOrders.has(c.order)).length;
+  if(!nNew && !S.gone.length){ box.hidden=true; return; }
+  box.hidden=false;
+  box.innerHTML=`<b>Since your last import</b><div>${nNew} new call${nNew===1?"":"s"}${nNew?" (tagged NEW)":""}</div>`+
+    (S.gone.length?`<div style="margin-top:6px">${S.gone.length} call${S.gone.length>1?"s are":" is"} no longer in SAP, probably closed:</div><ul>${S.gone.map(g=>`<li>Store ${esc(g.store)}: ${esc(g.desc)} (#${esc(g.order)})</li>`).join("")}</ul>
+      <div class="row"><button class="primary" id="goneDone">Mark these done</button><button id="chgDismiss">Dismiss</button></div>`
+     :`<div class="row"><button id="chgDismiss">Dismiss</button></div>`);
+  const gd=$("goneDone"); if(gd) gd.onclick=()=>{ const at=new Date().toISOString();
+    S.gone.forEach(g=>{ S.done[g.order]=at; recordHistory({order:g.order,store:g.store,desc:g.desc,prioLabel:g.prioLabel,due:g.due?new Date(g.due):null,serial:g.serial},at); });
+    store.set("done",S.done); toast(`Marked ${S.gone.length} call${S.gone.length>1?"s":""} done.`); S.gone=[]; store.set("goneCalls",[]); render(); };
+  $("chgDismiss").onclick=()=>{ S.newOrders=new Set(); store.set("newOrders",[]); S.gone=[]; store.set("goneCalls",[]); render(); };
+}
+
+// ---------- re-plan from here ----------
+function replanHere(){
+  if(!navigator.geolocation){ toast("This device can't share its location."); return; }
+  toast("Finding your location…");
+  navigator.geolocation.getCurrentPosition(pos=>{
+    S.gps={lat:pos.coords.latitude,lng:pos.coords.longitude,acc:pos.coords.accuracy,at:Date.now()}; store.set("gps",S.gps);
+    $("startSel").value="gps"; store.set("start","gps"); showStartExtras("gps"); gpsStatus();
+    if($("modeSel").value==="manual"||$("modeSel").value==="due"){ $("modeSel").value="optimize"; store.set("mode","optimize"); }
+    render();
+    const next=S.lastOrder[0]; toast(next?`Re-planned from here. Next stop: store ${next}${S.stores[next]?" in "+S.stores[next].city:""}.`:"Re-planned from here.");
+    if($("dayView").classList.contains("show")){ openDayView(); }
+  },err=>toast(err.code===1?"Location is blocked. Allow location for this page, then try again.":"Couldn't get your location. Try again."),{enableHighAccuracy:true,timeout:15000,maximumAge:30000});
+}
+
+// ---------- end-of-day summary ----------
+function buildEOD(){
+  const today=dateKey(new Date()), dayTxt=new Date().toLocaleDateString(undefined,{weekday:"long",month:"numeric",day:"numeric"});
+  const done=Object.values(S.history).filter(x=>dateKey(new Date(x.at))===today).sort((a,b)=>a.at.localeCompare(b.at));
+  const open=S.calls.filter(c=>!isDone(c)&&!S.handed[c.order]);
+  const tiers=[0,0,0,0]; open.forEach(c=>tiers[tierOf(c)]++);
+  const handed=S.calls.filter(c=>S.handed[c.order]&&dateKey(new Date(S.handed[c.order]))===today);
+  const stores=new Set(done.map(x=>x.s));
+  let t=`End of day – ${dayTxt}\n\nCompleted today: ${done.length} call${done.length===1?"":"s"} at ${stores.size} store${stores.size===1?"":"s"}`;
+  done.forEach(x=>{ t+=`\n  ✔ ${new Date(x.at).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}  Store ${x.s}${x.city?" – "+x.city:""}: ${x.d} (#${x.o})`; });
+  t+=`\n\nStill open: ${open.length} call${open.length===1?"":"s"}`;
+  const past=tiers[1]+tiers[2]+tiers[3];
+  if(past) t+=`\n  Past due: ${past} (4+ days: ${tiers[3]} · 3 days: ${tiers[2]} · 1–2 days: ${tiers[1]})`;
+  const soon=open.filter(c=>fmtSoon(c)); if(soon.length) t+=`\n  Due in the next 2 days: ${soon.length}`;
+  if(handed.length){ t+=`\n\nHanded off today: ${handed.length}`; handed.forEach(c=>{ t+=`\n  ↗ Store ${c.store}: ${c.desc} (#${c.order})`; }); }
+  const rt=S.routeTotals; if(rt&&rt.stops) t+=`\n\nRemaining route: ${rt.stops} stop${rt.stops>1?"s":""}${rt.miles!=null?`, ≈ ${rt.miles.toFixed(0)} mi`:""}`;
+  return t;
+}
+function openEOD(){ $("eodText").value=buildEOD(); $("eodDlg").classList.add("show"); }
+function outlookCompose(subject, body){
+  const q=`subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  if(/iPhone|iPad|iPod|Android/.test(navigator.userAgent)) location.href="ms-outlook://compose?"+q;
+  else window.open("https://outlook.office.com/mail/deeplink/compose?"+q,"_blank","noopener");
+}
+
+// ---------- hand off a call or a stop ----------
+let handCalls=[];
+async function packCalls(calls, add){
+  const rows=calls.map(c=>["","",c.date,c.time,c.prioLabel,"P"+c.store,"","",c.serial||"",c.order,c.desc,c.wc||"",c.status==="—"?"":c.status,"",c.location||""].join("\t"));
+  return zip(JSON.stringify({v:1,a:add?1:0,c:rows.join("\n")}));
+}
+async function openHandoff(calls){
+  handCalls=calls.filter(c=>!isDone(c)); if(!handCalls.length) return;
+  const n=handCalls.length, st=handCalls[0].store;
+  $("handTitle").textContent = n>1 ? `Hand off store ${st}` : "Hand off this call";
+  $("handSum").textContent = `${n} call${n>1?"s":""} at store ${st}${S.stores[st]?" – "+S.stores[st].city:""}.`;
+  const packed=await packCalls(handCalls,true); handCalls.packed=packed;
+  const qr=$("handQR"); qr.style.display="none";
+  $("handHow").textContent="Copy and send it to your teammate in Teams, a text, or email. They paste the whole message into the planner with Paste a handoff.";
+  if(IS_ONLINE){
+    try{
+      await new Promise((res,rej)=>{ if(window.RouteQR) return res(); const s=document.createElement("script"); s.src="../qr.js"; s.onload=res; s.onerror=rej; document.head.appendChild(s); });
+      const dest = EDITION_CODE!=="ALL" ? EDITION_CODE : ((S.stores[st]||{}).state||"VA");
+      const link=`${SITE_URL}planners/${dest}.html#sync=h${Math.random().toString(36).slice(2,6)}.1.1.${packed}`;
+      if(link.length<1500){ RouteQR.draw(qr,RouteQR.make(link,"L"),6); qr.style.display=""; $("handHow").textContent="Teammate nearby? They scan this code with their phone camera. Otherwise, copy it and send it in Teams, a text, or email."; }
+    }catch(e){}
+  }
+  $("handDlg").classList.add("show");
+}
+function handoffText(){
+  const c0=handCalls[0], s=S.stores[c0.store];
+  let t=`Handing off ${handCalls.length} call${handCalls.length>1?"s":""} – Store ${c0.store}${s?" – "+fullAddr(c0.store):""}`;
+  handCalls.forEach(c=>{ t+=`\n• ${c.prioLabel.replace(/^\d\s*-\s*/,"")}: ${c.desc} (#${c.order})${fmtPast(c)?" – "+fmtPast(c):""}\n  ${ORDER_URL(c.order)}`; });
+  t+=`\n\nTo add these to Route Planner, copy this whole message and use Paste a handoff.\n${SYNC_TAG}${handCalls.packed}`;
+  return t;
+}
+function setupHandoff(){
+  document.addEventListener("click",e=>{
+    const b=e.target.closest("[data-hand],[data-handstop]"); if(!b) return;
+    e.preventDefault(); e.stopPropagation();
+    if(b.dataset.hand) openHandoff(S.calls.filter(c=>c.order===b.dataset.hand));
+    else openHandoff(dvCallsAt(b.dataset.handstop));
+  },true);
+  $("handCopy").onclick=()=>copyText(handoffText(),"Copied. Send it to your teammate.");
+  $("handHide").onclick=()=>{ const at=new Date().toISOString(); handCalls.forEach(c=>S.handed[c.order]=at); store.set("handed",S.handed);
+    $("handDlg").classList.remove("show"); toast(`Hidden from your list as handed off (${handCalls.length}).`); render(); if($("dayView").classList.contains("show")) openDayView(); };
+  $("handClose").onclick=()=>$("handDlg").classList.remove("show");
+  $("handDlg").onclick=e=>{ if(e.target.id==="handDlg") $("handDlg").classList.remove("show"); };
+}
+
 // ---------- day view ----------
 const DV={stops:[], idx:0};
 // Opens Google Maps (the app on phones) and starts driving directions right away.
@@ -1322,7 +1586,7 @@ function navLink(n){ const pt=S.coords[n]; const dest=pt?`${pt[0]},${pt[1]}`:ful
   return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dest)}&travelmode=driving&dir_action=navigate`; }
 function dvCallsAt(n){
   const today=dateKey(new Date());
-  return S.calls.filter(c=>c.store===n && (!isDone(c) || dateKey(new Date(S.done[c.order]))===today))
+  return S.calls.filter(c=>c.store===n && !S.handed[c.order] && (!isDone(c) || dateKey(new Date(S.done[c.order]))===today))
     .sort((a,b)=>(isDone(a)-isDone(b)) || (tierOf(b)-tierOf(a)) || (a.prio-b.prio) || ((a.due||0)-(b.due||0)));
 }
 function openDayView(){
@@ -1343,13 +1607,15 @@ function dvCard(n,i){
   const tel=(s.phone||"").replace(/[^0-9+]/g,"");
   const rows=cs.map(c=>{ const dn=isDone(c), t=tierOf(c);
     return `<label class="dv-call${dn?" isdone":""}"><input type="checkbox" data-dv="${esc(c.order)}" ${dn?"checked":""}>
-      <span class="d"><b>${esc(c.desc)}</b><span class="m"><span class="pri p${c.prio}">${esc(c.prioLabel)}</span> ${t&&!dn?`<span class="tier t${t}">${fmtPast(c)}</span> `:""}Order <a class="ord" href="${ORDER_HREF(c.order)}"${orderTarget()} onclick="event.stopPropagation()">${esc(c.order)}</a>${c.serial?" · SN "+esc(c.serial):""}</span></span></label>`; }).join("");
+      <span class="d"><b>${esc(c.desc)}</b>${dn?"":callTags(c)}<span class="m"><span class="pri p${c.prio}">${esc(c.prioLabel)}</span> ${t&&!dn?`<span class="tier t${t}">${fmtPast(c)}</span> `:""}Order <a class="ord" href="${ORDER_HREF(c.order)}"${orderTarget()} onclick="event.stopPropagation()">${esc(c.order)}</a>${c.serial?" · SN "+esc(c.serial):""}</span></span></label>`; }).join("");
   return `<section class="dv-card" data-i="${i}"><div class="dv-inner${allDone?" done":""}">
     <div class="dv-step">Stop ${i+1} of ${DV.stops.length}</div>
     <div class="dv-store">${shieldHTML(groupOf(n))}<b>${esc(n)}</b><span class="dv-addr">${esc(s.center||"")}</span></div>
     <div class="dv-addr">${esc(fullAddr(n))}</div>
     <div class="dv-acts"><a class="go" href="${navLink(n)}" target="_blank" rel="noopener">🧭 Navigate</a>${/iPhone|iPad|iPod/.test(navigator.userAgent)?`<a href="maps://?daddr=${encodeURIComponent(fullAddr(n))}&dirflg=d">Apple Maps</a>`:""}${tel?`<a href="tel:${esc(tel)}">📞 Call store</a>`:""}</div>
     ${rows||'<p class="hint">No open calls here anymore.</p>'}
+    ${storeRepeat(n)?`<div class="hint" style="margin-top:8px">${storeRepeat(n)}</div>`:""}
+    ${F("handoff")&&cs.some(c=>!isDone(c))?`<button class="hand" type="button" data-handstop="${esc(n)}" style="margin:10px 0 0">↗ Hand off this stop</button>`:""}
     <div class="dv-ok">✓ All calls at this stop are done</div>
   </div></section>`;
 }
@@ -1497,7 +1763,7 @@ function sendDestinations(){
 }
 let sendState={links:[],i:0};
 function syncPayload(){
-  const rows=S.calls.filter(c=>!isDone(c)).map(c=>["","",c.date,c.time,c.prioLabel,"P"+c.store,"","",c.serial||"",c.order,c.desc,c.wc||"",c.status==="—"?"":c.status,"",c.location||""].join("\t"));
+  const rows=S.calls.filter(c=>!isDone(c)&&!S.handed[c.order]).map(c=>["","",c.date,c.time,c.prioLabel,"P"+c.store,"","",c.serial||"",c.order,c.desc,c.wc||"",c.status==="—"?"":c.status,"",c.location||""].join("\t"));
   return {n:rows.length, json:JSON.stringify({v:1,c:rows.join("\n"),x:[...S.excluded],m:$("modeSel").value,r:$("roundTrip").checked,t:[...S.pastTiers],d:[...S.fDates],s:S.listSort,o:S.manual})};
 }
 async function buildSend(){
@@ -1535,6 +1801,15 @@ function setupSend(){
 }
 const SYNC_TAG="ROUTE2-TRANSFER:";
 function applySync(d){
+  if(d.a){   // handoff: add to the existing list, skipping calls already there
+    const have=new Set(S.calls.map(c=>c.order));
+    const add=(d.c||"").split("\n").filter(r=>{ const o=(r.split("\t")[9]||"").trim(); return o && !have.has(o); });
+    add.forEach(r=>{ const o=r.split("\t")[9].trim(); delete S.handed[o]; delete S.done[o]; });
+    store.set("handed",S.handed); store.set("done",S.done);
+    const cur=$("callsInput").value.replace(/\s+$/,"");
+    $("callsInput").value = cur ? cur+"\n"+add.join("\n") : add.join("\n");
+    $("loadBtn").click(); toast(`Added ${add.length} handed-off call${add.length===1?"":"s"}.`); return;
+  }
   $("callsInput").value=d.c||""; $("loadBtn").click();
   S.excluded=new Set(d.x||[]); store.set("excluded",[...S.excluded]);
   if(d.m){ $("modeSel").value=d.m; store.set("mode",d.m); }
@@ -1547,6 +1822,17 @@ function applySync(d){
 }
 function offerSync(d, packed, fromPaste){
   const count=d.c?d.c.split("\n").length:0;
+  if(d.a){
+    $("recvText").innerHTML=`Add <b>${count} handed-off call${count>1?"s":""}</b> to your list? Your current calls stay.`;
+    $("recvCopy").style.display = (!fromPaste && !IS_APP && /iPhone|iPad|iPod|Android/.test(navigator.userAgent)) ? "" : "none";
+    $("recvHint").textContent=""; $("recvYes").textContent="Add to my list";
+    $("recvDlg").classList.add("show");
+    $("recvNo").onclick=()=>$("recvDlg").classList.remove("show");
+    $("recvYes").onclick=()=>{ $("recvDlg").classList.remove("show"); applySync(d); };
+    $("recvCopy").onclick=()=>copyText(SYNC_TAG+packed,"Copied. Open the Route app and tap Paste transfer.");
+    return;
+  }
+  $("recvYes").textContent="Load here";
   $("recvText").innerHTML=`Load <b>${count} open call${count>1?"s":""}</b> and your route settings from your computer? This replaces the calls here. Calls you've marked Done stay done.`;
   // In a browser on a phone, offer to hand the transfer to the installed app (separate storage on iPhone).
   const showCopy=!fromPaste && !IS_APP && /iPhone|iPad|iPod|Android/.test(navigator.userAgent);
@@ -1567,10 +1853,10 @@ async function readTransfer(text){
   return {d:JSON.parse(await unzip(packed)), packed};
 }
 function setupPaste(){
-  const b=$("pasteBtn"); if(!b) return;
-  if(IS_APP || /iPhone|iPad|iPod|Android/.test(navigator.userAgent)) b.hidden=false;
+  const b=$("pasteBtn")||{};
+  if($("pasteBtn") && (IS_APP || /iPhone|iPad|iPod|Android/.test(navigator.userAgent))) b.hidden=false;
   const openBox=(msg)=>{ $("pasteBox").value=""; $("pasteMsg").textContent=msg||""; $("pasteDlg").classList.add("show"); };
-  b.onclick=async()=>{
+  b.onclick=$("pasteBtn2").onclick=async()=>{
     try{ const t=await navigator.clipboard.readText(); const r=await readTransfer(t); offerSync(r.d,r.packed,true); }
     catch(e){ openBox(e&&e.message==="none"?"Nothing to paste yet. On your phone's browser, scan the codes and choose Copy for the installed app first.":""); }
   };
@@ -1666,7 +1952,12 @@ async function checkUpdate(manual){
 // ---------- init ----------
 setupMode();
 setupFeedback();
-if(IS_ONLINE) setupPaste();
+setupPaste(); setupSettings(); setupHandoff();
+$("replanBtn").onclick=replanHere; $("dvReplan").onclick=replanHere;
+$("eodBtn").onclick=openEOD; $("eodClose").onclick=()=>$("eodDlg").classList.remove("show");
+$("eodCopy").onclick=()=>copyText($("eodText").value,"Summary copied.");
+$("eodMail").onclick=()=>outlookCompose(`End of day – ${new Date().toLocaleDateString()}`,$("eodText").value);
+$("eodDlg").onclick=e=>{ if(e.target.id==="eodDlg") $("eodDlg").classList.remove("show"); };
 if(IS_ONLINE) receiveSync();
 $("colList").innerHTML=COLS.map((n,i)=>`<span>${i+1}</span><span>${esc(n)}</span>`).join("");
 if(!store.get("callsText","")) $("sapHelp").open=true;
@@ -1689,6 +1980,7 @@ if(!Object.keys(S.stores).length) $("storeData").open=true;
 if($("startSel").value==="gps"){ gpsStatus(); locate(); }
 const saved=store.get("callsText","");
 if(saved){ $("callsInput").value=saved; $("loadBtn").click(); } else render();
+S.initDone=true; applyFeatures(); renderChanges();
 </script>
 </body>
 </html>
