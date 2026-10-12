@@ -2,7 +2,7 @@
 
 Plan a day of service calls: paste your calls, see them grouped by store, filter by how long they're past due, and get a driving order with Google Maps directions. Your calls and settings are saved in your own browser and never leave your device.
 
-**Current version: 2.9.2**
+**Current version: 3.0**
 
 ## Pick your planner
 
@@ -20,7 +20,8 @@ Plan a day of service calls: paste your calls, see them grouped by store, filter
 
 - **Use online** runs the planner right in your browser, on a phone or computer. Nothing to save, and it's always the newest version. Tap **☆ Bookmark** in its banner to bookmark it or add it to your home screen.
 - **Download** saves the planner file to your device so it works with no internet. Open the saved file in Edge or Chrome. Download again when a new version comes out.
-- The online version has a **Download offline copy** button in its banner. The offline version checks GitHub for new versions and shows a banner when one is ready.
+- The online version has **📱 Send to phone** in its banner: scan the QR codes with your phone's camera to move your open calls and route settings to your phone. The data travels only inside the codes; nothing is uploaded.
+- The online version also has a **Download offline copy** button in its banner. The offline version checks GitHub for new versions and shows a banner when one is ready.
 - Either way, your calls and settings are saved in your own browser and never leave your device.
 - Pick one way and stick with it, since each keeps its own saved data. To move data between them, use **Save backup file** and **Load backup file** in the planner.
 
@@ -53,8 +54,9 @@ If your columns are in a different order, change the layout in SAP (Ctrl+F8) and
 
 ## What's in this repository
 
-- `planners/` – every edition. `ALL.html` and `<STATE>.html` are always the newest; the versioned files (`route-planner-VA-v2.9.2.html`) are kept for reference.
+- `planners/` – every edition. `ALL.html` and `<STATE>.html` are always the newest; the versioned files (`route-planner-VA-v3.0.html`) are kept for reference.
 - `version.json` – newest version number, used by offline copies to check for updates
+- `qr.js` – QR code maker used by Send to phone (written for this project, no outside code)
 - `icons/` – app icons used when the planner is added to a home screen
 - `.github/workflows/update-stores.yml` – runs every morning: reads Publix's store locator, adds any new stores (never removes one), rebuilds every edition, and pushes the update
 - `index.html` – download page with every edition built in

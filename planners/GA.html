@@ -194,6 +194,24 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
   </div>
   <div class="upd" id="updBar" role="status"></div>
 </header>
+<div class="bmk" id="sendDlg" role="dialog" aria-modal="true" aria-labelledby="sendTitle">
+  <div class="box" style="max-width:460px;text-align:center">
+    <h3 id="sendTitle">Send to phone</h3>
+    <div id="sendDestRow" class="row" style="justify-content:center;margin:0 0 6px"><label for="sendDest" class="hint">Phone opens</label><select id="sendDest" style="width:auto"></select></div>
+    <p class="hint" id="sendSummary" style="margin:4px 0"></p>
+    <canvas id="sendQR" style="width:min(340px,80vw);height:auto;image-rendering:pixelated;border-radius:6px"></canvas>
+    <p id="sendStep" style="font-weight:700;margin:6px 0 2px"></p>
+    <p class="hint" style="margin:0 0 8px">Point your phone's camera at the code and tap the link. Your calls travel only inside the code, from this screen to your phone. Nothing is uploaded.</p>
+    <div class="row" style="justify-content:center"><button id="sendPrev">◀ Previous</button><button class="primary" id="sendNext">Next code ▶</button><button id="sendClose">Close</button></div>
+  </div>
+</div>
+<div class="bmk" id="recvDlg" role="dialog" aria-modal="true" aria-labelledby="recvTitle">
+  <div class="box">
+    <h3 id="recvTitle">Calls from your computer</h3>
+    <p id="recvText"></p>
+    <div class="row"><button id="recvNo">Cancel</button><button class="primary" id="recvYes">Load on this phone</button></div>
+  </div>
+</div>
 <div class="bmk" id="bmk" role="dialog" aria-modal="true" aria-labelledby="bmkTitle">
   <div class="box">
     <h3 id="bmkTitle">Bookmark this planner</h3>
@@ -383,10 +401,11 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
 
 <script>
 // ---------- version ----------
-const APP_VERSION = "2.9.2";
+const APP_VERSION = "3.0";
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["3.0", "Send to phone (online version): your open calls and route settings move from your computer to your phone by scanning QR codes with the phone's camera. Codes open your state's planner. Nothing is uploaded; the data travels only inside the codes."],
   ["2.9.2", "Phone numbers for newly added stores are formatted like the rest, for example (239) 397-6860."],
   ["2.9.1", "Store list update. Added 44 new stores: 1782 Naples, FL; 1800 Palm Beach Gardens, FL; 1841 Jacksonville, FL; 1861 Clearwater, FL; 1865 Kingsland, GA; 1888 Durham, NC; 1899 Palm Bay, FL; 2009 Nolensville, TN; 2014 Saint Augustine, FL; 2016 Hinesville, GA; 2022 Orlando, FL; 2029 Calabash, NC; 2035 Winter Haven, FL; 2037 Plantation, FL; 2040 Aiken, SC; 2043 Lakeland, FL; 2053 Owensboro, KY; 2055 Florence, KY; 2057 Cold Spring, KY; 2058 Independence, KY; 2059 Elizabethtown, KY; 2088 Davenport, FL; 2090 Charleston, SC; 2091 Englewood, FL; 2094 Saint Petersburg, FL; 2095 Spring Hill, FL; 2096 Saint Augustine Beach, FL; 2099 Bradenton, FL; 2100 Mauldin, SC; 2101 Fayetteville, NC; 2102 Locust Grove, GA; 2103 Jacksonville, FL; 2105 Mills River, NC; 2106 Farragut, TN; 2107 Winter Haven, FL; 2108 Bradenton, FL; 2109 Bainbridge, GA; 2112 Fernandina Beach, FL; 2113 Saint Augustine, FL; 2117 Winter Haven, FL; 2120 Wesley Chapel, NC; 2121 Apopka, FL; 2141 Ruskin, FL; 2145 Athens, AL. Filled in missing details for stores 1884, 2013, 2018, 1886, 2050."],
   ["2.9", "Store list updates automatically every day from Publix's store locator: new stores are added, none are ever removed. New Virginia stores show the group NEW until you assign one. Built-in stores are always included even if you've edited your store list."],
@@ -1320,7 +1339,8 @@ function setupMode(){
   const badge=$("modeBadge"), act=$("modeActions");
   if(IS_ONLINE){
     badge.className="modebadge online"; badge.textContent="Online version";
-    act.innerHTML=`<button class="hbtn" id="bmkBtn">☆ Bookmark</button> <button class="hbtn" id="dlSelf">Download offline copy</button>`;
+    act.innerHTML=`<button class="hbtn" id="sendBtn">📱 Send to phone</button> <button class="hbtn" id="bmkBtn">☆ Bookmark</button> <button class="hbtn" id="dlSelf">Download offline copy</button>`;
+    setupSend();
     setupBookmark();
     $("dlSelf").onclick=async()=>{
       try{
@@ -1340,6 +1360,96 @@ function setupMode(){
     $("updNow").onclick=()=>checkUpdate(true);
     if($("autoUpd").checked){ checkUpdate(false); setInterval(()=>checkUpdate(false), 6*3600*1000); }
   }
+}
+// ---------- send to phone (online version only) ----------
+const STATE_CODES=["AL","FL","GA","KY","NC","SC","TN","VA"];
+const STATE_NAMES={AL:"Alabama",FL:"Florida",GA:"Georgia",KY:"Kentucky",NC:"North Carolina",SC:"South Carolina",TN:"Tennessee",VA:"Virginia"};
+const b64u={ enc:u8=>{ let s=""; for(let i=0;i<u8.length;i+=0x8000) s+=String.fromCharCode.apply(null,u8.subarray(i,i+0x8000)); return btoa(s).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,""); },
+  dec:t=>{ t=t.replace(/-/g,"+").replace(/_/g,"/"); while(t.length%4) t+="="; const s=atob(t), u=new Uint8Array(s.length); for(let i=0;i<s.length;i++) u[i]=s.charCodeAt(i); return u; } };
+async function zip(str){
+  if(typeof CompressionStream==="undefined") return "0"+b64u.enc(new TextEncoder().encode(str));
+  const out=await new Response(new Blob([str]).stream().pipeThrough(new CompressionStream("deflate-raw"))).arrayBuffer();
+  return "1"+b64u.enc(new Uint8Array(out));
+}
+async function unzip(t){
+  const u=b64u.dec(t.slice(1));
+  if(t[0]==="0") return new TextDecoder().decode(u);
+  return await new Response(new Blob([u]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).text();
+}
+function sendDestinations(){
+  if(EDITION_CODE!=="ALL") return [EDITION_CODE];
+  const cnt={}; S.calls.filter(c=>!isDone(c)).forEach(c=>{ const st=(S.stores[c.store]||{}).state; if(STATE_CODES.includes(st)) cnt[st]=(cnt[st]||0)+1; });
+  const ranked=Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a]);
+  return ranked.concat(STATE_CODES.filter(s=>!ranked.includes(s)));
+}
+let sendState={links:[],i:0};
+function syncPayload(){
+  const rows=S.calls.filter(c=>!isDone(c)).map(c=>["","",c.date,c.time,c.prioLabel,"P"+c.store,"","",c.serial||"",c.order,c.desc,c.wc||"",c.status==="—"?"":c.status,"",c.location||""].join("\t"));
+  return {n:rows.length, json:JSON.stringify({v:1,c:rows.join("\n"),x:[...S.excluded],m:$("modeSel").value,r:$("roundTrip").checked,t:[...S.pastTiers],d:[...S.fDates],s:S.listSort,o:S.manual})};
+}
+async function buildSend(){
+  const dest=$("sendDest").value||EDITION_CODE, p=syncPayload();
+  if(!p.n){ $("sendSummary").textContent="There are no open calls to send. Load your calls first."; $("sendQR").style.display="none"; $("sendStep").textContent=""; return; }
+  const data=await zip(p.json), CH=700, id=Math.random().toString(36).slice(2,7), n=Math.ceil(data.length/CH);
+  sendState={links:[],i:0};
+  for(let i=0;i<n;i++) sendState.links.push(`${SITE_URL}planners/${dest}.html#sync=${id}.${i+1}.${n}.${data.slice(i*CH,(i+1)*CH)}`);
+  const away=S.calls.filter(c=>!isDone(c)&&EDITION_CODE==="ALL"&&(S.stores[c.store]||{}).state&&(S.stores[c.store]||{}).state!==dest&&!(dest==="VA"&&c.store==="1615")).length;
+  $("sendSummary").textContent=`${p.n} open call${p.n>1?"s":""} and your route settings → ${STATE_NAMES[dest]} planner.`+(away?` ${away} call${away>1?"s are":" is"} at stores outside ${STATE_NAMES[dest]} and will show without an address.`:"");
+  $("sendQR").style.display=""; showSendCode();
+}
+function showSendCode(){
+  const n=sendState.links.length, i=sendState.i, q=RouteQR.make(sendState.links[i],"L");
+  RouteQR.draw($("sendQR"),q,6);
+  $("sendStep").textContent = n>1 ? `Code ${i+1} of ${n}` : "Scan this code";
+  $("sendPrev").style.display = n>1 ? "" : "none"; $("sendNext").style.display = n>1 ? "" : "none";
+  $("sendPrev").disabled = i===0; $("sendNext").disabled = i===n-1;
+}
+function setupSend(){
+  let loaded=false;
+  const load=()=>new Promise((res,rej)=>{ if(window.RouteQR) return res(); const s=document.createElement("script"); s.src="../qr.js"; s.onload=res; s.onerror=rej; document.head.appendChild(s); });
+  $("sendBtn").onclick=async()=>{
+    try{ await load(); }catch(e){ $("savedNote").textContent="Send to phone couldn't start. Check your connection."; return; }
+    const d=sendDestinations();
+    $("sendDest").innerHTML=d.map(s=>`<option value="${s}">${STATE_NAMES[s]}</option>`).join("");
+    $("sendDestRow").style.display = EDITION_CODE==="ALL" ? "" : "none";
+    $("sendDlg").classList.add("show"); await buildSend();
+  };
+  $("sendDest").onchange=buildSend;
+  $("sendPrev").onclick=()=>{ if(sendState.i>0){ sendState.i--; showSendCode(); } };
+  $("sendNext").onclick=()=>{ if(sendState.i<sendState.links.length-1){ sendState.i++; showSendCode(); } };
+  $("sendClose").onclick=()=>$("sendDlg").classList.remove("show");
+  $("sendDlg").onclick=e=>{ if(e.target.id==="sendDlg") $("sendDlg").classList.remove("show"); };
+}
+async function receiveSync(){
+  const m=/^#sync=([a-z0-9]+)\.(\d+)\.(\d+)\.(.+)$/i.exec(location.hash);
+  if(!m) return;
+  history.replaceState(null,"",location.pathname+location.search);   // keep the data out of the address bar and history
+  const [,id,iS,nS,chunk]=m, i=+iS, n=+nS;
+  let st=store.get("syncParts",null);
+  if(!st||st.id!==id||Date.now()-st.at>30*60*1000) st={id,n,parts:{},at:Date.now()};
+  st.parts[i]=chunk; store.set("syncParts",st);
+  const have=Object.keys(st.parts).length;
+  if(have<n){ const msg=$("updBar"); msg.innerHTML=`<span><b>Got code ${have} of ${n}.</b> Scan the next code on your computer.</span>`; msg.classList.add("show"); return; }
+  let d;
+  try{ d=JSON.parse(await unzip(Array.from({length:n},(_,k)=>st.parts[k+1]).join(""))); }
+  catch(e){ store.set("syncParts",null); $("updBar").innerHTML="<span><b>That transfer didn't work.</b> Close Send to phone on your computer, open it again, and rescan.</span>"; $("updBar").classList.add("show"); return; }
+  store.set("syncParts",null);
+  const count=d.c?d.c.split("\n").length:0;
+  $("recvText").innerHTML=`Load <b>${count} open call${count>1?"s":""}</b> and your route settings from your computer? This replaces the calls on this phone. Calls you've marked Done here stay done.`;
+  $("recvDlg").classList.add("show");
+  $("recvNo").onclick=()=>$("recvDlg").classList.remove("show");
+  $("recvYes").onclick=()=>{
+    $("recvDlg").classList.remove("show");
+    $("callsInput").value=d.c||""; $("loadBtn").click();
+    S.excluded=new Set(d.x||[]); store.set("excluded",[...S.excluded]);
+    if(d.m){ $("modeSel").value=d.m; store.set("mode",d.m); }
+    $("roundTrip").checked=!!d.r; store.set("round",!!d.r);
+    S.pastTiers=new Set(d.t||[]); store.set("pastTiers",[...S.pastTiers]);
+    S.fDates=new Set(d.d||[]); store.set("fDates",[...S.fDates]);
+    if(d.s){ S.listSort=d.s; store.set("listSort",d.s); }
+    if(Array.isArray(d.o)){ S.manual=d.o; store.set("manual",d.o); }
+    render(); $("savedNote").textContent="Loaded from your computer.";
+  };
 }
 let installPrompt=null;
 window.addEventListener("beforeinstallprompt",e=>{ e.preventDefault(); installPrompt=e; const b=$("bmkBtn"); if(b) b.textContent="☆ Add to Home screen"; });
@@ -1384,6 +1494,7 @@ async function checkUpdate(manual){
 
 // ---------- init ----------
 setupMode();
+if(IS_ONLINE) receiveSync();
 $("colList").innerHTML=COLS.map((n,i)=>`<span>${i+1}</span><span>${esc(n)}</span>`).join("");
 if(!store.get("callsText","")) $("sapHelp").open=true;
 $("verTag").textContent="v"+APP_VERSION;

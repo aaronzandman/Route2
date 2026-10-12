@@ -194,6 +194,24 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
   </div>
   <div class="upd" id="updBar" role="status"></div>
 </header>
+<div class="bmk" id="sendDlg" role="dialog" aria-modal="true" aria-labelledby="sendTitle">
+  <div class="box" style="max-width:460px;text-align:center">
+    <h3 id="sendTitle">Send to phone</h3>
+    <div id="sendDestRow" class="row" style="justify-content:center;margin:0 0 6px"><label for="sendDest" class="hint">Phone opens</label><select id="sendDest" style="width:auto"></select></div>
+    <p class="hint" id="sendSummary" style="margin:4px 0"></p>
+    <canvas id="sendQR" style="width:min(340px,80vw);height:auto;image-rendering:pixelated;border-radius:6px"></canvas>
+    <p id="sendStep" style="font-weight:700;margin:6px 0 2px"></p>
+    <p class="hint" style="margin:0 0 8px">Point your phone's camera at the code and tap the link. Your calls travel only inside the code, from this screen to your phone. Nothing is uploaded.</p>
+    <div class="row" style="justify-content:center"><button id="sendPrev">◀ Previous</button><button class="primary" id="sendNext">Next code ▶</button><button id="sendClose">Close</button></div>
+  </div>
+</div>
+<div class="bmk" id="recvDlg" role="dialog" aria-modal="true" aria-labelledby="recvTitle">
+  <div class="box">
+    <h3 id="recvTitle">Calls from your computer</h3>
+    <p id="recvText"></p>
+    <div class="row"><button id="recvNo">Cancel</button><button class="primary" id="recvYes">Load on this phone</button></div>
+  </div>
+</div>
 <div class="bmk" id="bmk" role="dialog" aria-modal="true" aria-labelledby="bmkTitle">
   <div class="box">
     <h3 id="bmkTitle">Bookmark this planner</h3>
@@ -383,10 +401,11 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
 
 <script>
 // ---------- version ----------
-const APP_VERSION = "2.9.2";
+const APP_VERSION = "3.0";
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["3.0", "Send to phone (online version): your open calls and route settings move from your computer to your phone by scanning QR codes with the phone's camera. Codes open your state's planner. Nothing is uploaded; the data travels only inside the codes."],
   ["2.9.2", "Phone numbers for newly added stores are formatted like the rest, for example (239) 397-6860."],
   ["2.9.1", "Store list update. Added 44 new stores: 1782 Naples, FL; 1800 Palm Beach Gardens, FL; 1841 Jacksonville, FL; 1861 Clearwater, FL; 1865 Kingsland, GA; 1888 Durham, NC; 1899 Palm Bay, FL; 2009 Nolensville, TN; 2014 Saint Augustine, FL; 2016 Hinesville, GA; 2022 Orlando, FL; 2029 Calabash, NC; 2035 Winter Haven, FL; 2037 Plantation, FL; 2040 Aiken, SC; 2043 Lakeland, FL; 2053 Owensboro, KY; 2055 Florence, KY; 2057 Cold Spring, KY; 2058 Independence, KY; 2059 Elizabethtown, KY; 2088 Davenport, FL; 2090 Charleston, SC; 2091 Englewood, FL; 2094 Saint Petersburg, FL; 2095 Spring Hill, FL; 2096 Saint Augustine Beach, FL; 2099 Bradenton, FL; 2100 Mauldin, SC; 2101 Fayetteville, NC; 2102 Locust Grove, GA; 2103 Jacksonville, FL; 2105 Mills River, NC; 2106 Farragut, TN; 2107 Winter Haven, FL; 2108 Bradenton, FL; 2109 Bainbridge, GA; 2112 Fernandina Beach, FL; 2113 Saint Augustine, FL; 2117 Winter Haven, FL; 2120 Wesley Chapel, NC; 2121 Apopka, FL; 2141 Ruskin, FL; 2145 Athens, AL. Filled in missing details for stores 1884, 2013, 2018, 1886, 2050."],
   ["2.9", "Store list updates automatically every day from Publix's store locator: new stores are added, none are ever removed. New Virginia stores show the group NEW until you assign one. Built-in stores are always included even if you've edited your store list."],
@@ -411,72 +430,87 @@ const CHANGELOG = [
   ["1.0", "Import calls, group by store, filters, route ordering, Google Maps directions."]
 ];
 // ===EDITION-START===
-const EDITION = {id:"state-TN", name:"Service Route Planner \u2013 Tennessee", key:"rp-TN.", resetLabel:"Restore Tennessee store list", groupBy:"city"};
-const DEFAULT_GROUPS = ``;
-const DEFAULT_STORES = `Store #	Shopping Center	Address	City	State	Zip	Phone	Latitude	Longitude
-119	Indian Lake Marketplace	110 Indian Lake Blvd	Hendersonville	TN	37075-6206	(615) 264-1350	36.310326	-86.60525
-123	Bellevue Center	7604 Highway 70 S	Nashville	TN	37221-1852	(615) 646-1870	36.07842	-86.94549
-142	Cool Springs Festival	8105 Moores Ln	Brentwood	TN	37027-8020	(615) 221-9880	35.963474	-86.80216
-160	Harpeth Village	2020 Fieldstone Pkwy	Franklin	TN	37069-4337	(615) 599-1825	35.964565	-86.883
-176	Franklin Marketplace	1021 Riverside Dr	Franklin	TN	37064-6500	(615) 591-3285	35.912518	-86.82829
-182	Oakwood Commons	4670 Lebanon Pike	Hermitage	TN	37076-1314	(615) 874-0898	36.217186	-86.59337
-1016	Parkway Town Centre	661 President Pl	Smyrna	TN	37167-5671	(615) 220-1919	35.97982	-86.55493
-1021	Marketplace at Maryland Farms	101 Creekside Xing	Brentwood	TN	37027-1062	(615) 507-1505	36.0369	-86.798805
-1031	McKay's Mill Village Center	1400 Liberty Pike Ste 200	Franklin	TN	37067-8628	(615) 591-4061	35.92483	-86.795746
-1033	Greensboro Village	1483 Nashville Pike	Gallatin	TN	37066-7144	(615) 451-6285	36.359604	-86.49569
-1047	Spring Hill Village	4935 Main St	Spring Hill	TN	37174-2735	(615) 302-4068	35.775105	-86.91837
-1057	Concord Village	10638 Concord Rd	Brentwood	TN	37027-8811	(615) 941-8871	35.997143	-86.69183
-1116	Nippers Corner	15544 Old Hickory Blvd	Nashville	TN	37211-7329	(615) 331-4912	36.04101	-86.74143
-1133	Publix at Harpeth Village	8028 Highway 100	Nashville	TN	37221-4212	(615) 673-2347	36.04716	-86.95227
-1141	Caldwell Square	460 Long Hollow Pike	Goodlettsville	TN	37072-3480	(615) 851-7180	36.3315	-86.69917
-1163	Kensington Place Shopping Center	1731 S Rutherford Blvd Ste S	Murfreesboro	TN	37130-5957	(615) 849-4290	35.81333	-86.36847
-1164	Publix at North Murfreesboro	3415 Memorial Blvd	Murfreesboro	TN	37129-3640	(615) 849-6254	35.912144	-86.386
-1165	Hurricane Creek	8644 E Brainerd Rd	Chattanooga	TN	37421-8325	(423) 296-1903	34.999165	-85.13403
-1166	Creek Plantation Village	5928 Hixson Pike Ste 112	Hixson	TN	37343-4839	(423) 847-8461	35.147335	-85.20735
-1172	Market at Victory Village	4175 Franklin Rd	Murfreesboro	TN	37128-4119	(615) 494-3196	35.84199	-86.471825
-1175	Lebanon Center	1703 W Main St	Lebanon	TN	37087-3193	(615) 444-2581	36.223503	-86.34521
-1211	Hill Center at Belle Meade	4324 Harding Pike	Nashville	TN	37205-2202	(615) 279-2038	36.126785	-86.84753
-1220	Mt Juliet Village	11207 Lebanon Rd	Mount Juliet	TN	37122-5545	(615) 758-4200	36.233017	-86.5144
-1234	Market at Salem Cove	2650 New Salem Hwy	Murfreesboro	TN	37128-5265	(615) 895-7096	35.812706	-86.45771
-1235	Mt View Marketplace	3532 Murfreesboro Pike	Antioch	TN	37013-2210	(615) 501-8250	36.05345	-86.614914
-1238	The Shops of Lee Village	1640 Lee Victory Pkwy	Smyrna	TN	37167-6529	(615) 223-9101	35.941505	-86.52754
-1244	Snow Hill Village	5958 Snow Hill Rd Ste 168	Ooltewah	TN	37363-7834	(423) 238-1032	35.09058	-85.0643
-1268	Providence Commons	665 S Mount Juliet Rd	Mount Juliet	TN	37122-6483	(615) 773-0250	36.161266	-86.51256
-1298	Hill Center at Nashville West	6614 Charlotte Pike	Nashville	TN	37209-4202	(615) 352-1055	36.140236	-86.88297
-1356	Publix at Mouse Creek	635 Paul Huff Pkwy NW	Cleveland	TN	37312-2970	(423) 476-4022	35.209568	-84.86069
-1360	Bowie Commons	7014 City Center Way	Fairview	TN	37062-6004	(615) 799-3474	35.97349	-87.13114
-1392	Madison Street Commons	1771 Madison St	Clarksville	TN	37043-4990	(931) 551-7031	36.51563	-87.3132
-1415	Publix at Turkey Creek	11656 Parkside Dr	Knoxville	TN	37934-2659	(865) 675-3018	35.89353	-84.17003
-1416	Northshore Town Center	2010 Town Center Blvd	Knoxville	TN	37922-6677	(865) 470-0720	35.860603	-84.07646
-1418	University Commons	2429 University Commons Way	Knoxville	TN	37919	(865) 522-6313	35.94992	-83.93972
-1425	Shoppes at Peachers Mill	1490 Tiny Town Rd	Clarksville	TN	37042-7201	(931) 503-2551	36.625175	-87.37263
-1426	The Crossings	2324 Lebanon Pike	Nashville	TN	37214-2411	(615) 884-2665	36.170834	-86.68387
-1460	Publix on North Market Street	400 N Market St	Chattanooga	TN	37405-4433	(423) 755-7901	35.065063	-85.30836
-1515	Valley Forge Shopping Center	2656 Parkway	Pigeon Forge	TN	37863-3246	(865) 774-2030	35.802597	-83.57625
-1529	Berry Farms Town Center	5021 Hughes Crossing Blvd	Franklin	TN	37064	(615) 595-2021	35.863697	-86.8431
-1543	Fairgrounds Plaza	2321 E Andrew Johnson Hwy	Greeneville	TN	37745	(423) 636-1478	36.18022	-82.78244
-1613	Northgate Mall	1600 N Jackson St Ste 340	Tullahoma	TN	37388	(931) 455-6032	35.380245	-86.22652
-1621	Village at Waterside	7326 McCutcheon Rd	Chattanooga	TN	37421	(423) 855-1376	35.043793	-85.15007
-1633	Markets West at Franklin	509 N State of Franklin Rd Ste 20	Johnson City	TN	37604	(423) 926-1260	36.313084	-82.38906
-1634	The Shoppes at Eagle Point	1265 Interstate Dr Ste 111	Cookeville	TN	38501-4135	(931) 526-8830	36.1385	-85.50757
-1648	Sango Square	920 Hwy 76	Clarksville	TN	37043	(931) 358-2257	36.52266	-87.23441
-1665	Publix at Melrose	2223 8th Ave S	Nashville	TN	37204	(615) 279-9470	36.128822	-86.77856
-1680	Capitol View	1010 Dr Martin L King Jr Blvd	Nashville	TN	37203	(615) 259-6072	36.16331	-86.789734
-1713	Smoky Mountain Gateway	750 Winfield Dunn Pkwy Ste 100	Sevierville	TN	37876	(865) 429-1734	35.88291	-83.57406
-1731	Publix at Mount Vernon Point	3535 Broad St	Chattanooga	TN	37409	(423) 668-5233	35.015038	-85.32541
-1732	Hill Center Greenwood	1111 Gallatin Ave	Nashville	TN	37206	(615) 226-7100	36.1898	-86.7449
-1739	The Shops at Windsong	211 Maharris Dr	Gallatin	TN	37066	(615) 989-9989	36.364582	-86.44221
-1778	Westlawn	5229 Veterans Pkwy	Murfreesboro	TN	37128-4377	(615) 995-7914	35.860924	-86.50897
-1779	Foothills Mall	198 Foothills Mall	Maryville	TN	37801-2310	(865) 518-0971	35.744446	-83.99438
-1780	Newman's Crossing	1931 Long Hollow Pike	Gallatin	TN	37066-8591	(615) 230-7647	36.382328	-86.54891
-1801	Hickory Ridge Shopping Center	445 Hwy 109 N	Lebanon	TN	37090	(615) 443-4349	36.19268	-86.410095
-1802	Walker Farms Shopping Center	2300 Trenton Rd	Clarksville	TN	37040	(931) 553-5067	36.577137	-87.31543
-1863	Shops at Enclave	1688 Ooltewah Ringgold Rd Ste 100	Ooltewah	TN	37363	(423) 508-6834	34.999672	-85.09461
-2009	Village Green	7344 Nolensville Rd	Nolensville	TN	37135	(629) 529-8036	35.949902	-86.664896
-2020	White House Shops	453 Hwy 76	White House	TN	37188	(615) 581-6132	36.46734	-86.66399
-2036	Spring Hill Towne Crossing	1021 Jim Warren Pkwy	Spring Hill	TN	37174	(931) 487-5038	35.732	-86.89
-2106	Westerly Commons	13123 Kingston Pike	Farragut	TN	37934	(865) 672-5008	35.862803	-84.223535`;
-const DEFAULT_COORDS = ``;
+const EDITION = {id:"local", name:"Service Route Planner – Virginia", key:"rp.", resetLabel:"Restore defaults"};
+const DEFAULT_GROUPS = `P1566	B
+P1587	B
+P1588	C
+P1589	B
+P1590	B
+P1591	B
+P1592	D
+P1593	C
+P1594	D
+P1595	B
+P1596	C
+P1615	F
+P1626	C
+P1632	A
+P1635	E
+P1636	D
+P1643	D
+P1679	D
+P1694	D
+P1720	A
+P1883	E
+P1885	A
+P2025	E
+P2030	E
+P2032	E`;
+
+const DEFAULT_STORES = `Store number	Division	Shopping center	Address	City	State	Zip code	County	Phone	Square footage	Ad day	Open date
+1566	Charlotte	Nuckols Place	5400 Wyndham Forest Dr	Glen Allen	VA	23059	Henrico	804-527-5334	54191	Wednesday	7/15/2017
+1587	Charlotte	Short Pump Crossing Shopping Center	3460 Pump Rd	Henrico	VA	23233-1111	Henrico	804-364-6314	63331	Wednesday
+1588	Charlotte	Carytown Exchange	3535 Ellwood Ave	Richmond	VA	23221	Richmond (Independent City)	804-253-6372	45600	Wednesday	12/9/2020
+1589	Charlotte	The Shoppes At Crossridge	10250 Staples Mill Rd	Glen Allen	VA	23060-3064	Henrico	804-755-2360	51487	Wednesday	7/29/2017
+1590	Charlotte	John Rolfe Commons	2250 John Rolfe Pkwy	Henrico	VA	23233-6913	Henrico	804-360-4920	56680	Wednesday	8/19/2017
+1591	Charlotte	Virginia Center Marketplace	10150 Brook Rd	Glen Allen	VA	23059-6514	Henrico	804-262-8190	63300	Wednesday
+1592	Charlotte	Harbour Pointe Shopping Center	13700 Hull Street Rd	Midlothian	VA	23112-2000	Chesterfield	804-739-1160	63557	Wednesday	11/4/2017
+1593	Charlotte	The Village Shopping Center	7035 Three Chopt Rd	Richmond	VA	23226	Henrico	804-288-1070	47395	Wednesday	8/28/2019
+1594	Charlotte	Colonial Square Shopping Center	3007 Boulevard	Colonial Heights	VA	23834-2445	Colonial Heights (Independent City)	804-520-4520	63100	Wednesday	11/1/2017
+1595	Charlotte	Westpark Shopping Center	9645 W Broad St	Glen Allen	VA	23060	Henrico	804-965-6303	49300	Wednesday	5/29/2019
+1596	Charlotte	White Oak Village	4591 S Laburnum Ave	Richmond	VA	23231-2421	Henrico	804-226-1915	61069	Wednesday	8/5/2017
+1626	Charlotte	Brandy Creek Commons	6603 Mechanicsville Tpke	Mechanicsville	VA	23111	Hanover	804-569-3902	50160	Wednesday	1/5/2019
+1632	Charlotte	Publix At Cosner's Corner	9601 Patriot Hwy	Fredericksburg	VA	22407	Spotsylvania	540-898-6801	49098	Wednesday	7/25/2018
+1635	Charlotte	Monticello Marketplace	4660 Monticello Ave	Williamsburg	VA	23188	James City	757-564-5902	62901	Wednesday
+1636	Charlotte	The Shops At Stratford Hills	7045 Forest Hill Ave	Richmond	VA	23225	Richmond (Independent City)	804-323-4110	54400	Wednesday	7/25/2018
+1643	Charlotte	Cosby Village	7200 Cosby Village Rd	Chesterfield	VA	23832	Chesterfield	804-639-6525	50280	Wednesday
+1679	Charlotte	Huguenot Village	2015 Huguenot Rd	North Chesterfield	VA	23235	Chesterfield	804-330-3704	49533	Wednesday	8/26/2020
+1694	Charlotte	Charter Colony Shopping Center	200 Charter Colony Pkwy	Midlothian	VA	23114	Chesterfield	804-378-3222	48387	Wednesday	6/10/2020
+1720	Charlotte	Embrey Mill Town Center	1640 Publix Way	Stafford	VA	22554	Stafford	540-288-9280	48387	Wednesday
+1883	Charlotte	Publix At Planters Station	3189 Godwin Blvd	Suffolk	VA	23434-8694	Suffolk (Independent City)	757-942-6032	46791	Wednesday
+1885	Charlotte	Chancellor Crossing	5940 Plank Rd	Fredericksburg	VA	22407-6232	Spotsylvania	540-736-6013	48387	Wednesday
+2025	Charlotte	Bartlett Station	22449 Spadea Way	Carrollton	VA	23314	Isle Of Wight	757-542-6041	48387	Wednesday	1/15/2025
+2030	Charlotte	Hickman Place	2200 General Booth Blvd	Virginia Beach	VA	23454	Virginia Beach (Independent City)	757-716-6015	49235	Wednesday
+2032	Charlotte	Dominion Station	1620 Cedar Rd STE 100	Chesapeake	VA	23322-7197	Chesapeake (Independent City)	757-550-6044	48387	Wednesday	4/23/2025
+1615	Charlotte	Publix At First Flight Square	1530 N Croatan Hwy	Kill Devil Hills	NC	27948	Dare	252-255-5006	45600	Wednesday	2/28/2018`;
+
+// Map positions from the company store list, used for mileage estimates and ordering.
+const DEFAULT_COORDS = `1566	37.68397	-77.586555
+1587	37.648952	-77.615845
+1588	37.5569	-77.48806
+1589	37.656944	-77.525856
+1590	37.62254	-77.62402
+1591	37.675133	-77.4631
+1592	37.410347	-77.65613
+1593	37.590977	-77.53272
+1594	37.268887	-77.41047
+1595	37.640015	-77.56325
+1596	37.525627	-77.35183
+1626	37.6109	-77.33578
+1632	38.219112	-77.50658
+1635	37.27248	-76.758385
+1636	37.534405	-77.52457
+1643	37.40154	-77.70873
+1679	37.519875	-77.612816
+1694	37.50507	-77.65897
+1720	38.426	-77.43402
+1883	36.786213	-76.59072
+1885	38.291405	-77.57935
+2025	36.94319	-76.53447
+2030	36.76458	-76.01289
+2032	36.728184	-76.299904
+1615	36.027336	-75.671135`;
+
 // ===EDITION-END===
 
 const COLS = ["Order Type","MaintActivType","Basic fin. date","Earliest finish","Priority","Customer","Personnel No.","Activity","Serial Number","Order","Description","Oper.WorkCenter","User status","Material","Location"];
@@ -1156,7 +1190,8 @@ function setupMode(){
   const badge=$("modeBadge"), act=$("modeActions");
   if(IS_ONLINE){
     badge.className="modebadge online"; badge.textContent="Online version";
-    act.innerHTML=`<button class="hbtn" id="bmkBtn">☆ Bookmark</button> <button class="hbtn" id="dlSelf">Download offline copy</button>`;
+    act.innerHTML=`<button class="hbtn" id="sendBtn">📱 Send to phone</button> <button class="hbtn" id="bmkBtn">☆ Bookmark</button> <button class="hbtn" id="dlSelf">Download offline copy</button>`;
+    setupSend();
     setupBookmark();
     $("dlSelf").onclick=async()=>{
       try{
@@ -1176,6 +1211,96 @@ function setupMode(){
     $("updNow").onclick=()=>checkUpdate(true);
     if($("autoUpd").checked){ checkUpdate(false); setInterval(()=>checkUpdate(false), 6*3600*1000); }
   }
+}
+// ---------- send to phone (online version only) ----------
+const STATE_CODES=["AL","FL","GA","KY","NC","SC","TN","VA"];
+const STATE_NAMES={AL:"Alabama",FL:"Florida",GA:"Georgia",KY:"Kentucky",NC:"North Carolina",SC:"South Carolina",TN:"Tennessee",VA:"Virginia"};
+const b64u={ enc:u8=>{ let s=""; for(let i=0;i<u8.length;i+=0x8000) s+=String.fromCharCode.apply(null,u8.subarray(i,i+0x8000)); return btoa(s).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,""); },
+  dec:t=>{ t=t.replace(/-/g,"+").replace(/_/g,"/"); while(t.length%4) t+="="; const s=atob(t), u=new Uint8Array(s.length); for(let i=0;i<s.length;i++) u[i]=s.charCodeAt(i); return u; } };
+async function zip(str){
+  if(typeof CompressionStream==="undefined") return "0"+b64u.enc(new TextEncoder().encode(str));
+  const out=await new Response(new Blob([str]).stream().pipeThrough(new CompressionStream("deflate-raw"))).arrayBuffer();
+  return "1"+b64u.enc(new Uint8Array(out));
+}
+async function unzip(t){
+  const u=b64u.dec(t.slice(1));
+  if(t[0]==="0") return new TextDecoder().decode(u);
+  return await new Response(new Blob([u]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).text();
+}
+function sendDestinations(){
+  if(EDITION_CODE!=="ALL") return [EDITION_CODE];
+  const cnt={}; S.calls.filter(c=>!isDone(c)).forEach(c=>{ const st=(S.stores[c.store]||{}).state; if(STATE_CODES.includes(st)) cnt[st]=(cnt[st]||0)+1; });
+  const ranked=Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a]);
+  return ranked.concat(STATE_CODES.filter(s=>!ranked.includes(s)));
+}
+let sendState={links:[],i:0};
+function syncPayload(){
+  const rows=S.calls.filter(c=>!isDone(c)).map(c=>["","",c.date,c.time,c.prioLabel,"P"+c.store,"","",c.serial||"",c.order,c.desc,c.wc||"",c.status==="—"?"":c.status,"",c.location||""].join("\t"));
+  return {n:rows.length, json:JSON.stringify({v:1,c:rows.join("\n"),x:[...S.excluded],m:$("modeSel").value,r:$("roundTrip").checked,t:[...S.pastTiers],d:[...S.fDates],s:S.listSort,o:S.manual})};
+}
+async function buildSend(){
+  const dest=$("sendDest").value||EDITION_CODE, p=syncPayload();
+  if(!p.n){ $("sendSummary").textContent="There are no open calls to send. Load your calls first."; $("sendQR").style.display="none"; $("sendStep").textContent=""; return; }
+  const data=await zip(p.json), CH=700, id=Math.random().toString(36).slice(2,7), n=Math.ceil(data.length/CH);
+  sendState={links:[],i:0};
+  for(let i=0;i<n;i++) sendState.links.push(`${SITE_URL}planners/${dest}.html#sync=${id}.${i+1}.${n}.${data.slice(i*CH,(i+1)*CH)}`);
+  const away=S.calls.filter(c=>!isDone(c)&&EDITION_CODE==="ALL"&&(S.stores[c.store]||{}).state&&(S.stores[c.store]||{}).state!==dest&&!(dest==="VA"&&c.store==="1615")).length;
+  $("sendSummary").textContent=`${p.n} open call${p.n>1?"s":""} and your route settings → ${STATE_NAMES[dest]} planner.`+(away?` ${away} call${away>1?"s are":" is"} at stores outside ${STATE_NAMES[dest]} and will show without an address.`:"");
+  $("sendQR").style.display=""; showSendCode();
+}
+function showSendCode(){
+  const n=sendState.links.length, i=sendState.i, q=RouteQR.make(sendState.links[i],"L");
+  RouteQR.draw($("sendQR"),q,6);
+  $("sendStep").textContent = n>1 ? `Code ${i+1} of ${n}` : "Scan this code";
+  $("sendPrev").style.display = n>1 ? "" : "none"; $("sendNext").style.display = n>1 ? "" : "none";
+  $("sendPrev").disabled = i===0; $("sendNext").disabled = i===n-1;
+}
+function setupSend(){
+  let loaded=false;
+  const load=()=>new Promise((res,rej)=>{ if(window.RouteQR) return res(); const s=document.createElement("script"); s.src="../qr.js"; s.onload=res; s.onerror=rej; document.head.appendChild(s); });
+  $("sendBtn").onclick=async()=>{
+    try{ await load(); }catch(e){ $("savedNote").textContent="Send to phone couldn't start. Check your connection."; return; }
+    const d=sendDestinations();
+    $("sendDest").innerHTML=d.map(s=>`<option value="${s}">${STATE_NAMES[s]}</option>`).join("");
+    $("sendDestRow").style.display = EDITION_CODE==="ALL" ? "" : "none";
+    $("sendDlg").classList.add("show"); await buildSend();
+  };
+  $("sendDest").onchange=buildSend;
+  $("sendPrev").onclick=()=>{ if(sendState.i>0){ sendState.i--; showSendCode(); } };
+  $("sendNext").onclick=()=>{ if(sendState.i<sendState.links.length-1){ sendState.i++; showSendCode(); } };
+  $("sendClose").onclick=()=>$("sendDlg").classList.remove("show");
+  $("sendDlg").onclick=e=>{ if(e.target.id==="sendDlg") $("sendDlg").classList.remove("show"); };
+}
+async function receiveSync(){
+  const m=/^#sync=([a-z0-9]+)\.(\d+)\.(\d+)\.(.+)$/i.exec(location.hash);
+  if(!m) return;
+  history.replaceState(null,"",location.pathname+location.search);   // keep the data out of the address bar and history
+  const [,id,iS,nS,chunk]=m, i=+iS, n=+nS;
+  let st=store.get("syncParts",null);
+  if(!st||st.id!==id||Date.now()-st.at>30*60*1000) st={id,n,parts:{},at:Date.now()};
+  st.parts[i]=chunk; store.set("syncParts",st);
+  const have=Object.keys(st.parts).length;
+  if(have<n){ const msg=$("updBar"); msg.innerHTML=`<span><b>Got code ${have} of ${n}.</b> Scan the next code on your computer.</span>`; msg.classList.add("show"); return; }
+  let d;
+  try{ d=JSON.parse(await unzip(Array.from({length:n},(_,k)=>st.parts[k+1]).join(""))); }
+  catch(e){ store.set("syncParts",null); $("updBar").innerHTML="<span><b>That transfer didn't work.</b> Close Send to phone on your computer, open it again, and rescan.</span>"; $("updBar").classList.add("show"); return; }
+  store.set("syncParts",null);
+  const count=d.c?d.c.split("\n").length:0;
+  $("recvText").innerHTML=`Load <b>${count} open call${count>1?"s":""}</b> and your route settings from your computer? This replaces the calls on this phone. Calls you've marked Done here stay done.`;
+  $("recvDlg").classList.add("show");
+  $("recvNo").onclick=()=>$("recvDlg").classList.remove("show");
+  $("recvYes").onclick=()=>{
+    $("recvDlg").classList.remove("show");
+    $("callsInput").value=d.c||""; $("loadBtn").click();
+    S.excluded=new Set(d.x||[]); store.set("excluded",[...S.excluded]);
+    if(d.m){ $("modeSel").value=d.m; store.set("mode",d.m); }
+    $("roundTrip").checked=!!d.r; store.set("round",!!d.r);
+    S.pastTiers=new Set(d.t||[]); store.set("pastTiers",[...S.pastTiers]);
+    S.fDates=new Set(d.d||[]); store.set("fDates",[...S.fDates]);
+    if(d.s){ S.listSort=d.s; store.set("listSort",d.s); }
+    if(Array.isArray(d.o)){ S.manual=d.o; store.set("manual",d.o); }
+    render(); $("savedNote").textContent="Loaded from your computer.";
+  };
 }
 let installPrompt=null;
 window.addEventListener("beforeinstallprompt",e=>{ e.preventDefault(); installPrompt=e; const b=$("bmkBtn"); if(b) b.textContent="☆ Add to Home screen"; });
@@ -1220,6 +1345,7 @@ async function checkUpdate(manual){
 
 // ---------- init ----------
 setupMode();
+if(IS_ONLINE) receiveSync();
 $("colList").innerHTML=COLS.map((n,i)=>`<span>${i+1}</span><span>${esc(n)}</span>`).join("");
 if(!store.get("callsText","")) $("sapHelp").open=true;
 $("verTag").textContent="v"+APP_VERSION;
