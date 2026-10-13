@@ -706,12 +706,13 @@ const ERRLOG=[];
   window.addEventListener("unhandledrejection",e=>add("Promise: "+((e.reason&&e.reason.message)||e.reason)));
 })();
 // ---------- version ----------
-const APP_VERSION = "4.9";
+const APP_VERSION = "4.10";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const GC_CODE = "";   // GoatCounter site code for anonymous usage counts (blank = nothing is sent)
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["4.10", "How to get your calls from SAP now always starts collapsed; tap it to open."],
   ["4.9", "Automatic updates: an open planner checks for a new version every 30 minutes and when you come back to it, and refreshes itself (never while you're typing or have a window open). Your calls and settings stay."],
   ["4.8", "New dispatch calls from Companion: choose Reroute now (re-plans from where you are) or Keep my route (your stop order stays the same and the new store goes at the end) right from Companion's notification."],
   ["4.7", "Past calls from Companion: after importing past dispatch texts in Companion, send them to Route Planner and they appear in History (by the day the text arrived), and count toward repeat-issue alerts and Your stats."],
@@ -1542,7 +1543,7 @@ $("loadBtn").onclick=()=>{
     // Nothing readable was pasted: keep the current list instead of wiping it.
     const m0=$("importMsg"); m0.className="msg err";
     m0.textContent="Nothing to load: that isn't SAP rows or a dispatch text. Your calls were not changed. See How to get your calls from SAP.";
-    $("callsInput").value=store.get("callsText",""); $("sapHelp").open=true; return;
+    $("callsInput").value=store.get("callsText",""); return;
   }
   const prevCalls=S.calls;
   S.calls=calls; S.known={groups:new Set(),prio:new Set(),status:new Set()};
@@ -1555,7 +1556,6 @@ $("loadBtn").onclick=()=>{
     (errors.length?` Skipped line${errors.length>1?"s":""} ${errors.join(", ")}: fewer than 11 tab-separated columns.`:"") +
     (unknown.length?` Stores not in your store list: ${unknown.join(", ")}.`:"") +
     (warnings.length?" "+warnings.join(" ")+" See How to get your calls from SAP.":"");
-  if(warnings.length||errors.length) $("sapHelp").open=true;
   backfillHistory();
   if(S.addingTexts!==undefined){
     const a=S.addingTexts, sk=S.skippedTexts; delete S.addingTexts; delete S.skippedTexts;
@@ -2554,7 +2554,6 @@ $("eodMail").onclick=()=>outlookCompose(`End of day – ${new Date().toLocaleDat
 $("eodDlg").onclick=e=>{ if(e.target.id==="eodDlg") $("eodDlg").classList.remove("show"); };
 if(IS_ONLINE) receiveSync();
 $("colList").innerHTML=COLS.map((n,i)=>`<span>${i+1}</span><span>${esc(n)}</span>`).join("");
-if(!store.get("callsText","")) $("sapHelp").open=true;
 $("verTag").textContent="v"+APP_VERSION;
 $("appName").textContent=EDITION.name;
 document.title=EDITION.name+" v"+APP_VERSION;
