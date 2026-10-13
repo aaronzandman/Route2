@@ -776,12 +776,13 @@ const ERRLOG=[];
   window.addEventListener("unhandledrejection",e=>add("Promise: "+((e.reason&&e.reason.message)||e.reason)));
 })();
 // ---------- version ----------
-const APP_VERSION = "4.23";
+const APP_VERSION = "4.24";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const GC_CODE = "";   // GoatCounter site code for anonymous usage counts (blank = nothing is sent)
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["4.24", "The route list shows how many days old each stop's oldest call is, with the same colors."],
   ["4.23", "Route options → Stop order: \"Strictly oldest due first\" (nearly the same as Most past due first) is replaced by Oldest call start date first, which visits stores in the order their calls were put in. The list sort is renamed Call start date."],
   ["4.22", "Sort the store list by days old: oldest first or newest first (Sort menu above the stores)."],
   ["4.21", "Call age now comes from SAP itself: the due date and severity give the day the call was put in (Sev 1 same day by midnight, Sev 2 next day by 5 PM, Sev 3 72 hours, Sev 4 120 hours). Hover a badge to see the date."],
@@ -2734,6 +2735,12 @@ function orderStops(start, stops, mode, round){
   }
   return optimize(start, withPt, round).concat(noPt);
 }
+// Oldest open call at a stop, as a days-old badge (same colors as on the calls).
+function stopAge(s){
+  if(!F("age")) return "";
+  let a=null; s.calls.forEach(c=>{ const x=callAge(c); if(x&&(!a||x.t<a.t)) a=x; }); if(!a) return "";
+  return ` <span class="tag age ${a.cls}" title="${esc((s.calls.length>1?"Oldest call here. ":"")+a.title)}">${a.cls==="f"?"🔥":"📅"} ${a.est?"≈":""}${a.days} day${a.days===1?"":"s"} old</span>`;
+}
 function dvToggle(){ const on=S.lastOrder.length>0 && F("dayview"); $("dvFab").classList.toggle("has",on); $("dvBtn").style.display=on?"":"none"; }
 function renderRoute(groups){
   const stops=groups.filter(g=>!S.excluded.has(g.num));
@@ -2752,7 +2759,7 @@ function renderRoute(groups){
     const li=document.createElement("li"); li.className="stop"; li.dataset.i=i; li.dataset.n=s.num;
     li.innerHTML=`<span class="num">${i+1}</span>
       <div><div class="t">${shieldHTML(groupOf(s.num),"sm")} ${esc(s.num)} ${s0?"· "+esc(s0.city):""}</div>
-      <div class="leg">${s.calls.length} call${s.calls.length>1?"s":""}${s.extra&&s.extra.length?` + ${s.extra.length} more open`:""}, top priority ${esc(s.calls[0].prioLabel)}${s.tier?` <span class="tier t${s.tier}">${tierLabel(s.tier)}</span>`:""}</div>
+      <div class="leg">${s.calls.length} call${s.calls.length>1?"s":""}${s.extra&&s.extra.length?` + ${s.extra.length} more open`:""}, top priority ${esc(s.calls[0].prioLabel)}${s.tier?` <span class="tier t${s.tier}">${tierLabel(s.tier)}</span>`:""}${stopAge(s)}</div>
       ${leg?`<div class="leg">${leg}</div>`:""}</div>
       <div class="mv">${mode==="manual"?`<button aria-label="Move up" data-up="${i}">▲</button><button aria-label="Move down" data-down="${i}">▼</button>`:""}</div>`;
     list.appendChild(li);
