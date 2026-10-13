@@ -695,8 +695,8 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
           <option value="group">By group</option>
           <option value="most">Days past due: most first</option>
           <option value="least">Days past due: least first</option>
-          <option value="old">Days old: oldest first</option>
-          <option value="new">Days old: newest first</option>
+          <option value="old">Call start date: oldest first</option>
+          <option value="new">Call start date: newest first</option>
         </select>
         <button id="copyList">📋 Copy list</button>
         <button id="histBtn">🗓 History</button>
@@ -729,7 +729,7 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
       <option value="optimize">Shortest drive (approx.)</option>
       <option value="priority">Highest priority first, then shortest</option>
       <option value="pasttier">Most past due first, then shortest</option>
-      <option value="due">Strictly oldest due first</option>
+      <option value="start">Oldest call start date first</option>
       <option value="manual">Manual (drag or use arrows)</option>
     </select>
     <label class="incl" style="margin-top:10px"><input type="checkbox" id="roundTrip"> Return to start</label>
@@ -776,12 +776,13 @@ const ERRLOG=[];
   window.addEventListener("unhandledrejection",e=>add("Promise: "+((e.reason&&e.reason.message)||e.reason)));
 })();
 // ---------- version ----------
-const APP_VERSION = "4.22";
+const APP_VERSION = "4.23";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const GC_CODE = "";   // GoatCounter site code for anonymous usage counts (blank = nothing is sent)
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["4.23", "Route options → Stop order: \"Strictly oldest due first\" (nearly the same as Most past due first) is replaced by Oldest call start date first, which visits stores in the order their calls were put in. The list sort is renamed Call start date."],
   ["4.22", "Sort the store list by days old: oldest first or newest first (Sort menu above the stores)."],
   ["4.21", "Call age now comes from SAP itself: the due date and severity give the day the call was put in (Sev 1 same day by midnight, Sev 2 next day by 5 PM, Sev 3 72 hours, Sev 4 120 hours). Hover a badge to see the date."],
   ["4.20", "Call age colors: 0–3 days green, 4–5 yellow, 6 orange, 7–8 red, 9+ days 🔥 fire."],
@@ -1092,7 +1093,7 @@ function fmtPast(c){
 const TIERS=[{k:1,label:"1–2 days"},{k:2,label:"3 days"},{k:3,label:"4+ days"},{k:0,label:"Not yet due"}];
 function tierOf(c){ const d=pastDays(c); if(d===null||d<=0) return 0; const w=Math.floor(d); return w>=4?3:w===3?2:1; }
 const tierLabel = t => (TIERS.find(x=>x.k===t)||{}).label;
-const pastSortMode = () => ["pasttier","due"].includes($("modeSel").value);
+const pastSortMode = () => $("modeSel").value==="pasttier";
 function customRange(){
   const lo=parseInt(S.pastLo), hi=parseInt(S.pastHi);
   return (isNaN(lo)&&isNaN(hi)) ? null : {lo:isNaN(lo)?null:Math.max(0,lo), hi:isNaN(hi)?null:Math.max(0,hi)};
@@ -1304,9 +1305,9 @@ function orderStops(start, stops, mode, round){
     stops.forEach(s=>{ if(!S.manual.includes(s.num)) seq.push(s); });
     return seq;
   }
-  if(mode==="due"){
-    seq=stops.slice().sort((a,b)=>(a.earliest||Infinity)-(b.earliest||Infinity) || a.best-b.best);
-    return seq;
+  if(mode==="start"){   // the store whose oldest open call was put in first comes first
+    const made=s=>{ let m=Infinity; s.calls.forEach(c=>{ const a=callAge(c); if(a&&a.t<m) m=a.t; }); return m; };
+    return stops.slice().sort((a,b)=>made(a)-made(b) || a.best-b.best);
   }
   if(mode==="priority" || mode==="pasttier"){
     const key = mode==="pasttier" ? (s=>-s.tier) : (s=>s.best);
@@ -1694,7 +1695,7 @@ $("pastClear").onclick=()=>{ S.pastLo=""; S.pastHi=""; S.pastTiers.clear(); $("p
 function setPastPriority(on){
   const sel=$("modeSel");
   if(on){ if(!pastSortMode()) store.set("prevMode",sel.value); sel.value="pasttier"; S.listSort="most"; store.set("listSort","most"); }
-  else { const p=store.get("prevMode","optimize"); sel.value=["pasttier","due"].includes(p)?"optimize":p; }
+  else { const p=store.get("prevMode","optimize"); sel.value=p==="pasttier"?"optimize":p; }
   store.set("mode",sel.value); render();
 }
 $("listSort").onchange=e=>{ S.listSort=e.target.value; store.set("listSort",S.listSort); render(); };
@@ -1708,7 +1709,7 @@ $("startSel").onchange=e=>{ store.set("start",e.target.value); showStartExtras(e
 $("gpsBtn").onclick=locate;
 $("startStore").oninput=e=>{ store.set("startStore",e.target.value.trim()); storeStartStatus(); render(); };
 ["startAddr","startCoords"].forEach(id=>{ $(id).value=store.get(id,""); $(id).oninput=e=>{ store.set(id,e.target.value); render(); }; });
-$("modeSel").value=store.get("mode","optimize");
+$("modeSel").value=(m=>m==="due"?"start":m)(store.get("mode","optimize"));   // "Strictly oldest due first" became "Oldest call start date first" in 4.23
 $("modeSel").onchange=e=>{
   if(e.target.value==="manual"){ S.manual=S.lastOrder.slice(); store.set("manual",S.manual); }
   store.set("mode",e.target.value); render();
@@ -2022,7 +2023,7 @@ function replanHere(){
   navigator.geolocation.getCurrentPosition(pos=>{
     S.gps={lat:pos.coords.latitude,lng:pos.coords.longitude,acc:pos.coords.accuracy,at:Date.now()}; store.set("gps",S.gps);
     $("startSel").value="gps"; store.set("start","gps"); showStartExtras("gps"); gpsStatus();
-    if($("modeSel").value==="manual"||$("modeSel").value==="due"){ $("modeSel").value="optimize"; store.set("mode","optimize"); }
+    if($("modeSel").value==="manual"||$("modeSel").value==="start"){ $("modeSel").value="optimize"; store.set("mode","optimize"); }
     render();
     const next=S.lastOrder[0]; toast(next?`Re-planned from here. Next stop: store ${next}${S.stores[next]?" in "+S.stores[next].city:""}.`:"Re-planned from here.");
     if($("dayView").classList.contains("show")){ openDayView(); }
@@ -2481,7 +2482,7 @@ function applySync(d){
   }
   $("callsInput").value=d.c||""; $("loadBtn").click();
   S.excluded=new Set(d.x||[]); store.set("excluded",[...S.excluded]);
-  if(d.m){ $("modeSel").value=d.m; store.set("mode",d.m); }
+  if(d.m){ const m=d.m==="due"?"start":d.m; $("modeSel").value=m; store.set("mode",m); }
   $("roundTrip").checked=!!d.r; store.set("round",!!d.r);
   S.pastTiers=new Set(d.t||[]); store.set("pastTiers",[...S.pastTiers]);
   S.fDates=new Set(d.d||[]); store.set("fDates",[...S.fDates]);
@@ -2505,7 +2506,7 @@ function applyNewCall(d){
   if(d.gps&&isFinite(d.gps.lat)&&isFinite(d.gps.lng)){
     S.gps={lat:+d.gps.lat,lng:+d.gps.lng,acc:50,at:Date.now()}; store.set("gps",S.gps);
     $("startSel").value="gps"; store.set("start","gps"); showStartExtras("gps"); gpsStatus();
-    if($("modeSel").value==="manual"||$("modeSel").value==="due"){ $("modeSel").value="optimize"; store.set("mode","optimize"); }
+    if($("modeSel").value==="manual"||$("modeSel").value==="start"){ $("modeSel").value="optimize"; store.set("mode","optimize"); }
     render(); const next=S.lastOrder[0];
     toast(`New call added and route re-planned.${next?` Next stop: store ${next}${S.stores[next]?" in "+S.stores[next].city:""}.`:""}`);
   } else replanHere();

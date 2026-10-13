@@ -695,8 +695,8 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
           <option value="group">By group</option>
           <option value="most">Days past due: most first</option>
           <option value="least">Days past due: least first</option>
-          <option value="old">Days old: oldest first</option>
-          <option value="new">Days old: newest first</option>
+          <option value="old">Call start date: oldest first</option>
+          <option value="new">Call start date: newest first</option>
         </select>
         <button id="copyList">📋 Copy list</button>
         <button id="histBtn">🗓 History</button>
@@ -729,7 +729,7 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
       <option value="optimize">Shortest drive (approx.)</option>
       <option value="priority">Highest priority first, then shortest</option>
       <option value="pasttier">Most past due first, then shortest</option>
-      <option value="due">Strictly oldest due first</option>
+      <option value="start">Oldest call start date first</option>
       <option value="manual">Manual (drag or use arrows)</option>
     </select>
     <label class="incl" style="margin-top:10px"><input type="checkbox" id="roundTrip"> Return to start</label>
@@ -776,12 +776,13 @@ const ERRLOG=[];
   window.addEventListener("unhandledrejection",e=>add("Promise: "+((e.reason&&e.reason.message)||e.reason)));
 })();
 // ---------- version ----------
-const APP_VERSION = "4.22";
+const APP_VERSION = "4.23";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const GC_CODE = "";   // GoatCounter site code for anonymous usage counts (blank = nothing is sent)
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["4.23", "Route options → Stop order: \"Strictly oldest due first\" (nearly the same as Most past due first) is replaced by Oldest call start date first, which visits stores in the order their calls were put in. The list sort is renamed Call start date."],
   ["4.22", "Sort the store list by days old: oldest first or newest first (Sort menu above the stores)."],
   ["4.21", "Call age now comes from SAP itself: the due date and severity give the day the call was put in (Sev 1 same day by midnight, Sev 2 next day by 5 PM, Sev 3 72 hours, Sev 4 120 hours). Hover a badge to see the date."],
   ["4.20", "Call age colors: 0–3 days green, 4–5 yellow, 6 orange, 7–8 red, 9+ days 🔥 fire."],
@@ -842,26 +843,87 @@ const CHANGELOG = [
   ["1.0", "Import calls, group by store, filters, route ordering, Google Maps directions."]
 ];
 // ===EDITION-START===
-const EDITION = {id:"state-KY", name:"Service Route Planner \u2013 Kentucky", key:"rp-KY.", resetLabel:"Restore Kentucky store list", groupBy:"city"};
-const DEFAULT_GROUPS = ``;
-const DEFAULT_STORES = `Store #	Shopping Center	Address	City	State	Zip	Phone	Latitude	Longitude
-1846	Terra Crossing	2500 Terra Crossing Blvd	Louisville	KY	40245-5374	(502) 885-7662	38.27257	-85.49839
-1847	Publix at Marshall Commons	10005 Ballardsville Rd	Louisville	KY	40241-1202	(502) 302-7925	38.31706	-85.560394
-1887	The Fountains At Palomar	3855 Fountainblue Ln	Lexington	KY	40513	(859) 469-7337	38.003456	-84.57397
-2050	Publix at Flat Rock	150 Flat Rock Rd	Louisville	KY	40245	(502) 912-5403	38.236137	-85.445526
-2051	Citation Point	1952 Stockton Way	Lexington	KY	40511-2412	(859) 286-8293	38.095634	-84.51252
-2052	Triple Crown Shopping Center	430 Richwood Rd	Walton	KY	41094	(859) 379-1137	38.913414	-84.636505
-2053	Gateway Commons	3370 Hayden Rd	Owensboro	KY	42303	(270) 215-3915	37.767458	-87.062537
-2055	Farmview Commons	8740 US Hwy 42	Florence	KY	41042	(859) 938-1052	38.967207	-84.673345
-2057	Cold Spring Pointe	5401 Alexandria Pike	Cold Spring	KY	41076	(859) 908-6007	39.001796	-84.4217
-2058	Publix at Independence	5135 Jenkins Dr	Independence	KY	41051	(859) 898-5036	38.928628	-84.544058
-2059	The Shops at Pear Orchard	1311 Pear Orchard Rd Suite 100	Elizabethtown	KY	42701	(270) 740-5249	37.735684	-85.86062
-3646	Terra Crossing	2502 Terra Crossing Blvd	Louisville	KY	40245-5374	(502) 302-6531	38.27257	-85.49839
-3647	Publix at Marshall Commons	10015 Ballardsville Rd	Louisville	KY	40241-1202	(502) 313-7027		
-3651	Citation Point	1976 Stockton Way	Lexington	KY	40511-2412	(859) 286-8931	38.095634	-84.51252
-3652	Triple Crown Shopping Center	420 Richwood Rd	Walton	KY	41094	(859) 379-1139	38.913414	-84.636505
-3687	The Fountains At Palomar	3825 Fountainblue Ln	Lexington	KY	40513	(859) 469-7339	38.003456	-84.57397`;
-const DEFAULT_COORDS = ``;
+const EDITION = {id:"local", name:"Service Route Planner – Virginia", key:"rp.", resetLabel:"Restore defaults"};
+const DEFAULT_GROUPS = `P1566	B
+P1587	B
+P1588	C
+P1589	B
+P1590	B
+P1591	B
+P1592	D
+P1593	C
+P1594	D
+P1595	B
+P1596	C
+P1615	F
+P1626	C
+P1632	A
+P1635	E
+P1636	D
+P1643	D
+P1679	D
+P1694	D
+P1720	A
+P1883	E
+P1885	A
+P2025	E
+P2030	E
+P2032	E`;
+
+const DEFAULT_STORES = `Store number	Division	Shopping center	Address	City	State	Zip code	County	Phone	Square footage	Ad day	Open date
+1566	Charlotte	Nuckols Place	5400 Wyndham Forest Dr	Glen Allen	VA	23059	Henrico	804-527-5334	54191	Wednesday	7/15/2017
+1587	Charlotte	Short Pump Crossing Shopping Center	3460 Pump Rd	Henrico	VA	23233-1111	Henrico	804-364-6314	63331	Wednesday
+1588	Charlotte	Carytown Exchange	3535 Ellwood Ave	Richmond	VA	23221	Richmond (Independent City)	804-253-6372	45600	Wednesday	12/9/2020
+1589	Charlotte	The Shoppes At Crossridge	10250 Staples Mill Rd	Glen Allen	VA	23060-3064	Henrico	804-755-2360	51487	Wednesday	7/29/2017
+1590	Charlotte	John Rolfe Commons	2250 John Rolfe Pkwy	Henrico	VA	23233-6913	Henrico	804-360-4920	56680	Wednesday	8/19/2017
+1591	Charlotte	Virginia Center Marketplace	10150 Brook Rd	Glen Allen	VA	23059-6514	Henrico	804-262-8190	63300	Wednesday
+1592	Charlotte	Harbour Pointe Shopping Center	13700 Hull Street Rd	Midlothian	VA	23112-2000	Chesterfield	804-739-1160	63557	Wednesday	11/4/2017
+1593	Charlotte	The Village Shopping Center	7035 Three Chopt Rd	Richmond	VA	23226	Henrico	804-288-1070	47395	Wednesday	8/28/2019
+1594	Charlotte	Colonial Square Shopping Center	3007 Boulevard	Colonial Heights	VA	23834-2445	Colonial Heights (Independent City)	804-520-4520	63100	Wednesday	11/1/2017
+1595	Charlotte	Westpark Shopping Center	9645 W Broad St	Glen Allen	VA	23060	Henrico	804-965-6303	49300	Wednesday	5/29/2019
+1596	Charlotte	White Oak Village	4591 S Laburnum Ave	Richmond	VA	23231-2421	Henrico	804-226-1915	61069	Wednesday	8/5/2017
+1626	Charlotte	Brandy Creek Commons	6603 Mechanicsville Tpke	Mechanicsville	VA	23111	Hanover	804-569-3902	50160	Wednesday	1/5/2019
+1632	Charlotte	Publix At Cosner's Corner	9601 Patriot Hwy	Fredericksburg	VA	22407	Spotsylvania	540-898-6801	49098	Wednesday	7/25/2018
+1635	Charlotte	Monticello Marketplace	4660 Monticello Ave	Williamsburg	VA	23188	James City	757-564-5902	62901	Wednesday
+1636	Charlotte	The Shops At Stratford Hills	7045 Forest Hill Ave	Richmond	VA	23225	Richmond (Independent City)	804-323-4110	54400	Wednesday	7/25/2018
+1643	Charlotte	Cosby Village	7200 Cosby Village Rd	Chesterfield	VA	23832	Chesterfield	804-639-6525	50280	Wednesday
+1679	Charlotte	Huguenot Village	2015 Huguenot Rd	North Chesterfield	VA	23235	Chesterfield	804-330-3704	49533	Wednesday	8/26/2020
+1694	Charlotte	Charter Colony Shopping Center	200 Charter Colony Pkwy	Midlothian	VA	23114	Chesterfield	804-378-3222	48387	Wednesday	6/10/2020
+1720	Charlotte	Embrey Mill Town Center	1640 Publix Way	Stafford	VA	22554	Stafford	540-288-9280	48387	Wednesday
+1883	Charlotte	Publix At Planters Station	3189 Godwin Blvd	Suffolk	VA	23434-8694	Suffolk (Independent City)	757-942-6032	46791	Wednesday
+1885	Charlotte	Chancellor Crossing	5940 Plank Rd	Fredericksburg	VA	22407-6232	Spotsylvania	540-736-6013	48387	Wednesday
+2025	Charlotte	Bartlett Station	22449 Spadea Way	Carrollton	VA	23314	Isle Of Wight	757-542-6041	48387	Wednesday	1/15/2025
+2030	Charlotte	Hickman Place	2200 General Booth Blvd	Virginia Beach	VA	23454	Virginia Beach (Independent City)	757-716-6015	49235	Wednesday
+2032	Charlotte	Dominion Station	1620 Cedar Rd STE 100	Chesapeake	VA	23322-7197	Chesapeake (Independent City)	757-550-6044	48387	Wednesday	4/23/2025
+1615	Charlotte	Publix At First Flight Square	1530 N Croatan Hwy	Kill Devil Hills	NC	27948	Dare	252-255-5006	45600	Wednesday	2/28/2018`;
+
+// Map positions from the company store list, used for mileage estimates and ordering.
+const DEFAULT_COORDS = `1566	37.68397	-77.586555
+1587	37.648952	-77.615845
+1588	37.5569	-77.48806
+1589	37.656944	-77.525856
+1590	37.62254	-77.62402
+1591	37.675133	-77.4631
+1592	37.410347	-77.65613
+1593	37.590977	-77.53272
+1594	37.268887	-77.41047
+1595	37.640015	-77.56325
+1596	37.525627	-77.35183
+1626	37.6109	-77.33578
+1632	38.219112	-77.50658
+1635	37.27248	-76.758385
+1636	37.534405	-77.52457
+1643	37.40154	-77.70873
+1679	37.519875	-77.612816
+1694	37.50507	-77.65897
+1720	38.426	-77.43402
+1883	36.786213	-76.59072
+1885	38.291405	-77.57935
+2025	36.94319	-76.53447
+2030	36.76458	-76.01289
+2032	36.728184	-76.299904
+1615	36.027336	-75.671135`;
+
 // ===EDITION-END===
 
 const COLS = ["Order Type","MaintActivType","Basic fin. date","Earliest finish","Priority","Customer","Personnel No.","Activity","Serial Number","Order","Description","Oper.WorkCenter","User status","Material","Location"];
@@ -1033,7 +1095,7 @@ function fmtPast(c){
 const TIERS=[{k:1,label:"1–2 days"},{k:2,label:"3 days"},{k:3,label:"4+ days"},{k:0,label:"Not yet due"}];
 function tierOf(c){ const d=pastDays(c); if(d===null||d<=0) return 0; const w=Math.floor(d); return w>=4?3:w===3?2:1; }
 const tierLabel = t => (TIERS.find(x=>x.k===t)||{}).label;
-const pastSortMode = () => ["pasttier","due"].includes($("modeSel").value);
+const pastSortMode = () => $("modeSel").value==="pasttier";
 function customRange(){
   const lo=parseInt(S.pastLo), hi=parseInt(S.pastHi);
   return (isNaN(lo)&&isNaN(hi)) ? null : {lo:isNaN(lo)?null:Math.max(0,lo), hi:isNaN(hi)?null:Math.max(0,hi)};
@@ -1245,9 +1307,9 @@ function orderStops(start, stops, mode, round){
     stops.forEach(s=>{ if(!S.manual.includes(s.num)) seq.push(s); });
     return seq;
   }
-  if(mode==="due"){
-    seq=stops.slice().sort((a,b)=>(a.earliest||Infinity)-(b.earliest||Infinity) || a.best-b.best);
-    return seq;
+  if(mode==="start"){   // the store whose oldest open call was put in first comes first
+    const made=s=>{ let m=Infinity; s.calls.forEach(c=>{ const a=callAge(c); if(a&&a.t<m) m=a.t; }); return m; };
+    return stops.slice().sort((a,b)=>made(a)-made(b) || a.best-b.best);
   }
   if(mode==="priority" || mode==="pasttier"){
     const key = mode==="pasttier" ? (s=>-s.tier) : (s=>s.best);
@@ -1635,7 +1697,7 @@ $("pastClear").onclick=()=>{ S.pastLo=""; S.pastHi=""; S.pastTiers.clear(); $("p
 function setPastPriority(on){
   const sel=$("modeSel");
   if(on){ if(!pastSortMode()) store.set("prevMode",sel.value); sel.value="pasttier"; S.listSort="most"; store.set("listSort","most"); }
-  else { const p=store.get("prevMode","optimize"); sel.value=["pasttier","due"].includes(p)?"optimize":p; }
+  else { const p=store.get("prevMode","optimize"); sel.value=p==="pasttier"?"optimize":p; }
   store.set("mode",sel.value); render();
 }
 $("listSort").onchange=e=>{ S.listSort=e.target.value; store.set("listSort",S.listSort); render(); };
@@ -1649,7 +1711,7 @@ $("startSel").onchange=e=>{ store.set("start",e.target.value); showStartExtras(e
 $("gpsBtn").onclick=locate;
 $("startStore").oninput=e=>{ store.set("startStore",e.target.value.trim()); storeStartStatus(); render(); };
 ["startAddr","startCoords"].forEach(id=>{ $(id).value=store.get(id,""); $(id).oninput=e=>{ store.set(id,e.target.value); render(); }; });
-$("modeSel").value=store.get("mode","optimize");
+$("modeSel").value=(m=>m==="due"?"start":m)(store.get("mode","optimize"));   // "Strictly oldest due first" became "Oldest call start date first" in 4.23
 $("modeSel").onchange=e=>{
   if(e.target.value==="manual"){ S.manual=S.lastOrder.slice(); store.set("manual",S.manual); }
   store.set("mode",e.target.value); render();
@@ -1963,7 +2025,7 @@ function replanHere(){
   navigator.geolocation.getCurrentPosition(pos=>{
     S.gps={lat:pos.coords.latitude,lng:pos.coords.longitude,acc:pos.coords.accuracy,at:Date.now()}; store.set("gps",S.gps);
     $("startSel").value="gps"; store.set("start","gps"); showStartExtras("gps"); gpsStatus();
-    if($("modeSel").value==="manual"||$("modeSel").value==="due"){ $("modeSel").value="optimize"; store.set("mode","optimize"); }
+    if($("modeSel").value==="manual"||$("modeSel").value==="start"){ $("modeSel").value="optimize"; store.set("mode","optimize"); }
     render();
     const next=S.lastOrder[0]; toast(next?`Re-planned from here. Next stop: store ${next}${S.stores[next]?" in "+S.stores[next].city:""}.`:"Re-planned from here.");
     if($("dayView").classList.contains("show")){ openDayView(); }
@@ -2422,7 +2484,7 @@ function applySync(d){
   }
   $("callsInput").value=d.c||""; $("loadBtn").click();
   S.excluded=new Set(d.x||[]); store.set("excluded",[...S.excluded]);
-  if(d.m){ $("modeSel").value=d.m; store.set("mode",d.m); }
+  if(d.m){ const m=d.m==="due"?"start":d.m; $("modeSel").value=m; store.set("mode",m); }
   $("roundTrip").checked=!!d.r; store.set("round",!!d.r);
   S.pastTiers=new Set(d.t||[]); store.set("pastTiers",[...S.pastTiers]);
   S.fDates=new Set(d.d||[]); store.set("fDates",[...S.fDates]);
@@ -2446,7 +2508,7 @@ function applyNewCall(d){
   if(d.gps&&isFinite(d.gps.lat)&&isFinite(d.gps.lng)){
     S.gps={lat:+d.gps.lat,lng:+d.gps.lng,acc:50,at:Date.now()}; store.set("gps",S.gps);
     $("startSel").value="gps"; store.set("start","gps"); showStartExtras("gps"); gpsStatus();
-    if($("modeSel").value==="manual"||$("modeSel").value==="due"){ $("modeSel").value="optimize"; store.set("mode","optimize"); }
+    if($("modeSel").value==="manual"||$("modeSel").value==="start"){ $("modeSel").value="optimize"; store.set("mode","optimize"); }
     render(); const next=S.lastOrder[0];
     toast(`New call added and route re-planned.${next?` Next stop: store ${next}${S.stores[next]?" in "+S.stores[next].city:""}.`:""}`);
   } else replanHere();
