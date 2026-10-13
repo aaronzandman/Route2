@@ -563,6 +563,7 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
 <div class="bmk" id="mapDlg" role="dialog" aria-modal="true" aria-labelledby="mapTitle">
   <div class="box">
     <div class="maphead"><h3 id="mapTitle">Route map</h3><span class="hint" id="mapSum"></span><span style="flex:1"></span>
+      <label class="hint" id="mapGrpWrap" style="display:none;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="mapGrp"> Show groups</label>
       <button id="mapOpt" type="button" title="Put back the planner's order (your Stop order setting)">Re-optimize</button><button id="mapGo" type="button">Open in Google Maps</button><button class="primary" id="mapClose" type="button">Close</button></div>
     <ol class="stops dnd" id="mapStops"></ol>
     <div id="mapView"></div>
@@ -762,12 +763,13 @@ const ERRLOG=[];
   window.addEventListener("unhandledrejection",e=>add("Promise: "+((e.reason&&e.reason.message)||e.reason)));
 })();
 // ---------- version ----------
-const APP_VERSION = "4.15";
+const APP_VERSION = "4.16";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const GC_CODE = "";   // GoatCounter site code for anonymous usage counts (blank = nothing is sent)
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["4.16", "Virginia: the route map shades each route group (A–F) in its own color under your stops. Turn it off with Show groups at the top of the map."],
   ["4.15", "Maps now use OpenStreetMap's own map pictures: no API key or sign-up needed."],
   ["4.14", "Route options → Start from → A store: just type the number, no drop-down list, and any Publix store works, in every state, not only the stores in this edition."],
   ["4.13", "Virginia: ☰ Menu → 🗺 Route groups shows each group (A–F) with its area and store numbers, on a map that shades each area."],
@@ -1400,7 +1402,7 @@ async function openMap(){
     baseTiles(MAP,"mapView");
     MAPL=L.layerGroup().addTo(MAP);
   }
-  setTimeout(()=>{ MAP.invalidateSize(); drawMap(true); },30);
+  setTimeout(()=>{ MAP.invalidateSize(); drawGroupsOverlay(); drawMap(true); },30);
 }
 function syncMap(fit){
   const t=S.routeTotals||{}, ml=$("mapStops");
@@ -1409,6 +1411,12 @@ function syncMap(fit){
   $("mapOpt").disabled = $("modeSel").value!=="manual";
   $("mapGo").disabled = !S.mapLinks || !S.mapLinks.length;
   drawMap(fit);
+}
+let MAPG=null;
+function drawGroupsOverlay(){
+  if(!MAP) return;
+  if(MAPG){ MAP.removeLayer(MAPG); MAPG=null; }
+  if(EDITION.id==="local" && $("mapGrp").checked){ MAPG=groupAreas(false).layer.addTo(MAP); if(MAPL) MAPL.eachLayer(l=>l.setZIndexOffset&&l.setZIndexOffset(1000)); }
 }
 function drawMap(fit){
   if(!MAP) return; MAPL.clearLayers();
@@ -1419,9 +1427,12 @@ function drawMap(fit){
       .on("click",()=>{ const li=$("mapStops").querySelector(`li[data-i="${i}"]`); if(li){ li.scrollIntoView({block:"center",behavior:"smooth"}); li.classList.add("flash"); setTimeout(()=>li.classList.remove("flash"),1200); } }).addTo(MAPL); });
   if(t.round&&st&&st.pt&&pts.length>1) pts.push(st.pt);
   if(pts.length>1) L.polyline(pts,{color:"#1F6B4F",weight:3,opacity:.85,dashArray:"7 6"}).addTo(MAPL);
+  MAPL.eachLayer(l=>l.setZIndexOffset&&l.setZIndexOffset(1000));
   if(fit&&pts.length) MAP.fitBounds(L.latLngBounds(pts).pad(0.12),{maxZoom:13});
 }
 $("mapBtn").onclick=openMap;
+if(EDITION.id==="local"){ $("mapGrpWrap").style.display="inline-flex"; $("mapGrp").checked=store.get("mapGroups",true); }
+$("mapGrp").onchange=e=>{ store.set("mapGroups",e.target.checked); drawGroupsOverlay(); };
 $("mapClose").onclick=()=>$("mapDlg").classList.remove("show");
 $("mapOpt").onclick=()=>{ const m=store.get("modeBeforeManual","optimize"); $("modeSel").value=m==="manual"?"optimize":m; store.set("mode",$("modeSel").value); render(); syncMap(true); };
 $("mapGo").onclick=()=>{ (S.mapLinks||[]).forEach(u=>window.open(u,"_blank","noopener")); };
@@ -1462,19 +1473,23 @@ async function openGroups(focus){
     baseTiles(GMAP,"grpMap");
     GLAY=L.layerGroup().addTo(GMAP);
   }
-  GLAY.clearLayers(); GBOUNDS={}; const all=[];
-  keys.forEach(k=>{
-    const c=col(k), pts=g[k].map(n=>S.coords[n]).filter(Boolean); if(!pts.length) return; all.push(...pts);
-    GBOUNDS[k]=L.latLngBounds(pts);
-    pts.forEach(p=>L.circle(p,{radius:6000,color:c,weight:0,fillColor:c,fillOpacity:.16,interactive:false}).addTo(GLAY));
-    const h=hull(pts); if(h.length>=3) L.polygon(h,{color:c,weight:2,fillColor:c,fillOpacity:.18,interactive:false}).addTo(GLAY);
-    else if(h.length===2) L.polyline(h,{color:c,weight:10,opacity:.25,interactive:false}).addTo(GLAY);
-    g[k].forEach(n=>{ const p=S.coords[n]; if(!p) return; const s0=S.stores[n]||{};
-      L.marker(p,{icon:L.divIcon({className:"gwrap",html:`<div class="gdot" style="--gc:${c}"></div>`,iconSize:[12,12],iconAnchor:[6,6]}),title:`Store ${n}`}).bindTooltip(`Group ${esc(k)} · Store ${esc(n)}${s0.city?" · "+esc(s0.city):""}`).addTo(GLAY); });
-    const ctr=GBOUNDS[k].getCenter();
-    L.marker(ctr,{icon:L.divIcon({className:"gwrap",html:`<div class="glabel" style="--gc:${c}">${esc(k)}</div>`,iconSize:[26,26],iconAnchor:[13,-8]}),keyboard:false,interactive:false}).addTo(GLAY);
-  });
+  GLAY.clearLayers(); const gl=groupAreas(true); GLAY.addLayer(gl.layer); GBOUNDS=gl.bounds; const all=gl.all;
   setTimeout(()=>{ GMAP.invalidateSize(); if(focus&&GBOUNDS[focus]) zoomGroup(focus); else if(all.length) GMAP.fitBounds(L.latLngBounds(all).pad(0.08)); },30);
+}
+// Shaded area for each group (circle around every store plus the outline around the group), with its letter.
+function groupAreas(dots){
+  const g=vaGroups(), col=k=>GRP_COLORS[k]||"#666", layer=L.layerGroup(), bounds={}, all=[];
+  Object.keys(g).sort().forEach(k=>{
+    const c=col(k), pts=g[k].map(n=>S.coords[n]).filter(Boolean); if(!pts.length) return; all.push(...pts);
+    bounds[k]=L.latLngBounds(pts);
+    pts.forEach(p=>L.circle(p,{radius:6000,color:c,weight:0,fillColor:c,fillOpacity:.16,interactive:false}).addTo(layer));
+    const h=hull(pts); if(h.length>=3) L.polygon(h,{color:c,weight:2,fillColor:c,fillOpacity:.18,interactive:false}).addTo(layer);
+    else if(h.length===2) L.polyline(h,{color:c,weight:10,opacity:.25,interactive:false}).addTo(layer);
+    if(dots) g[k].forEach(n=>{ const p=S.coords[n]; if(!p) return; const s0=S.stores[n]||{};
+      L.marker(p,{icon:L.divIcon({className:"gwrap",html:`<div class="gdot" style="--gc:${c}"></div>`,iconSize:[12,12],iconAnchor:[6,6]}),title:`Store ${n}`}).bindTooltip(`Group ${esc(k)} · Store ${esc(n)}${s0.city?" · "+esc(s0.city):""}`).addTo(layer); });
+    L.marker(bounds[k].getCenter(),{icon:L.divIcon({className:"gwrap",html:`<div class="glabel" style="--gc:${c}">${esc(k)}</div>`,iconSize:[26,26],iconAnchor:[13,-8]}),keyboard:false,interactive:false}).addTo(layer);
+  });
+  return {layer,bounds,all};
 }
 function zoomGroup(k){
   $("grpList").querySelectorAll(".gcard").forEach(c=>c.classList.toggle("sel",c.dataset.g===k));
