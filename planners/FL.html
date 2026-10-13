@@ -706,12 +706,13 @@ const ERRLOG=[];
   window.addEventListener("unhandledrejection",e=>add("Promise: "+((e.reason&&e.reason.message)||e.reason)));
 })();
 // ---------- version ----------
-const APP_VERSION = "4.8";
+const APP_VERSION = "4.9";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const GC_CODE = "";   // GoatCounter site code for anonymous usage counts (blank = nothing is sent)
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["4.9", "Automatic updates: an open planner checks for a new version every 30 minutes and when you come back to it, and refreshes itself (never while you're typing or have a window open). Your calls and settings stay."],
   ["4.8", "New dispatch calls from Companion: choose Reroute now (re-plans from where you are) or Keep my route (your stop order stays the same and the new store goes at the end) right from Companion's notification."],
   ["4.7", "Past calls from Companion: after importing past dispatch texts in Companion, send them to Route Planner and they appear in History (by the day the text arrived), and count toward repeat-issue alerts and Your stats."],
   ["4.6", "Fixes: the ☰ Menu no longer runs off the edge of the screen on phones; dialogs and the tour stay on screen at every phone size. Send feedback now reminds you to attach a screenshot of the problem."],
@@ -2442,6 +2443,7 @@ function setupMode(){
   const badge=$("modeBadge"), act=$("modeActions");
   if(IS_ONLINE){
     badge.className="modebadge online"; badge.textContent="Online version";
+    liveUpdates();
     act.innerHTML=`<button class="hbtn" id="pasteBtn" hidden>📋 Paste transfer</button> <button class="hbtn" id="instBtn">📲 Install app</button> <button class="hbtn" id="sendBtn">📱 Send to phone</button> <button class="hbtn" id="bmkBtn">☆ Bookmark</button> <button class="hbtn" id="dlSelf">Download offline copy</button>`;
     setupSend();
     setupBookmark();
@@ -3157,6 +3159,32 @@ function showBookmarkHelp(){
   $("bmkBody").innerHTML=html; $("bmkMsg").textContent="";
   $("bmk").classList.add("show"); $("bmkClose").focus();
 }
+// ---------- automatic updates (online version and installed app) ----------
+// Checks GitHub every 30 minutes and when you come back to the page. A newer version is loaded by refreshing the page,
+// but never while you're typing or have a window open (then a button lets you do it). Calls and settings are kept.
+function liveUpdates(){
+  let lastCheck=0;
+  const busy=()=>document.querySelector(".bmk.show,#histDlg.show,#dayView.show")||!$("tour").hidden||/^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement||{}).tagName||"");
+  const go=v=>{ try{ sessionStorage.setItem("updTried",v); }catch(e){} location.replace(location.pathname+"?v="+encodeURIComponent(v)); };
+  const check=async()=>{
+    lastCheck=Date.now();
+    try{
+      const r=await fetch(SITE_URL+"version.json?t="+Date.now(),{cache:"no-store"}); if(!r.ok) return;
+      const v=(await r.json()).version; if(!newer(v,APP_VERSION)) return;
+      let tried=""; try{ tried=sessionStorage.getItem("updTried")||""; }catch(e){}
+      const bar=$("updBar");
+      if(tried===v||busy()){   // already tried once (GitHub may still be publishing it), or you're in the middle of something
+        bar.innerHTML=`<span><b>Version ${esc(v)} is ready.</b> You have ${APP_VERSION}.</span><button type="button" id="updGo">Update now</button><span>Your calls and settings stay.</span>`;
+        bar.classList.add("show"); $("updGo").onclick=()=>go(v); return;
+      }
+      bar.innerHTML=`<span><b>Updating to version ${esc(v)}…</b> Your calls and settings stay.</span>`; bar.classList.add("show");
+      setTimeout(()=>{ if(!busy()) go(v); else check(); },3000);
+    }catch(e){}
+  };
+  setTimeout(check,4000); setInterval(check,30*60*1000);
+  document.addEventListener("visibilitychange",()=>{ if(!document.hidden&&Date.now()-lastCheck>5*60*1000) check(); });
+}
+
 async function checkUpdate(manual){
   const m=$("updMsg"), bar=$("updBar");
   if(manual) m.textContent="Checking…";
