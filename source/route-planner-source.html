@@ -699,8 +699,7 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
     <label class="hint" for="startSel">Start from</label>
     <select id="startSel"></select>
     <div id="storeStart" style="display:none">
-      <input type="text" id="startStore" list="storeDL" inputmode="numeric" placeholder="Type a store number" style="margin-top:6px">
-      <datalist id="storeDL"></datalist>
+      <input type="text" id="startStore" inputmode="numeric" autocomplete="off" placeholder="Type any store number" style="margin-top:6px">
       <div class="msg" id="storeStartMsg"></div>
     </div>
     <div id="gpsBox" style="display:none">
@@ -763,12 +762,13 @@ const ERRLOG=[];
   window.addEventListener("unhandledrejection",e=>add("Promise: "+((e.reason&&e.reason.message)||e.reason)));
 })();
 // ---------- version ----------
-const APP_VERSION = "4.13";
+const APP_VERSION = "4.14";
 const FEEDBACK_TO = "@@FEEDBACK_TO@@";
 const GC_CODE = "@@GC_CODE@@";   // GoatCounter site code for anonymous usage counts (blank = nothing is sent)
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["4.14", "Route options → Start from → A store: just type the number, no drop-down list, and any Publix store works, in every state, not only the stores in this edition."],
   ["4.13", "Virginia: ☰ Menu → 🗺 Route groups shows each group (A–F) with its area and store numbers, on a map that shades each area."],
   ["4.12", "Computer only: 🗺 Show route on map opens a map of your stops in order, next to the stop list. Drag a stop up or down (on the map screen or in the route panel) to change the order; the map, miles and Google Maps links update right away. Re-optimize puts the planner's order back."],
   ["4.11", "Send to phone moved out of the menu: when it's turned on, it has its own button at the top, next to ☰ Menu. History now keeps every call you load from SAP (IW49), not just the ones you mark Done. To bring in your past dispatch texts on a computer, export them from Companion (Settings → Export all calls for desktop) and choose History → Import Companion file."],
@@ -1226,7 +1226,8 @@ function getStart(){
   }
   if(v==="store"){
     const n=cleanNum($("startStore").value);
-    if(!S.stores[n]) return null;
+    if(!S.stores[n]){ const c=companyStore(n); if(!c||!c.pt) return null;
+      return {label:`Start: store ${n} · ${c.city}${c.state?", "+c.state:""}`, addr:`${c.pt[0]},${c.pt[1]}`, pt:c.pt, num:n}; }
     return {label:"Start: store "+n, addr:fullAddr(n), pt:S.coords[n]||null, num:n};
   }
   if(v==="custom"){
@@ -1509,17 +1510,24 @@ function fillStartSelect(){
   if(/^\d+$/.test(cur)){ store.set("startStore",cur); cur="store"; store.set("start",cur); }
   sel.innerHTML=`<option value="">First stop (no fixed start)</option><option value="gps">My current location</option><option value="store">A store…</option><option value="custom">Custom address…</option>`;
   sel.value=["","gps","store","custom"].includes(cur)?cur:"";
-  $("storeDL").innerHTML=Object.values(S.stores).sort((a,b)=>a.num.localeCompare(b.num,undefined,{numeric:true}))
-    .map(s=>`<option value="${esc(s.num)}">${esc(s.city)}${s.state?", "+esc(s.state):""} · ${esc(s.center)}</option>`).join("");
   $("startStore").value=store.get("startStore","");
   showStartExtras(sel.value); storeStartStatus();
+}
+// Every company store (any edition can start from any store): "num|lat|lng|city|ST;…"
+const ALL_STORES="@@ALL_STORES@@";
+let ALL_IDX=null;
+function companyStore(n){
+  if(!ALL_IDX){ ALL_IDX={}; ALL_STORES.split(";").forEach(r=>{ const [k,la,ln,c,st]=r.split("|"); if(k) ALL_IDX[k]={num:k, pt:la&&ln?[+la,+ln]:null, city:c||"", state:st||""}; }); }
+  return ALL_IDX[String(+n)]||null;
 }
 function storeStartStatus(){
   const n=cleanNum($("startStore").value), m=$("storeStartMsg");
   if(!n){ m.textContent=""; return; }
-  const s=S.stores[n];
-  m.className="msg"+(s?"":" err");
-  m.textContent = s ? `${s.center||"Store "+n}, ${s.city}${S.coords[n]?"":" (no map position, so mileage is unknown)"}` : `Store ${n} isn't in your store list.`;
+  const s=S.stores[n], c=!s&&companyStore(n);
+  m.className="msg"+(s||c?"":" err");
+  m.textContent = s ? `${s.center||"Store "+n}, ${s.city}${S.coords[n]?"":" (no map position, so mileage is unknown)"}`
+    : c ? `Store ${n}, ${c.city}${c.state?", "+c.state:""}${c.pt?"":" (no map position, so mileage is unknown)"}`
+    : `Store ${n} isn't a Publix store number we know.`;
 }
 function showStartExtras(v){
   $("customStart").style.display=v==="custom"?"block":"none";

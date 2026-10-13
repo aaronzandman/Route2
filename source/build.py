@@ -5,6 +5,12 @@ VER=re.search(r'const APP_VERSION = "([0-9.]+)"',src).group(1)   # always matche
 stores=json.load(open('source/stores.json'))
 i=src.index('// ===EDITION-START==='); j=src.index('// ===EDITION-END===')
 MARK='/*@@EDITION@@*/'; template=(src[:i]+MARK+src[j:]).replace('@@FEEDBACK_TO@@',open('source/feedback_to.txt').read().strip()).replace('@@GC_CODE@@',(open('source/analytics.txt').read().strip() if __import__('os').path.exists('source/analytics.txt') else '')); va_block=src[i:j]
+# Every company store (number, position, city, state) so any store can be a starting point in every edition.
+def _f(x):
+    try: return f"{float(x):.4f}".rstrip("0").rstrip(".")
+    except Exception: return ""
+_all=";".join(f'{r["Store #"]}|{_f(r.get("Latitude"))}|{_f(r.get("Longitude"))}|{str(r.get("City") or "").replace("|"," ").replace(";"," ")}|{r.get("State") if len(str(r.get("State") or ""))==2 else ""}' for r in stores)
+template=template.replace('@@ALL_STORES@@',_all.replace("\\","").replace('"',''))
 # Virginia edition keeps its own list (with route groups); add any Virginia store it doesn't have yet. Never remove.
 def _va_add(block):
     have=set(re.findall(r'^(\d+)\t',block.split('const DEFAULT_STORES = `')[1].split('`')[0],re.M))
