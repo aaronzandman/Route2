@@ -107,6 +107,8 @@ legend{font-weight:600;font-size:14px;margin-bottom:6px}
 .saved{font-size:12px;opacity:.85;margin-left:auto}
 /* header menu */
 .menuwrap{position:relative}
+.hacts{display:flex;gap:8px;align-items:center;flex-wrap:nowrap;margin-left:auto}
+.saved+.hacts{margin-left:0}
 .menu{position:fixed;max-width:calc(100vw - 16px);max-height:calc(100vh - 16px);overflow:auto;z-index:30;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.25);padding:6px;display:flex;flex-direction:column;gap:4px;min-width:230px}
 .menu[hidden]{display:none}
 .menu #modeActions{display:flex;flex-direction:column;gap:4px}
@@ -334,6 +336,7 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
   <h1><span id="appName">Service Route Planner</span> <span id="verTag" style="font-size:15px;opacity:.8"></span></h1>
   <span class="sub" id="summary">No calls loaded</span>
   <span class="saved" id="savedNote">Saved on this computer</span>
+  <div class="hacts"><button class="hbtn" id="sendBtn" type="button" style="display:none">📱 Send to phone</button>
   <div class="menuwrap">
     <button class="hbtn" id="menuBtn" type="button" aria-haspopup="true" aria-expanded="false">☰ Menu</button>
     <div class="menu" id="menu" hidden>
@@ -343,7 +346,7 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
       <button class="hbtn" id="setBtn" type="button">⚙ Settings</button>
       <button class="hbtn" id="fbBtn" type="button">💬 Feedback</button>
     </div>
-  </div>
+  </div></div>
   <div class="modebar">
     <span class="modebadge" id="modeBadge"></span>
   </div>
@@ -519,7 +522,8 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
     <div class="hmonth" id="histSum" style="text-align:center"></div>
     <div class="hcal" id="histCal"></div>
     <div class="hlist" id="histList"></div>
-    <div class="row" style="justify-content:space-between"><span class="msg" id="histMsg"></span><button class="primary" id="histClose">Close</button></div>
+    <div class="row" style="justify-content:space-between"><span class="msg" id="histMsg"></span><span><button id="histFile" title="The file Companion emails you from Settings → Export all calls for desktop">Import Companion file</button> <button class="primary" id="histClose">Close</button></span></div>
+    <input type="file" id="histFileIn" accept=".txt,text/plain" hidden>
   </div>
 </div>
 <div class="bmk" id="pasteDlg" role="dialog" aria-modal="true" aria-labelledby="pasteTitle">
@@ -706,12 +710,13 @@ const ERRLOG=[];
   window.addEventListener("unhandledrejection",e=>add("Promise: "+((e.reason&&e.reason.message)||e.reason)));
 })();
 // ---------- version ----------
-const APP_VERSION = "4.10";
+const APP_VERSION = "4.11";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const GC_CODE = "";   // GoatCounter site code for anonymous usage counts (blank = nothing is sent)
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["4.11", "Send to phone moved out of the menu: when it's turned on, it has its own button at the top, next to ☰ Menu. History now keeps every call you load from SAP (IW49), not just the ones you mark Done. To bring in your past dispatch texts on a computer, export them from Companion (Settings → Export all calls for desktop) and choose History → Import Companion file."],
   ["4.10", "How to get your calls from SAP now always starts collapsed; tap it to open."],
   ["4.9", "Automatic updates: an open planner checks for a new version every 30 minutes and when you come back to it, and refreshes itself (never while you're typing or have a window open). Your calls and settings stay."],
   ["4.8", "New dispatch calls from Companion: choose Reroute now (re-plans from where you are) or Keep my route (your stop order stays the same and the new store goes at the end) right from Companion's notification."],
@@ -1346,7 +1351,7 @@ $("loadBtn").onclick=()=>{
     (errors.length?` Skipped line${errors.length>1?"s":""} ${errors.join(", ")}: fewer than 11 tab-separated columns.`:"") +
     (unknown.length?` Stores not in your store list: ${unknown.join(", ")}.`:"") +
     (warnings.length?" "+warnings.join(" ")+" See How to get your calls from SAP.":"");
-  backfillHistory();
+  backfillHistory(); logImported(calls);
   if(S.addingTexts!==undefined){
     const a=S.addingTexts, sk=S.skippedTexts; delete S.addingTexts; delete S.skippedTexts;
     S.newOrders=new Set([...S.newOrders,...calls.filter(c=>c.wc===""&&c.status==="SMS"&&!prevCalls.some(p=>p.order===c.order)).map(c=>c.order)]); store.set("newOrders",[...S.newOrders]);
@@ -1540,7 +1545,7 @@ function setupMode(){
   if(IS_ONLINE){
     badge.className="modebadge online"; badge.textContent="Online version";
     liveUpdates();
-    act.innerHTML=`<button class="hbtn" id="pasteBtn" hidden>📋 Paste transfer</button> <button class="hbtn" id="instBtn">📲 Install app</button> <button class="hbtn" id="sendBtn">📱 Send to phone</button> <button class="hbtn" id="bmkBtn">☆ Bookmark</button> <button class="hbtn" id="dlSelf">Download offline copy</button>`;
+    act.innerHTML=`<button class="hbtn" id="pasteBtn" hidden>📋 Paste transfer</button> <button class="hbtn" id="instBtn">📲 Install app</button> <button class="hbtn" id="bmkBtn">☆ Bookmark</button> <button class="hbtn" id="dlSelf">Download offline copy</button>`;
     setupSend();
     setupBookmark();
     $("dlSelf").onclick=async()=>{
@@ -1581,7 +1586,7 @@ function applyFeatures(){
   const show=(id,on)=>{ const e=$(id); if(e) e.style.display=on?"":"none"; };
   show("replanBtn",F("replan")); show("dvReplan",F("replan")); show("eodBtn",F("eod"));
   show("pasteRow",F("handoff")); if(!F("changes")) $("chgBox").hidden=true;
-  if($("sendBtn") && !/iPhone|iPad|iPod|Android/.test(navigator.userAgent)) show("sendBtn",F("send"));
+  show("sendBtn", IS_ONLINE && F("send") && !/iPhone|iPad|iPod|Android/.test(navigator.userAgent));   // its own button next to ☰ Menu
   if(!F("dayview")){ show("dvBtn",false); $("dvFab").classList.remove("has"); }
   // The installed phone app always keeps Paste transfer (Send to phone from a computer lands in Safari on iPhone).
   if($("pasteBtn")) $("pasteBtn").hidden = !(IS_APP || ((F("handoff")||F("send")) && /iPhone|iPad|iPod|Android/.test(navigator.userAgent)));
@@ -1816,8 +1821,8 @@ document.addEventListener("keydown",e=>{ if(!$("dayView").classList.contains("sh
 window.addEventListener("resize",()=>{ if($("dayView").classList.contains("show")) dvGo(DV.idx,false); });
 
 function recordHistory(c, at){
-  const s=S.stores[c.store]||{};
-  S.history[c.order]={o:c.order, s:c.store, city:s.city||"", d:c.desc, p:c.prioLabel, due:c.due?c.due.toISOString():"", at:at||new Date().toISOString(), sn:c.serial||""};
+  const s=S.stores[c.store]||{}, prev=S.history[c.order];
+  S.history[c.order]={rcv:prev&&prev.src?(prev.rcv||prev.at):(prev&&prev.rcv)||"", o:c.order, s:c.store, city:s.city||"", d:c.desc, p:c.prioLabel, due:c.due?c.due.toISOString():"", at:at||new Date().toISOString(), sn:c.serial||""};
   // keep about 13 months
   const cut=Date.now()-400*864e5; Object.keys(S.history).forEach(k=>{ if(Date.parse(S.history[k].at)<cut) delete S.history[k]; });
   store.set("history",S.history);
@@ -1828,7 +1833,8 @@ function importPastCalls(rows){
   rows.forEach(r=>{ const [o,s,sev,t,desc]=r, at=new Date((+t||0)*1000);
     if(!o||!/^\d{6,12}$/.test(String(o))||isNaN(at)) return;
     if(at.getTime()<cut){ old++; return; }
-    if(S.history[o]) return;
+    const h=S.history[o];
+    if(h){ if(h.src==="sap" && at.getTime()<Date.parse(h.at)){ h.at=at.toISOString(); h.src="sms"; added++; } return; }   // same call, the text came first
     const st=S.stores[String(s)]||{};
     S.history[o]={o:String(o), s:String(s), city:st.city||"", d:String(desc||"").slice(0,200), p:"Sev "+(sev||"?"), due:"", at:at.toISOString(), sn:"", src:"sms"}; added++; });
   store.set("history",S.history);
@@ -1836,12 +1842,21 @@ function importPastCalls(rows){
   render();
   if(added){ openHistory(); const newest=new Date(Math.max(...rows.map(r=>+r[3]||0))*1000); histMonth=new Date(newest.getFullYear(),newest.getMonth(),1); renderHistory(); }
 }
+// Every call loaded from SAP (IW49) or a dispatch text goes into History the first time it's seen,
+// so History continues where Companion's past dispatch texts leave off. Marking it Done updates the entry.
+function logImported(calls){
+  const now=new Date().toISOString(); let n=0;
+  calls.forEach(c=>{ if(!c.order||S.history[c.order]) return; const s=S.stores[c.store]||{};
+    S.history[c.order]={o:c.order, s:c.store, city:s.city||"", d:c.desc, p:c.prioLabel, due:c.due?c.due.toISOString():"", at:now, sn:c.serial||"", src:c.status==="SMS"?"sms":"sap"}; n++; });
+  if(n) store.set("history",S.history);
+  return n;
+}
 function backfillHistory(){ let n=0; S.calls.forEach(c=>{ if(S.done[c.order] && !S.history[c.order]){ recordHistory(c,S.done[c.order]); n++; } }); return n; }
 let histMonth=null, histSel=null;
 function openHistory(){ const d=new Date(); histMonth=new Date(d.getFullYear(),d.getMonth(),1); histSel=null; renderHistory(); $("histDlg").classList.add("show"); }
 function histDayText(k,items){
   const d=new Date(k+"T12:00:00");
-  return `Completed ${d.toLocaleDateString(undefined,{weekday:"short",month:"numeric",day:"numeric"})}: ${items.length} call${items.length>1?"s":""}\n`+
+  return `${d.toLocaleDateString(undefined,{weekday:"short",month:"numeric",day:"numeric"})}: ${items.length} call${items.length>1?"s":""}\n`+
     items.map(x=>`• ${new Date(x.at).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})} Store ${x.s}${x.city?" – "+x.city:""}: ${x.d} (#${x.o})`).join("\n");
 }
 function renderHistory(){
@@ -1851,19 +1866,20 @@ function renderHistory(){
   Object.values(S.history).forEach(x=>{ const t=new Date(x.at); if(t.getFullYear()===y&&t.getMonth()===m){ const k=dateKey(t); (byDay[k]=byDay[k]||[]).push(x); } });
   Object.values(byDay).forEach(a=>a.sort((p,q)=>q.at.localeCompare(p.at)));
   const total=Object.values(byDay).reduce((n,a)=>n+a.length,0), days=Object.keys(byDay).length;
-  $("histSum").textContent= total ? `${total} call${total>1?"s":""} completed on ${days} day${days>1?"s":""}` : "No completed calls this month";
+  const nDone=Object.values(byDay).reduce((n,a)=>n+a.filter(x=>!x.src).length,0);
+  $("histSum").textContent= total ? `${total} call${total>1?"s":""} on ${days} day${days>1?"s":""} · ${nDone} marked done` : "No calls this month";
   const first=new Date(y,m,1).getDay(), dim=new Date(y,m+1,0).getDate(), today=dateKey(new Date());
   let cal=["Su","Mo","Tu","We","Th","Fr","Sa"].map(d=>`<span class="dw">${d}</span>`).join("")+"<span></span>".repeat(first);
   for(let d=1; d<=dim; d++){ const k=dateKey(new Date(y,m,d)), n=(byDay[k]||[]).length;
-    cal+=`<button data-k="${k}" class="${n?"":"none"}${k===today?" today":""}${k===histSel?" sel":""}" ${n?"":"disabled"} aria-label="${n} completed on ${k}">${d}${n?`<span class="n">${n}</span>`:""}</button>`; }
+    cal+=`<button data-k="${k}" class="${n?"":"none"}${k===today?" today":""}${k===histSel?" sel":""}" ${n?"":"disabled"} aria-label="${n} calls on ${k}">${d}${n?`<span class="n">${n}</span>`:""}</button>`; }
   $("histCal").innerHTML=cal;
   $("histCal").querySelectorAll("button[data-k]").forEach(b=>b.onclick=()=>{ histSel=b.dataset.k; renderHistory(); const el=document.getElementById("hd-"+histSel); if(el) el.scrollIntoView({block:"start",behavior:"smooth"}); });
   const keys=Object.keys(byDay).sort().reverse();
   $("histList").innerHTML = keys.length ? keys.map(k=>{
     const d=new Date(k+"T12:00:00"), items=byDay[k];
     return `<div class="hday" id="hd-${k}"><span>${d.toLocaleDateString(undefined,{weekday:"long",month:"short",day:"numeric"})} · ${items.length}</span><button data-copy="${k}">Copy day</button></div>`+
-      items.map(x=>`<div class="hitem"><span class="t">${new Date(x.at).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}</span><div><b>${esc(x.d)}</b><div class="m">${x.src==="sms"?'<span class="smstag">From dispatch text</span> ':""}Store ${esc(x.s)}${x.city?" · "+esc(x.city):""} · ${esc(x.p||"")} · Order <a class="ord" href="${ORDER_HREF(x.o)}"${orderTarget()}>${esc(x.o)}</a></div></div></div>`).join("");
-  }).join("") : `<p class="hint" style="padding:12px">Calls you mark Done appear here, grouped by day.</p>`;
+      items.map(x=>`<div class="hitem"><span class="t">${new Date(x.at).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}</span><div><b>${esc(x.d)}</b><div class="m">${x.src==="sms"?'<span class="smstag">From dispatch text</span> ':x.src==="sap"?'<span class="smstag">From SAP</span> ':'<span class="smstag">Done ✓</span> '}Store ${esc(x.s)}${x.city?" · "+esc(x.city):""} · ${esc(x.p||"")} · Order <a class="ord" href="${ORDER_HREF(x.o)}"${orderTarget()}>${esc(x.o)}</a></div></div></div>`).join("");
+  }).join("") : `<p class="hint" style="padding:12px">Calls you load from SAP or mark Done appear here, grouped by day. Past dispatch texts from Companion: use Import Companion file below.</p>`;
   $("histList").querySelectorAll("[data-copy]").forEach(b=>b.onclick=()=>{ const k=b.dataset.copy, t=histDayText(k,byDay[k]), done=()=>$("histMsg").textContent="Day copied.";
     if(navigator.clipboard) navigator.clipboard.writeText(t).then(done,()=>fallbackCopy(t,done)); else fallbackCopy(t,done); });
   const now=new Date(); $("histNext").disabled = y>now.getFullYear() || (y===now.getFullYear() && m>=now.getMonth());
@@ -1872,6 +1888,12 @@ $("histBtn").onclick=openHistory;
 $("histPrev").onclick=()=>{ histMonth=new Date(histMonth.getFullYear(),histMonth.getMonth()-1,1); histSel=null; renderHistory(); };
 $("histNext").onclick=()=>{ histMonth=new Date(histMonth.getFullYear(),histMonth.getMonth()+1,1); histSel=null; renderHistory(); };
 $("histClose").onclick=()=>$("histDlg").classList.remove("show");
+$("histFile").onclick=()=>{ $("histFileIn").value=""; $("histFileIn").click(); };
+$("histFileIn").onchange=async()=>{ const f=$("histFileIn").files[0]; if(!f) return;
+  try{ const {d,packed}=await readTransfer(await f.text());
+    if(!Array.isArray(d.h)){ $("histMsg").textContent="That file isn't a Companion calls export."; return; }
+    $("histDlg").classList.remove("show"); track("import-companion-file"); offerSync(d,packed,true);
+  }catch(e){ $("histMsg").textContent="Couldn't read that file. Choose the Companion-calls file from Companion's email."; } };
 $("histDlg").onclick=e=>{ if(e.target.id==="histDlg") $("histDlg").classList.remove("show"); };
 
 // ---------- usage counts (anonymous) and Your stats ----------
@@ -2378,7 +2400,7 @@ $("wnTour").onclick=()=>{ hideWn(); startTour(); };
 $("wnBtn").onclick=()=>showWhatsNew(null,false);
 $("tourBtn").onclick=()=>startTour();
 const TOUR=[
-  ["#menuBtn","☰ Menu","Install app, Send to phone, Bookmark, Download offline copy, Settings, and Feedback all live here."],
+  ["#menuBtn","☰ Menu","Install app, Bookmark, Download offline copy, Settings, and Feedback all live here. Send to phone, when turned on, has its own button next to the menu."],
   ["#importCard","Load your calls","Paste your SAP IW49N export (or dispatch texts) and select Load calls. After loading, this shrinks to one line. Select Paste new export to load a fresh list."],
   ["#filterBar","Filters","Tap to filter by days past due, due dates, groups, priority, and status. The line next to Filters shows what's hidden."],
   ["#storeList","Store cards","Each card is one store. Check the box to mark a call done, tap the order number to open it in Edge, tap the store name for address and phone, and uncheck Route to leave a store out."],

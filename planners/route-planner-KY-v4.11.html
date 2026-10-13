@@ -107,6 +107,8 @@ legend{font-weight:600;font-size:14px;margin-bottom:6px}
 .saved{font-size:12px;opacity:.85;margin-left:auto}
 /* header menu */
 .menuwrap{position:relative}
+.hacts{display:flex;gap:8px;align-items:center;flex-wrap:nowrap;margin-left:auto}
+.saved+.hacts{margin-left:0}
 .menu{position:fixed;max-width:calc(100vw - 16px);max-height:calc(100vh - 16px);overflow:auto;z-index:30;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.25);padding:6px;display:flex;flex-direction:column;gap:4px;min-width:230px}
 .menu[hidden]{display:none}
 .menu #modeActions{display:flex;flex-direction:column;gap:4px}
@@ -334,6 +336,7 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
   <h1><span id="appName">Service Route Planner</span> <span id="verTag" style="font-size:15px;opacity:.8"></span></h1>
   <span class="sub" id="summary">No calls loaded</span>
   <span class="saved" id="savedNote">Saved on this computer</span>
+  <div class="hacts"><button class="hbtn" id="sendBtn" type="button" style="display:none">📱 Send to phone</button>
   <div class="menuwrap">
     <button class="hbtn" id="menuBtn" type="button" aria-haspopup="true" aria-expanded="false">☰ Menu</button>
     <div class="menu" id="menu" hidden>
@@ -343,7 +346,7 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
       <button class="hbtn" id="setBtn" type="button">⚙ Settings</button>
       <button class="hbtn" id="fbBtn" type="button">💬 Feedback</button>
     </div>
-  </div>
+  </div></div>
   <div class="modebar">
     <span class="modebadge" id="modeBadge"></span>
   </div>
@@ -519,7 +522,8 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
     <div class="hmonth" id="histSum" style="text-align:center"></div>
     <div class="hcal" id="histCal"></div>
     <div class="hlist" id="histList"></div>
-    <div class="row" style="justify-content:space-between"><span class="msg" id="histMsg"></span><button class="primary" id="histClose">Close</button></div>
+    <div class="row" style="justify-content:space-between"><span class="msg" id="histMsg"></span><span><button id="histFile" title="The file Companion emails you from Settings → Export all calls for desktop">Import Companion file</button> <button class="primary" id="histClose">Close</button></span></div>
+    <input type="file" id="histFileIn" accept=".txt,text/plain" hidden>
   </div>
 </div>
 <div class="bmk" id="pasteDlg" role="dialog" aria-modal="true" aria-labelledby="pasteTitle">
@@ -706,12 +710,13 @@ const ERRLOG=[];
   window.addEventListener("unhandledrejection",e=>add("Promise: "+((e.reason&&e.reason.message)||e.reason)));
 })();
 // ---------- version ----------
-const APP_VERSION = "4.10";
+const APP_VERSION = "4.11";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const GC_CODE = "";   // GoatCounter site code for anonymous usage counts (blank = nothing is sent)
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["4.11", "Send to phone moved out of the menu: when it's turned on, it has its own button at the top, next to ☰ Menu. History now keeps every call you load from SAP (IW49), not just the ones you mark Done. To bring in your past dispatch texts on a computer, export them from Companion (Settings → Export all calls for desktop) and choose History → Import Companion file."],
   ["4.10", "How to get your calls from SAP now always starts collapsed; tap it to open."],
   ["4.9", "Automatic updates: an open planner checks for a new version every 30 minutes and when you come back to it, and refreshes itself (never while you're typing or have a window open). Your calls and settings stay."],
   ["4.8", "New dispatch calls from Companion: choose Reroute now (re-plans from where you are) or Keep my route (your stop order stays the same and the new store goes at the end) right from Companion's notification."],
@@ -760,71 +765,25 @@ const CHANGELOG = [
   ["1.0", "Import calls, group by store, filters, route ordering, Google Maps directions."]
 ];
 // ===EDITION-START===
-const EDITION = {id:"state-TN", name:"Service Route Planner \u2013 Tennessee", key:"rp-TN.", resetLabel:"Restore Tennessee store list", groupBy:"city"};
+const EDITION = {id:"state-KY", name:"Service Route Planner \u2013 Kentucky", key:"rp-KY.", resetLabel:"Restore Kentucky store list", groupBy:"city"};
 const DEFAULT_GROUPS = ``;
 const DEFAULT_STORES = `Store #	Shopping Center	Address	City	State	Zip	Phone	Latitude	Longitude
-119	Indian Lake Marketplace	110 Indian Lake Blvd	Hendersonville	TN	37075-6206	(615) 264-1350	36.310326	-86.60525
-123	Bellevue Center	7604 Highway 70 S	Nashville	TN	37221-1852	(615) 646-1870	36.07842	-86.94549
-142	Cool Springs Festival	8105 Moores Ln	Brentwood	TN	37027-8020	(615) 221-9880	35.963474	-86.80216
-160	Harpeth Village	2020 Fieldstone Pkwy	Franklin	TN	37069-4337	(615) 599-1825	35.964565	-86.883
-176	Franklin Marketplace	1021 Riverside Dr	Franklin	TN	37064-6500	(615) 591-3285	35.912518	-86.82829
-182	Oakwood Commons	4670 Lebanon Pike	Hermitage	TN	37076-1314	(615) 874-0898	36.217186	-86.59337
-1016	Parkway Town Centre	661 President Pl	Smyrna	TN	37167-5671	(615) 220-1919	35.97982	-86.55493
-1021	Marketplace at Maryland Farms	101 Creekside Xing	Brentwood	TN	37027-1062	(615) 507-1505	36.0369	-86.798805
-1031	McKay's Mill Village Center	1400 Liberty Pike Ste 200	Franklin	TN	37067-8628	(615) 591-4061	35.92483	-86.795746
-1033	Greensboro Village	1483 Nashville Pike	Gallatin	TN	37066-7144	(615) 451-6285	36.359604	-86.49569
-1047	Spring Hill Village	4935 Main St	Spring Hill	TN	37174-2735	(615) 302-4068	35.775105	-86.91837
-1057	Concord Village	10638 Concord Rd	Brentwood	TN	37027-8811	(615) 941-8871	35.997143	-86.69183
-1116	Nippers Corner	15544 Old Hickory Blvd	Nashville	TN	37211-7329	(615) 331-4912	36.04101	-86.74143
-1133	Publix at Harpeth Village	8028 Highway 100	Nashville	TN	37221-4212	(615) 673-2347	36.04716	-86.95227
-1141	Caldwell Square	460 Long Hollow Pike	Goodlettsville	TN	37072-3480	(615) 851-7180	36.3315	-86.69917
-1163	Kensington Place Shopping Center	1731 S Rutherford Blvd Ste S	Murfreesboro	TN	37130-5957	(615) 849-4290	35.81333	-86.36847
-1164	Publix at North Murfreesboro	3415 Memorial Blvd	Murfreesboro	TN	37129-3640	(615) 849-6254	35.912144	-86.386
-1165	Hurricane Creek	8644 E Brainerd Rd	Chattanooga	TN	37421-8325	(423) 296-1903	34.999165	-85.13403
-1166	Creek Plantation Village	5928 Hixson Pike Ste 112	Hixson	TN	37343-4839	(423) 847-8461	35.147335	-85.20735
-1172	Market at Victory Village	4175 Franklin Rd	Murfreesboro	TN	37128-4119	(615) 494-3196	35.84199	-86.471825
-1175	Lebanon Center	1703 W Main St	Lebanon	TN	37087-3193	(615) 444-2581	36.223503	-86.34521
-1211	Hill Center at Belle Meade	4324 Harding Pike	Nashville	TN	37205-2202	(615) 279-2038	36.126785	-86.84753
-1220	Mt Juliet Village	11207 Lebanon Rd	Mount Juliet	TN	37122-5545	(615) 758-4200	36.233017	-86.5144
-1234	Market at Salem Cove	2650 New Salem Hwy	Murfreesboro	TN	37128-5265	(615) 895-7096	35.812706	-86.45771
-1235	Mt View Marketplace	3532 Murfreesboro Pike	Antioch	TN	37013-2210	(615) 501-8250	36.05345	-86.614914
-1238	The Shops of Lee Village	1640 Lee Victory Pkwy	Smyrna	TN	37167-6529	(615) 223-9101	35.941505	-86.52754
-1244	Snow Hill Village	5958 Snow Hill Rd Ste 168	Ooltewah	TN	37363-7834	(423) 238-1032	35.09058	-85.0643
-1268	Providence Commons	665 S Mount Juliet Rd	Mount Juliet	TN	37122-6483	(615) 773-0250	36.161266	-86.51256
-1298	Hill Center at Nashville West	6614 Charlotte Pike	Nashville	TN	37209-4202	(615) 352-1055	36.140236	-86.88297
-1356	Publix at Mouse Creek	635 Paul Huff Pkwy NW	Cleveland	TN	37312-2970	(423) 476-4022	35.209568	-84.86069
-1360	Bowie Commons	7014 City Center Way	Fairview	TN	37062-6004	(615) 799-3474	35.97349	-87.13114
-1392	Madison Street Commons	1771 Madison St	Clarksville	TN	37043-4990	(931) 551-7031	36.51563	-87.3132
-1415	Publix at Turkey Creek	11656 Parkside Dr	Knoxville	TN	37934-2659	(865) 675-3018	35.89353	-84.17003
-1416	Northshore Town Center	2010 Town Center Blvd	Knoxville	TN	37922-6677	(865) 470-0720	35.860603	-84.07646
-1418	University Commons	2429 University Commons Way	Knoxville	TN	37919	(865) 522-6313	35.94992	-83.93972
-1425	Shoppes at Peachers Mill	1490 Tiny Town Rd	Clarksville	TN	37042-7201	(931) 503-2551	36.625175	-87.37263
-1426	The Crossings	2324 Lebanon Pike	Nashville	TN	37214-2411	(615) 884-2665	36.170834	-86.68387
-1460	Publix on North Market Street	400 N Market St	Chattanooga	TN	37405-4433	(423) 755-7901	35.065063	-85.30836
-1515	Valley Forge Shopping Center	2656 Parkway	Pigeon Forge	TN	37863-3246	(865) 774-2030	35.802597	-83.57625
-1529	Berry Farms Town Center	5021 Hughes Crossing Blvd	Franklin	TN	37064	(615) 595-2021	35.863697	-86.8431
-1543	Fairgrounds Plaza	2321 E Andrew Johnson Hwy	Greeneville	TN	37745	(423) 636-1478	36.18022	-82.78244
-1613	Northgate Mall	1600 N Jackson St Ste 340	Tullahoma	TN	37388	(931) 455-6032	35.380245	-86.22652
-1621	Village at Waterside	7326 McCutcheon Rd	Chattanooga	TN	37421	(423) 855-1376	35.043793	-85.15007
-1633	Markets West at Franklin	509 N State of Franklin Rd Ste 20	Johnson City	TN	37604	(423) 926-1260	36.313084	-82.38906
-1634	The Shoppes at Eagle Point	1265 Interstate Dr Ste 111	Cookeville	TN	38501-4135	(931) 526-8830	36.1385	-85.50757
-1648	Sango Square	920 Hwy 76	Clarksville	TN	37043	(931) 358-2257	36.52266	-87.23441
-1665	Publix at Melrose	2223 8th Ave S	Nashville	TN	37204	(615) 279-9470	36.128822	-86.77856
-1680	Capitol View	1010 Dr Martin L King Jr Blvd	Nashville	TN	37203	(615) 259-6072	36.16331	-86.789734
-1713	Smoky Mountain Gateway	750 Winfield Dunn Pkwy Ste 100	Sevierville	TN	37876	(865) 429-1734	35.88291	-83.57406
-1731	Publix at Mount Vernon Point	3535 Broad St	Chattanooga	TN	37409	(423) 668-5233	35.015038	-85.32541
-1732	Hill Center Greenwood	1111 Gallatin Ave	Nashville	TN	37206	(615) 226-7100	36.1898	-86.7449
-1739	The Shops at Windsong	211 Maharris Dr	Gallatin	TN	37066	(615) 989-9989	36.364582	-86.44221
-1778	Westlawn	5229 Veterans Pkwy	Murfreesboro	TN	37128-4377	(615) 995-7914	35.860924	-86.50897
-1779	Foothills Mall	198 Foothills Mall	Maryville	TN	37801-2310	(865) 518-0971	35.744446	-83.99438
-1780	Newman's Crossing	1931 Long Hollow Pike	Gallatin	TN	37066-8591	(615) 230-7647	36.382328	-86.54891
-1801	Hickory Ridge Shopping Center	445 Hwy 109 N	Lebanon	TN	37090	(615) 443-4349	36.19268	-86.410095
-1802	Walker Farms Shopping Center	2300 Trenton Rd	Clarksville	TN	37040	(931) 553-5067	36.577137	-87.31543
-1863	Shops at Enclave	1688 Ooltewah Ringgold Rd Ste 100	Ooltewah	TN	37363	(423) 508-6834	34.999672	-85.09461
-2009	Village Green	7344 Nolensville Rd	Nolensville	TN	37135	(629) 529-8036	35.949902	-86.664896
-2020	White House Shops	453 Hwy 76	White House	TN	37188	(615) 581-6132	36.46734	-86.66399
-2036	Spring Hill Towne Crossing	1021 Jim Warren Pkwy	Spring Hill	TN	37174	(931) 487-5038	35.732	-86.89
-2106	Westerly Commons	13123 Kingston Pike	Farragut	TN	37934	(865) 672-5008	35.862803	-84.223535`;
+1846	Terra Crossing	2500 Terra Crossing Blvd	Louisville	KY	40245-5374	(502) 885-7662	38.27257	-85.49839
+1847	Publix at Marshall Commons	10005 Ballardsville Rd	Louisville	KY	40241-1202	(502) 302-7925	38.31706	-85.560394
+1887	The Fountains At Palomar	3855 Fountainblue Ln	Lexington	KY	40513	(859) 469-7337	38.003456	-84.57397
+2050	Publix at Flat Rock	150 Flat Rock Rd	Louisville	KY	40245	(502) 912-5403	38.236137	-85.445526
+2051	Citation Point	1952 Stockton Way	Lexington	KY	40511-2412	(859) 286-8293	38.095634	-84.51252
+2052	Triple Crown Shopping Center	430 Richwood Rd	Walton	KY	41094	(859) 379-1137	38.913414	-84.636505
+2053	Gateway Commons	3370 Hayden Rd	Owensboro	KY	42303	(270) 215-3915	37.767458	-87.062537
+2055	Farmview Commons	8740 US Hwy 42	Florence	KY	41042	(859) 938-1052	38.967207	-84.673345
+2057	Cold Spring Pointe	5401 Alexandria Pike	Cold Spring	KY	41076	(859) 908-6007	39.001796	-84.4217
+2058	Publix at Independence	5135 Jenkins Dr	Independence	KY	41051	(859) 898-5036	38.928628	-84.544058
+2059	The Shops at Pear Orchard	1311 Pear Orchard Rd Suite 100	Elizabethtown	KY	42701	(270) 740-5249	37.735684	-85.86062
+3646	Terra Crossing	2502 Terra Crossing Blvd	Louisville	KY	40245-5374	(502) 302-6531	38.27257	-85.49839
+3647	Publix at Marshall Commons	10015 Ballardsville Rd	Louisville	KY	40241-1202	(502) 313-7027		
+3651	Citation Point	1976 Stockton Way	Lexington	KY	40511-2412	(859) 286-8931	38.095634	-84.51252
+3652	Triple Crown Shopping Center	420 Richwood Rd	Walton	KY	41094	(859) 379-1139	38.913414	-84.636505
+3687	The Fountains At Palomar	3825 Fountainblue Ln	Lexington	KY	40513	(859) 469-7339	38.003456	-84.57397`;
 const DEFAULT_COORDS = ``;
 // ===EDITION-END===
 
@@ -1392,7 +1351,7 @@ $("loadBtn").onclick=()=>{
     (errors.length?` Skipped line${errors.length>1?"s":""} ${errors.join(", ")}: fewer than 11 tab-separated columns.`:"") +
     (unknown.length?` Stores not in your store list: ${unknown.join(", ")}.`:"") +
     (warnings.length?" "+warnings.join(" ")+" See How to get your calls from SAP.":"");
-  backfillHistory();
+  backfillHistory(); logImported(calls);
   if(S.addingTexts!==undefined){
     const a=S.addingTexts, sk=S.skippedTexts; delete S.addingTexts; delete S.skippedTexts;
     S.newOrders=new Set([...S.newOrders,...calls.filter(c=>c.wc===""&&c.status==="SMS"&&!prevCalls.some(p=>p.order===c.order)).map(c=>c.order)]); store.set("newOrders",[...S.newOrders]);
@@ -1586,7 +1545,7 @@ function setupMode(){
   if(IS_ONLINE){
     badge.className="modebadge online"; badge.textContent="Online version";
     liveUpdates();
-    act.innerHTML=`<button class="hbtn" id="pasteBtn" hidden>📋 Paste transfer</button> <button class="hbtn" id="instBtn">📲 Install app</button> <button class="hbtn" id="sendBtn">📱 Send to phone</button> <button class="hbtn" id="bmkBtn">☆ Bookmark</button> <button class="hbtn" id="dlSelf">Download offline copy</button>`;
+    act.innerHTML=`<button class="hbtn" id="pasteBtn" hidden>📋 Paste transfer</button> <button class="hbtn" id="instBtn">📲 Install app</button> <button class="hbtn" id="bmkBtn">☆ Bookmark</button> <button class="hbtn" id="dlSelf">Download offline copy</button>`;
     setupSend();
     setupBookmark();
     $("dlSelf").onclick=async()=>{
@@ -1627,7 +1586,7 @@ function applyFeatures(){
   const show=(id,on)=>{ const e=$(id); if(e) e.style.display=on?"":"none"; };
   show("replanBtn",F("replan")); show("dvReplan",F("replan")); show("eodBtn",F("eod"));
   show("pasteRow",F("handoff")); if(!F("changes")) $("chgBox").hidden=true;
-  if($("sendBtn") && !/iPhone|iPad|iPod|Android/.test(navigator.userAgent)) show("sendBtn",F("send"));
+  show("sendBtn", IS_ONLINE && F("send") && !/iPhone|iPad|iPod|Android/.test(navigator.userAgent));   // its own button next to ☰ Menu
   if(!F("dayview")){ show("dvBtn",false); $("dvFab").classList.remove("has"); }
   // The installed phone app always keeps Paste transfer (Send to phone from a computer lands in Safari on iPhone).
   if($("pasteBtn")) $("pasteBtn").hidden = !(IS_APP || ((F("handoff")||F("send")) && /iPhone|iPad|iPod|Android/.test(navigator.userAgent)));
@@ -1862,8 +1821,8 @@ document.addEventListener("keydown",e=>{ if(!$("dayView").classList.contains("sh
 window.addEventListener("resize",()=>{ if($("dayView").classList.contains("show")) dvGo(DV.idx,false); });
 
 function recordHistory(c, at){
-  const s=S.stores[c.store]||{};
-  S.history[c.order]={o:c.order, s:c.store, city:s.city||"", d:c.desc, p:c.prioLabel, due:c.due?c.due.toISOString():"", at:at||new Date().toISOString(), sn:c.serial||""};
+  const s=S.stores[c.store]||{}, prev=S.history[c.order];
+  S.history[c.order]={rcv:prev&&prev.src?(prev.rcv||prev.at):(prev&&prev.rcv)||"", o:c.order, s:c.store, city:s.city||"", d:c.desc, p:c.prioLabel, due:c.due?c.due.toISOString():"", at:at||new Date().toISOString(), sn:c.serial||""};
   // keep about 13 months
   const cut=Date.now()-400*864e5; Object.keys(S.history).forEach(k=>{ if(Date.parse(S.history[k].at)<cut) delete S.history[k]; });
   store.set("history",S.history);
@@ -1874,7 +1833,8 @@ function importPastCalls(rows){
   rows.forEach(r=>{ const [o,s,sev,t,desc]=r, at=new Date((+t||0)*1000);
     if(!o||!/^\d{6,12}$/.test(String(o))||isNaN(at)) return;
     if(at.getTime()<cut){ old++; return; }
-    if(S.history[o]) return;
+    const h=S.history[o];
+    if(h){ if(h.src==="sap" && at.getTime()<Date.parse(h.at)){ h.at=at.toISOString(); h.src="sms"; added++; } return; }   // same call, the text came first
     const st=S.stores[String(s)]||{};
     S.history[o]={o:String(o), s:String(s), city:st.city||"", d:String(desc||"").slice(0,200), p:"Sev "+(sev||"?"), due:"", at:at.toISOString(), sn:"", src:"sms"}; added++; });
   store.set("history",S.history);
@@ -1882,12 +1842,21 @@ function importPastCalls(rows){
   render();
   if(added){ openHistory(); const newest=new Date(Math.max(...rows.map(r=>+r[3]||0))*1000); histMonth=new Date(newest.getFullYear(),newest.getMonth(),1); renderHistory(); }
 }
+// Every call loaded from SAP (IW49) or a dispatch text goes into History the first time it's seen,
+// so History continues where Companion's past dispatch texts leave off. Marking it Done updates the entry.
+function logImported(calls){
+  const now=new Date().toISOString(); let n=0;
+  calls.forEach(c=>{ if(!c.order||S.history[c.order]) return; const s=S.stores[c.store]||{};
+    S.history[c.order]={o:c.order, s:c.store, city:s.city||"", d:c.desc, p:c.prioLabel, due:c.due?c.due.toISOString():"", at:now, sn:c.serial||"", src:c.status==="SMS"?"sms":"sap"}; n++; });
+  if(n) store.set("history",S.history);
+  return n;
+}
 function backfillHistory(){ let n=0; S.calls.forEach(c=>{ if(S.done[c.order] && !S.history[c.order]){ recordHistory(c,S.done[c.order]); n++; } }); return n; }
 let histMonth=null, histSel=null;
 function openHistory(){ const d=new Date(); histMonth=new Date(d.getFullYear(),d.getMonth(),1); histSel=null; renderHistory(); $("histDlg").classList.add("show"); }
 function histDayText(k,items){
   const d=new Date(k+"T12:00:00");
-  return `Completed ${d.toLocaleDateString(undefined,{weekday:"short",month:"numeric",day:"numeric"})}: ${items.length} call${items.length>1?"s":""}\n`+
+  return `${d.toLocaleDateString(undefined,{weekday:"short",month:"numeric",day:"numeric"})}: ${items.length} call${items.length>1?"s":""}\n`+
     items.map(x=>`• ${new Date(x.at).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})} Store ${x.s}${x.city?" – "+x.city:""}: ${x.d} (#${x.o})`).join("\n");
 }
 function renderHistory(){
@@ -1897,19 +1866,20 @@ function renderHistory(){
   Object.values(S.history).forEach(x=>{ const t=new Date(x.at); if(t.getFullYear()===y&&t.getMonth()===m){ const k=dateKey(t); (byDay[k]=byDay[k]||[]).push(x); } });
   Object.values(byDay).forEach(a=>a.sort((p,q)=>q.at.localeCompare(p.at)));
   const total=Object.values(byDay).reduce((n,a)=>n+a.length,0), days=Object.keys(byDay).length;
-  $("histSum").textContent= total ? `${total} call${total>1?"s":""} completed on ${days} day${days>1?"s":""}` : "No completed calls this month";
+  const nDone=Object.values(byDay).reduce((n,a)=>n+a.filter(x=>!x.src).length,0);
+  $("histSum").textContent= total ? `${total} call${total>1?"s":""} on ${days} day${days>1?"s":""} · ${nDone} marked done` : "No calls this month";
   const first=new Date(y,m,1).getDay(), dim=new Date(y,m+1,0).getDate(), today=dateKey(new Date());
   let cal=["Su","Mo","Tu","We","Th","Fr","Sa"].map(d=>`<span class="dw">${d}</span>`).join("")+"<span></span>".repeat(first);
   for(let d=1; d<=dim; d++){ const k=dateKey(new Date(y,m,d)), n=(byDay[k]||[]).length;
-    cal+=`<button data-k="${k}" class="${n?"":"none"}${k===today?" today":""}${k===histSel?" sel":""}" ${n?"":"disabled"} aria-label="${n} completed on ${k}">${d}${n?`<span class="n">${n}</span>`:""}</button>`; }
+    cal+=`<button data-k="${k}" class="${n?"":"none"}${k===today?" today":""}${k===histSel?" sel":""}" ${n?"":"disabled"} aria-label="${n} calls on ${k}">${d}${n?`<span class="n">${n}</span>`:""}</button>`; }
   $("histCal").innerHTML=cal;
   $("histCal").querySelectorAll("button[data-k]").forEach(b=>b.onclick=()=>{ histSel=b.dataset.k; renderHistory(); const el=document.getElementById("hd-"+histSel); if(el) el.scrollIntoView({block:"start",behavior:"smooth"}); });
   const keys=Object.keys(byDay).sort().reverse();
   $("histList").innerHTML = keys.length ? keys.map(k=>{
     const d=new Date(k+"T12:00:00"), items=byDay[k];
     return `<div class="hday" id="hd-${k}"><span>${d.toLocaleDateString(undefined,{weekday:"long",month:"short",day:"numeric"})} · ${items.length}</span><button data-copy="${k}">Copy day</button></div>`+
-      items.map(x=>`<div class="hitem"><span class="t">${new Date(x.at).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}</span><div><b>${esc(x.d)}</b><div class="m">${x.src==="sms"?'<span class="smstag">From dispatch text</span> ':""}Store ${esc(x.s)}${x.city?" · "+esc(x.city):""} · ${esc(x.p||"")} · Order <a class="ord" href="${ORDER_HREF(x.o)}"${orderTarget()}>${esc(x.o)}</a></div></div></div>`).join("");
-  }).join("") : `<p class="hint" style="padding:12px">Calls you mark Done appear here, grouped by day.</p>`;
+      items.map(x=>`<div class="hitem"><span class="t">${new Date(x.at).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}</span><div><b>${esc(x.d)}</b><div class="m">${x.src==="sms"?'<span class="smstag">From dispatch text</span> ':x.src==="sap"?'<span class="smstag">From SAP</span> ':'<span class="smstag">Done ✓</span> '}Store ${esc(x.s)}${x.city?" · "+esc(x.city):""} · ${esc(x.p||"")} · Order <a class="ord" href="${ORDER_HREF(x.o)}"${orderTarget()}>${esc(x.o)}</a></div></div></div>`).join("");
+  }).join("") : `<p class="hint" style="padding:12px">Calls you load from SAP or mark Done appear here, grouped by day. Past dispatch texts from Companion: use Import Companion file below.</p>`;
   $("histList").querySelectorAll("[data-copy]").forEach(b=>b.onclick=()=>{ const k=b.dataset.copy, t=histDayText(k,byDay[k]), done=()=>$("histMsg").textContent="Day copied.";
     if(navigator.clipboard) navigator.clipboard.writeText(t).then(done,()=>fallbackCopy(t,done)); else fallbackCopy(t,done); });
   const now=new Date(); $("histNext").disabled = y>now.getFullYear() || (y===now.getFullYear() && m>=now.getMonth());
@@ -1918,6 +1888,12 @@ $("histBtn").onclick=openHistory;
 $("histPrev").onclick=()=>{ histMonth=new Date(histMonth.getFullYear(),histMonth.getMonth()-1,1); histSel=null; renderHistory(); };
 $("histNext").onclick=()=>{ histMonth=new Date(histMonth.getFullYear(),histMonth.getMonth()+1,1); histSel=null; renderHistory(); };
 $("histClose").onclick=()=>$("histDlg").classList.remove("show");
+$("histFile").onclick=()=>{ $("histFileIn").value=""; $("histFileIn").click(); };
+$("histFileIn").onchange=async()=>{ const f=$("histFileIn").files[0]; if(!f) return;
+  try{ const {d,packed}=await readTransfer(await f.text());
+    if(!Array.isArray(d.h)){ $("histMsg").textContent="That file isn't a Companion calls export."; return; }
+    $("histDlg").classList.remove("show"); track("import-companion-file"); offerSync(d,packed,true);
+  }catch(e){ $("histMsg").textContent="Couldn't read that file. Choose the Companion-calls file from Companion's email."; } };
 $("histDlg").onclick=e=>{ if(e.target.id==="histDlg") $("histDlg").classList.remove("show"); };
 
 // ---------- usage counts (anonymous) and Your stats ----------
@@ -2424,7 +2400,7 @@ $("wnTour").onclick=()=>{ hideWn(); startTour(); };
 $("wnBtn").onclick=()=>showWhatsNew(null,false);
 $("tourBtn").onclick=()=>startTour();
 const TOUR=[
-  ["#menuBtn","☰ Menu","Install app, Send to phone, Bookmark, Download offline copy, Settings, and Feedback all live here."],
+  ["#menuBtn","☰ Menu","Install app, Bookmark, Download offline copy, Settings, and Feedback all live here. Send to phone, when turned on, has its own button next to the menu."],
   ["#importCard","Load your calls","Paste your SAP IW49N export (or dispatch texts) and select Load calls. After loading, this shrinks to one line. Select Paste new export to load a fresh list."],
   ["#filterBar","Filters","Tap to filter by days past due, due dates, groups, priority, and status. The line next to Filters shows what's hidden."],
   ["#storeList","Store cards","Each card is one store. Check the box to mark a call done, tap the order number to open it in Edge, tap the store name for address and phone, and uncheck Route to leave a store out."],
