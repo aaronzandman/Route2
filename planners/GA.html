@@ -566,7 +566,7 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
       <button id="mapOpt" type="button" title="Put back the planner's order (your Stop order setting)">Re-optimize</button><button id="mapGo" type="button">Open in Google Maps</button><button class="primary" id="mapClose" type="button">Close</button></div>
     <ol class="stops dnd" id="mapStops"></ol>
     <div id="mapView"></div>
-    <div class="mapfoot">Drag stops in the list to change the order; the map and miles update right away. Click a number on the map to find that stop in the list. Lines are straight between stops, so real driving is a little longer. Only map pictures are loaded from the map service, never your calls. Map © OpenStreetMap contributors © CARTO.</div>
+    <div class="mapfoot">Drag stops in the list to change the order; the map and miles update right away. Click a number on the map to find that stop in the list. Lines are straight between stops, so real driving is a little longer. Only map pictures are loaded from the map service, never your calls. Map © OpenStreetMap contributors.</div>
   </div>
 </div>
 <div class="bmk" id="grpDlg" role="dialog" aria-modal="true" aria-labelledby="grpTitle">
@@ -574,7 +574,7 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
     <div class="maphead"><h3 id="grpTitle">Virginia route groups</h3><span class="hint" id="grpSum"></span><span style="flex:1"></span><button class="primary" id="grpClose" type="button">Close</button></div>
     <div id="grpList"></div>
     <div id="grpMap"></div>
-    <div class="mapfoot">Tap a group to zoom to it; tap a dot for the store. Groups follow your store list (Settings) and any changes you've made there. Map © OpenStreetMap contributors © CARTO.</div>
+    <div class="mapfoot">Tap a group to zoom to it; tap a dot for the store. Groups follow your store list (Settings) and any changes you've made there. Map © OpenStreetMap contributors.</div>
   </div>
 </div>
 <div class="bmk" id="pasteDlg" role="dialog" aria-modal="true" aria-labelledby="pasteTitle">
@@ -762,12 +762,13 @@ const ERRLOG=[];
   window.addEventListener("unhandledrejection",e=>add("Promise: "+((e.reason&&e.reason.message)||e.reason)));
 })();
 // ---------- version ----------
-const APP_VERSION = "4.14";
+const APP_VERSION = "4.15";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const GC_CODE = "";   // GoatCounter site code for anonymous usage counts (blank = nothing is sent)
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["4.15", "Maps now use OpenStreetMap's own map pictures: no API key or sign-up needed."],
   ["4.14", "Route options → Start from → A store: just type the number, no drop-down list, and any Publix store works, in every state, not only the stores in this edition."],
   ["4.13", "Virginia: ☰ Menu → 🗺 Route groups shows each group (A–F) with its area and store numbers, on a map that shades each area."],
   ["4.12", "Computer only: 🗺 Show route on map opens a map of your stops in order, next to the stop list. Drag a stop up or down (on the map screen or in the route panel) to change the order; the map, miles and Google Maps links update right away. Re-optimize puts the planner's order back."],
@@ -1522,6 +1523,17 @@ function wireStops(list){
   });
 }
 let MAP=null, MAPL=null;
+// Map pictures: OpenStreetMap's standard tiles. No API key or sign-up; attribution required.
+function baseTiles(map, boxId){
+  let bad=0, warned=false;
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19, referrerPolicy:"strict-origin-when-cross-origin",
+    attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors'})
+    .on("tileerror",()=>{ if(++bad<4||warned) return; warned=true;
+      const n=document.createElement("div"); n.className="hint"; n.style.cssText="position:absolute;left:8px;bottom:22px;z-index:500;background:var(--panel);padding:6px 8px;border-radius:6px;max-width:80%";
+      n.textContent=location.protocol==="file:"?"Map pictures can't load in a downloaded copy. Use the online version to see the map; stops and order still work here.":"Map pictures didn't load. Check your connection; stops and order still work.";
+      $(boxId).appendChild(n); })
+    .addTo(map);
+}
 function loadLeaflet(){
   if(window.L&&L.map) return Promise.resolve();
   return new Promise((ok,bad)=>{
@@ -1536,8 +1548,7 @@ async function openMap(){
   if(!MAP){
     $("mapView").innerHTML="";
     MAP=L.map("mapView",{zoomControl:true});
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",{subdomains:"abcd",maxZoom:19,
-      attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>'}).addTo(MAP);
+    baseTiles(MAP,"mapView");
     MAPL=L.layerGroup().addTo(MAP);
   }
   setTimeout(()=>{ MAP.invalidateSize(); drawMap(true); },30);
@@ -1599,8 +1610,7 @@ async function openGroups(focus){
   if(!GMAP){
     $("grpMap").innerHTML="";
     GMAP=L.map("grpMap");
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",{subdomains:"abcd",maxZoom:19,
-      attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>'}).addTo(GMAP);
+    baseTiles(GMAP,"grpMap");
     GLAY=L.layerGroup().addTo(GMAP);
   }
   GLAY.clearLayers(); GBOUNDS={}; const all=[];
