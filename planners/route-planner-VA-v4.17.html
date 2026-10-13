@@ -336,7 +336,7 @@ details.help kbd{font:12px ui-monospace,Consolas,monospace;border:1px solid var(
 #grpMap{border-radius:8px;border:1px solid var(--line);min-height:0;background:var(--soft)}
 .gwrap{background:none;border:0}
 .glabel,.gdot{width:100%;height:100%;box-sizing:border-box}
-.glabel{background:var(--gc);color:#fff;border:2px solid #fff;border-radius:6px;font:700 15px/1 var(--sign);display:grid!important;place-items:center;box-shadow:0 1px 4px rgba(0,0,0,.4)}
+.glabel{background:var(--gc);color:#fff;border:2px solid #fff;border-radius:6px;font:800 16px/1 var(--sign);display:grid!important;place-items:center;box-shadow:0 1px 4px rgba(0,0,0,.4)}
 .gdot{background:var(--gc);border:2px solid #fff;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,.4)}
 #grpDlg .mapfoot{grid-column:1/-1;font-size:12px;color:var(--muted)}
 @media (max-width:860px){ #grpDlg .box{grid-template-columns:1fr;grid-template-rows:auto 40% minmax(0,1fr) auto} }
@@ -763,12 +763,13 @@ const ERRLOG=[];
   window.addEventListener("unhandledrejection",e=>add("Promise: "+((e.reason&&e.reason.message)||e.reason)));
 })();
 // ---------- version ----------
-const APP_VERSION = "4.16";
+const APP_VERSION = "4.17";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const GC_CODE = "";   // GoatCounter site code for anonymous usage counts (blank = nothing is sent)
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["4.17", "Virginia: group areas on the maps are bolder, so each group is easier to pick out."],
   ["4.16", "Virginia: the route map shades each route group (A–F) in its own color under your stops. Turn it off with Show groups at the top of the map."],
   ["4.15", "Maps now use OpenStreetMap's own map pictures: no API key or sign-up needed."],
   ["4.14", "Route options → Start from → A store: just type the number, no drop-down list, and any Publix store works, in every state, not only the stores in this edition."],
@@ -823,107 +824,87 @@ const CHANGELOG = [
   ["1.0", "Import calls, group by store, filters, route ordering, Google Maps directions."]
 ];
 // ===EDITION-START===
-const EDITION = {id:"state-AL", name:"Service Route Planner \u2013 Alabama", key:"rp-AL.", resetLabel:"Restore Alabama store list", groupBy:"city"};
-const DEFAULT_GROUPS = ``;
-const DEFAULT_STORES = `Store #	Shopping Center	Address	City	State	Zip	Phone	Latitude	Longitude
-45	Decatur Commons	1605 Beltline Rd SW	Decatur	AL	35601-5591	(256) 301-0023	34.5651	-87.013084
-75	The Shops of Lake Tuscaloosa	4851 Rice Mine Rd NE Ste 200	Tuscaloosa	AL	35406-3571	(205) 247-7666	33.263107	-87.51333
-165	Edgemont Town Center	411 Green Springs Hwy	Homewood	AL	35209-4909	(205) 944-1101	33.465294	-86.81963
-209	Mountain Cove Crossing	12796 Bailey Cove Rd SE	Huntsville	AL	35803-2659	(256) 885-0002	34.622765	-86.538506
-573	Hampton Cove Center	6707 Highway 431 S	Owens Cross Roads	AL	35763-9204	(256) 512-0990	34.6589	-86.481
-574	Piedmont Point Shopping Center	4851 Whitesburg Dr SE Ste B	Huntsville	AL	35802-1626	(256) 650-2390	34.692776	-86.56597
-598	Madison Centre	8000 Madison Blvd Ste A	Madison	AL	35758-2035	(256) 461-1860	34.691734	-86.71839
-838	Valleydale Village	5188 Caldwell Mill Rd	Hoover	AL	35244-1915	(205) 980-7500	33.385883	-86.7406
-839	Trace Crossings	2543 John Hawkins Pkwy	Hoover	AL	35244-3533	(205) 982-8506	33.35582	-86.84268
-841	Southgate Village	1944 Montgomery Hwy S	Birmingham	AL	35244-1141	(205) 987-3401	33.347034	-86.797356
-842	Vestavia Hills City Center	784 Montgomery Hwy	Vestavia Hills	AL	35216-1800	(205) 824-6005	33.444695	-86.793365
-882	The Village at Lee Branch	410 Doug Baker Blvd	Hoover	AL	35242-2682	(205) 981-7415	33.408936	-86.66846
-1024	Taylor Junction	7076 Atlanta Hwy	Montgomery	AL	36117-4242	(334) 290-4501	32.381226	-86.171616
-1025	Dalraida Commons	4045 Atlanta Hwy	Montgomery	AL	36109-2920	(334) 260-7782	32.38358	-86.24181
-1026	Cornerstone	7700 Vaughn Rd	Montgomery	AL	36116-1337	(334) 290-4920	32.33679	-86.18278
-1027	Zelda Place	3026 Zelda Rd	Montgomery	AL	36106-2700	(334) 244-4481	32.35555	-86.26592
-1059	Montclair Place	1325 Montclair Rd	Birmingham	AL	35210-2205	(205) 951-6626	33.52109	-86.73115
-1065	Allison-Bonnett Plaza	3014 Allison Bonnett Memorial Dr Ste 130	Hueytown	AL	35023-2395	(205) 497-5366	33.453255	-86.97826
-1069	Clay Marketplace	5150 Old Springville Rd	Pinson	AL	35126-3635	(205) 815-5224	33.65588	-86.646996
-1073	White Stone Center	9200 Highway 119 Ste 1400	Alabaster	AL	35007-5344	(205) 663-3443	33.212715	-86.825676
-1074	Crow's Corner	4730 Highway 17	Helena	AL	35080-3570	(205) 620-0199	33.279976	-86.854065
-1075	Northwood Crossings	2300 McFarland Blvd	Northport	AL	35476-2927	(205) 339-4232	33.241905	-87.57779
-1082	The Shoppes at Deerfoot	7272 Gadsden Hwy	Trussville	AL	35173-1687	(205) 661-1415	33.641434	-86.57991
-1083	Publix At University Town Center	1190 University Blvd	Tuscaloosa	AL	35401-1601	(205) 247-5044	33.212097	-87.55358
-1085	Publix On Overton	3141 Overton Rd	Mountain Brook	AL	35223-2846	(205) 967-2188	33.46575	-86.73279
-1086	Phenix Crossing	5408 Summerville Rd Ste 200	Phenix City	AL	36867-7481	(334) 291-8525	32.521423	-85.0282
-1126	Winchester Plaza	2246 Winchester Rd NE	Huntsville	AL	35811-6800	(256) 851-5807	34.816174	-86.48965
-1185	Village Shoppes of Madison	12070 County Line Rd Ste C	Madison	AL	35756-2000	(256) 230-2626	34.730225	-86.7882
-1200	Colonial Promenade Tannehill	4965 Promenade Pkwy	Bessemer	AL	35022-7304	(205) 426-7100	33.33517	-86.9934
-1202	Pelham Towne Center	365 Huntley Pkwy	Pelham	AL	35124-6164	(205) 620-0102	33.274746	-86.79236
-1203	Eastside Junction	22031 US Highway 72	Athens	AL	35613-2614	(256) 230-2076	34.78381	-86.92976
-1206	Magnolia City Place	655 Fieldstown Rd	Gardendale	AL	35071-2411	(205) 608-4677	33.65124	-86.82223
-1207	Hoover Place	1584 Montgomery Hwy	Hoover	AL	35216-4524	(205) 824-7218	33.403557	-86.80838
-1213	The Shoppes at Palm Pointe	25771 Perdido Beach Blvd	Orange Beach	AL	36561-6107	(251) 980-1400	30.271769	-87.58804
-1218	Harvest Square	5850 Highway 53	Harvest	AL	35749-4301	(256) 851-5958	34.846462	-86.7103
-1228	High Point Town Center	2451 Cobbs Ford Rd	Prattville	AL	36066-7763	(334) 285-0227	32.461422	-86.39835
-1253	Capital Market Center	1101 Southview Ln	Tuscaloosa	AL	35405-6389	(205) 247-7710	33.123127	-87.55273
-1265	The Shoppes at Fairhope Village	22530 US Highway 98 Ste 100	Fairhope	AL	36532-6398	(251) 929-7355	30.555693	-87.890915
-1281	Calera Crossings	90 Marketplace Cir	Calera	AL	35040-8200	(205) 668-3585	33.15549	-86.74836
-1292	Colonial Promenade at Craft Farms	160 Cotton Creek Dr Ste 100	Gulf Shores	AL	36542-2850	(251) 948-1281	30.298656	-87.681404
-1294	Hamilton Place	2415 Moores Mill Rd	Auburn	AL	36830-8480	(334) 502-8667	32.585373	-85.43644
-1355	The Shoppes at Cary Creek	2900 E University Dr	Auburn	AL	36830-7720	(334) 502-2416	32.63822	-85.48016
-1362	Magnolia Place	27955 US Highway 98 Ste 1	Daphne	AL	36526-4700	(251) 626-1305	30.630938	-87.912575
-1369	Northside Mall	3525 Ross Clark Cir Ste 100	Dothan	AL	36303-5935	(334) 792-4281	31.248392	-85.42902
-1370	Chelsea Crossroads	501 Chelsea Xrds	Chelsea	AL	35043-3900	(205) 678-5600	33.353226	-86.608795
-1375	Cottonwood Corners	1620 Ross Clark Cir	Dothan	AL	36301-5439	(334) 673-1200	31.197466	-85.37453
-1377	Westway	4650 W Main St Ste 700	Dothan	AL	36305-9421	(334) 792-6801	31.239414	-85.46214
-1391	South Park Center	2040 Martin St S	Pell City	AL	35128-2326	(205) 338-3472	33.563824	-86.2677
-1400	Eastern Shore Commons	10179 Eastern Shore Dr	Spanish Fort	AL	36527-5801	(251) 621-9065	30.674051	-87.848
-1402	Park Place	847 Boll Weevil Cir Ste 112	Enterprise	AL	36330-2476	(334) 348-1489	31.326006	-85.838264
-1404	Publix at Sunset Point	4628 Airport Blvd	Mobile	AL	36608-2223	(251) 341-5727	30.676668	-88.16773
-1409	Renaissance City Center	322 Cox Creek Pkwy	Florence	AL	35630-1540	(256) 718-1790	34.837173	-87.62942
-1420	Oxford Commons	115 Commons Way	Oxford	AL	36203-3483	(256) 835-4075	33.607628	-85.78837
-1436	Hillwood Shopping Center	2370 Hillcrest Rd, Unit J	Mobile	AL	36695-3838	(251) 661-5361	30.641775	-88.19231
-1451	Twickenham Square	310 Pelham Ave SW	Huntsville	AL	35801-5016	(256) 534-2330	34.723385	-86.58394
-1462	Guntersville Landing	2300 Gunter Ave	Guntersville	AL	35976-2238	(256) 571-2501	34.333763	-86.316414
-1476	Shoppes at Rainbow Landing	128 W Grand Ave	Rainbow City	AL	35906-3238	(256) 442-2509	33.955227	-86.04394
-1503	Cullman Shopping Center	1104 Cullman Shopping Ctr NW	Cullman	AL	35055-2855	(256) 736-7000	34.181503	-86.84922
-1508	The Village at Moody	2200 Village Dr	Moody	AL	35004-3241	(205) 640-3230	33.570053	-86.51761
-1512	20 Midtown	230 20th St S	Birmingham	AL	35233	(205) 250-7170	33.51	-86.80339
-1525	Park Place	1147 US Hwy 231 S	Troy	AL	36081	(334) 807-5761	31.780548	-85.95472
-1532	Muscle Shoals Commons	3220 Woodward Ave	Muscle Shoals	AL	35661-3322	(256) 389-0080	34.731277	-87.66976
-1545	Patchwork Farms  Shopping Center	3040 Healthy Way	Vestavia Hills	AL	35243	(205) 970-7501	33.42937	-86.737595
-1604	Midtown Center	100 N Florida St	Mobile	AL	36607	(251) 471-4860	30.69239	-88.09899
-1609	Point Mallard Centre	2934 Point Mallard Pkwy SE	Decatur	AL	35603	(256) 351-5261	34.542683	-86.9204
-1612	The Pinnacle at Providence	1660 Old Monrovia Rd NW	Huntsville	AL	35806	(256) 430-5443	34.75842	-86.6803
-1627	Lakeshore Pavilion	2860 Lakeshore Pkwy	Birmingham	AL	35211	(205) 945-2741	33.423016	-86.88869
-1629	The Shoppes at Redstone Square	2286 Zierdt Rd	Huntsville	AL	35824	(256) 774-3888	34.64777	-86.71972
-1638	Madison Commons Shopping Center	350 Hughes Rd	Madison	AL	35758	(256) 464-3422	34.708176	-86.743774
-1642	The Shops at Pine Grove	7129 Wall Triana Hwy	Madison	AL	35757	(256) 722-3786	34.7932	-86.74669
-1650	Saraland Crossing	21 Shell St	Saraland	AL	36571	(251) 679-2995	30.805569	-88.11064
-1672	Paradise Isle Shopping Center	1720 Gulf Shores Pkwy Ste 2	Gulf Shores	AL	36542-3438	(251) 240-3003	30.27005	-87.68654
-1673	Riviera Square	2614 S McKenzie St	Foley	AL	36535	(251) 943-3329	30.377172	-87.68633
-1675	Rocky Ridge Square	3350 Morgan Dr	Vestavia Hills	AL	35216	(205) 978-9842	33.42661	-86.77439
-1676	Lane Parke	1000 Jemison Ln	Mountain Brook	AL	35223	(205) 802-9189	33.486256	-86.77304
-1687	Publix at Tattersall Park	6219 Tattersall Blvd	Hoover	AL	35242	(205) 981-3995	33.41998	-86.667656
-1691	Publix at Bristol Park	13556 Hwy 69 N	Northport	AL	35475	(205) 330-7653	33.303192	-87.570305
-1692	The Market Place at The Bray	3201 Endeavor Ln	Vestavia Hills	AL	35242	(205) 967-5998	33.47266	-86.70333
-1726	Clift Farm	417 John Henry Way	Madison	AL	35757	(256) 325-0540	34.75281	-86.76138
-1728	Morgan Road Plaza	4293 S Shades Crest Rd	Hoover	AL	35244	(205) 428-4923	33.308758	-86.90357
-1756	Shops at Pike Road	9515 Vaughn Rd	Pike Road	AL	36064	(334) 694-5802	32.34635	-86.09324
-1785	Market at Hays Farm	9040 Memorial Pkwy SW	Huntsville	AL	35802	(256) 650-6086	34.64807	-86.56769
-1790	Midtown Centre	165 US Hwy 31 N	Athens	AL	35611	(256) 771-5662	34.804874	-86.9508
-1794	Marble City Square	165 MCS Blvd	Sylacauga	AL	35150-1138	(256) 487-0098	33.17279	-86.283325
-1796	Bickley Station	9124 Cottage Hill Rd	Mobile	AL	36695	(251) 634-5141	30.640327	-88.258064
-1799	Planters Pointe Shopping Center	9867 State Hwy 104	Fairhope	AL	36532-4392	(251) 279-6001	30.54868	-87.8558
-1809	The Shops at Point Clear	18125 Wright Blvd	Fairhope	AL	36532-7335	(251) 279-6442	30.488304	-87.8875
-1822	Shops on Gay Street	138 S Gay St	Auburn	AL	36830	(334) 502-3616	32.605694	-85.48019
-1830	Publix at Scottsboro	24540 John T Reid Pkwy	Scottsboro	AL	35768	(256) 672-6056	34.665695	-86.01539
-1831	Cahaba Crossing	1288 Grants Mill Rd	Irondale	AL	35210-2112	(205) 905-3598	33.535587	-86.674644
-1878	The Gateway at Lake Martin	4812 Hwy 280	Alexander City	AL	35010	(256) 414-6016	32.91492	-85.953384
-2002	Camp Grandview Plaza	1400 AL Hwy 14	Millbrook	AL	36054	(334) 604-4819	32.493607	-86.402794
-2010	The Shoppes at Fort Toulouse	5039 US Hwy 231	Wetumpka	AL	36092	(334) 478-6185	32.514515	-86.214165
-2027	Semmes Village Shopping Center	2035 Schillinger Rd N Ste 100	Semmes	AL	36575-7417	(251) 264-6020	30.732477	-88.227905
-2042	Flint Crossing Market Place	12290 Hwy 231/431 N	Meridianville	AL	35759-1200	(256) 804-4042	34.870956	-86.569336
-2098	The Village at Foley Crossroads	9913 Foley-Beach Express	Foley	AL	36535	(251) 240-3043	30.368826	-87.65549
-2145	French Mill Crossing	14210 Mooresville Rd	Athens	AL	35613	(256) 867-6148	34.764635	-86.876485`;
-const DEFAULT_COORDS = ``;
+const EDITION = {id:"local", name:"Service Route Planner – Virginia", key:"rp.", resetLabel:"Restore defaults"};
+const DEFAULT_GROUPS = `P1566	B
+P1587	B
+P1588	C
+P1589	B
+P1590	B
+P1591	B
+P1592	D
+P1593	C
+P1594	D
+P1595	B
+P1596	C
+P1615	F
+P1626	C
+P1632	A
+P1635	E
+P1636	D
+P1643	D
+P1679	D
+P1694	D
+P1720	A
+P1883	E
+P1885	A
+P2025	E
+P2030	E
+P2032	E`;
+
+const DEFAULT_STORES = `Store number	Division	Shopping center	Address	City	State	Zip code	County	Phone	Square footage	Ad day	Open date
+1566	Charlotte	Nuckols Place	5400 Wyndham Forest Dr	Glen Allen	VA	23059	Henrico	804-527-5334	54191	Wednesday	7/15/2017
+1587	Charlotte	Short Pump Crossing Shopping Center	3460 Pump Rd	Henrico	VA	23233-1111	Henrico	804-364-6314	63331	Wednesday
+1588	Charlotte	Carytown Exchange	3535 Ellwood Ave	Richmond	VA	23221	Richmond (Independent City)	804-253-6372	45600	Wednesday	12/9/2020
+1589	Charlotte	The Shoppes At Crossridge	10250 Staples Mill Rd	Glen Allen	VA	23060-3064	Henrico	804-755-2360	51487	Wednesday	7/29/2017
+1590	Charlotte	John Rolfe Commons	2250 John Rolfe Pkwy	Henrico	VA	23233-6913	Henrico	804-360-4920	56680	Wednesday	8/19/2017
+1591	Charlotte	Virginia Center Marketplace	10150 Brook Rd	Glen Allen	VA	23059-6514	Henrico	804-262-8190	63300	Wednesday
+1592	Charlotte	Harbour Pointe Shopping Center	13700 Hull Street Rd	Midlothian	VA	23112-2000	Chesterfield	804-739-1160	63557	Wednesday	11/4/2017
+1593	Charlotte	The Village Shopping Center	7035 Three Chopt Rd	Richmond	VA	23226	Henrico	804-288-1070	47395	Wednesday	8/28/2019
+1594	Charlotte	Colonial Square Shopping Center	3007 Boulevard	Colonial Heights	VA	23834-2445	Colonial Heights (Independent City)	804-520-4520	63100	Wednesday	11/1/2017
+1595	Charlotte	Westpark Shopping Center	9645 W Broad St	Glen Allen	VA	23060	Henrico	804-965-6303	49300	Wednesday	5/29/2019
+1596	Charlotte	White Oak Village	4591 S Laburnum Ave	Richmond	VA	23231-2421	Henrico	804-226-1915	61069	Wednesday	8/5/2017
+1626	Charlotte	Brandy Creek Commons	6603 Mechanicsville Tpke	Mechanicsville	VA	23111	Hanover	804-569-3902	50160	Wednesday	1/5/2019
+1632	Charlotte	Publix At Cosner's Corner	9601 Patriot Hwy	Fredericksburg	VA	22407	Spotsylvania	540-898-6801	49098	Wednesday	7/25/2018
+1635	Charlotte	Monticello Marketplace	4660 Monticello Ave	Williamsburg	VA	23188	James City	757-564-5902	62901	Wednesday
+1636	Charlotte	The Shops At Stratford Hills	7045 Forest Hill Ave	Richmond	VA	23225	Richmond (Independent City)	804-323-4110	54400	Wednesday	7/25/2018
+1643	Charlotte	Cosby Village	7200 Cosby Village Rd	Chesterfield	VA	23832	Chesterfield	804-639-6525	50280	Wednesday
+1679	Charlotte	Huguenot Village	2015 Huguenot Rd	North Chesterfield	VA	23235	Chesterfield	804-330-3704	49533	Wednesday	8/26/2020
+1694	Charlotte	Charter Colony Shopping Center	200 Charter Colony Pkwy	Midlothian	VA	23114	Chesterfield	804-378-3222	48387	Wednesday	6/10/2020
+1720	Charlotte	Embrey Mill Town Center	1640 Publix Way	Stafford	VA	22554	Stafford	540-288-9280	48387	Wednesday
+1883	Charlotte	Publix At Planters Station	3189 Godwin Blvd	Suffolk	VA	23434-8694	Suffolk (Independent City)	757-942-6032	46791	Wednesday
+1885	Charlotte	Chancellor Crossing	5940 Plank Rd	Fredericksburg	VA	22407-6232	Spotsylvania	540-736-6013	48387	Wednesday
+2025	Charlotte	Bartlett Station	22449 Spadea Way	Carrollton	VA	23314	Isle Of Wight	757-542-6041	48387	Wednesday	1/15/2025
+2030	Charlotte	Hickman Place	2200 General Booth Blvd	Virginia Beach	VA	23454	Virginia Beach (Independent City)	757-716-6015	49235	Wednesday
+2032	Charlotte	Dominion Station	1620 Cedar Rd STE 100	Chesapeake	VA	23322-7197	Chesapeake (Independent City)	757-550-6044	48387	Wednesday	4/23/2025
+1615	Charlotte	Publix At First Flight Square	1530 N Croatan Hwy	Kill Devil Hills	NC	27948	Dare	252-255-5006	45600	Wednesday	2/28/2018`;
+
+// Map positions from the company store list, used for mileage estimates and ordering.
+const DEFAULT_COORDS = `1566	37.68397	-77.586555
+1587	37.648952	-77.615845
+1588	37.5569	-77.48806
+1589	37.656944	-77.525856
+1590	37.62254	-77.62402
+1591	37.675133	-77.4631
+1592	37.410347	-77.65613
+1593	37.590977	-77.53272
+1594	37.268887	-77.41047
+1595	37.640015	-77.56325
+1596	37.525627	-77.35183
+1626	37.6109	-77.33578
+1632	38.219112	-77.50658
+1635	37.27248	-76.758385
+1636	37.534405	-77.52457
+1643	37.40154	-77.70873
+1679	37.519875	-77.612816
+1694	37.50507	-77.65897
+1720	38.426	-77.43402
+1883	36.786213	-76.59072
+1885	38.291405	-77.57935
+2025	36.94319	-76.53447
+2030	36.76458	-76.01289
+2032	36.728184	-76.299904
+1615	36.027336	-75.671135`;
+
 // ===EDITION-END===
 
 const COLS = ["Order Type","MaintActivType","Basic fin. date","Earliest finish","Priority","Customer","Personnel No.","Activity","Serial Number","Order","Description","Oper.WorkCenter","User status","Material","Location"];
@@ -1504,9 +1485,9 @@ function groupAreas(dots){
   Object.keys(g).sort().forEach(k=>{
     const c=col(k), pts=g[k].map(n=>S.coords[n]).filter(Boolean); if(!pts.length) return; all.push(...pts);
     bounds[k]=L.latLngBounds(pts);
-    pts.forEach(p=>L.circle(p,{radius:6000,color:c,weight:0,fillColor:c,fillOpacity:.16,interactive:false}).addTo(layer));
-    const h=hull(pts); if(h.length>=3) L.polygon(h,{color:c,weight:2,fillColor:c,fillOpacity:.18,interactive:false}).addTo(layer);
-    else if(h.length===2) L.polyline(h,{color:c,weight:10,opacity:.25,interactive:false}).addTo(layer);
+    pts.forEach(p=>L.circle(p,{radius:6000,stroke:false,fillColor:c,fillOpacity:.28,interactive:false}).addTo(layer));
+    const h=hull(pts); if(h.length>=3) L.polygon(h,{color:c,weight:3.5,opacity:.95,fillColor:c,fillOpacity:.32,interactive:false}).addTo(layer);
+    else if(h.length===2) L.polyline(h,{color:c,weight:14,opacity:.45,interactive:false}).addTo(layer);
     if(dots) g[k].forEach(n=>{ const p=S.coords[n]; if(!p) return; const s0=S.stores[n]||{};
       L.marker(p,{icon:L.divIcon({className:"gwrap",html:`<div class="gdot" style="--gc:${c}"></div>`,iconSize:[12,12],iconAnchor:[6,6]}),title:`Store ${n}`}).bindTooltip(`Group ${esc(k)} · Store ${esc(n)}${s0.city?" · "+esc(s0.city):""}`).addTo(layer); });
     L.marker(bounds[k].getCenter(),{icon:L.divIcon({className:"gwrap",html:`<div class="glabel" style="--gc:${c}">${esc(k)}</div>`,iconSize:[26,26],iconAnchor:[13,-8]}),keyboard:false,interactive:false}).addTo(layer);
