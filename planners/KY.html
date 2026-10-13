@@ -214,6 +214,13 @@ details.ropts[open]{padding-bottom:10px}
 .tag.soon{background:#DCEBFF;color:#173E70}
 .tag.rep{background:#EFE3FF;color:#4B2A84}
 @media (prefers-color-scheme:dark){.tag.soon{background:#1F3550;color:#CFE3FF}.tag.rep{background:#33264D;color:#E6D9FF}}
+/* call age (days since the call was put in): 0–5 green, 6 yellow, 7–8 orange, 9+ red */
+.tag.age{border:1px solid transparent}
+.tag.age.g{background:#DDF3E4;color:#14532D;border-color:#9AD3AE}
+.tag.age.y{background:#FFF4BF;color:#5C4400;border-color:#E9CF55}
+.tag.age.o{background:#FFE0C2;color:#7A3500;border-color:#F0A060}
+.tag.age.r{background:#B3261E;color:#fff}
+@media (prefers-color-scheme:dark){.tag.age.g{background:#173B25;color:#BDF0CC;border-color:#2F6B45}.tag.age.y{background:#3D3410;color:#FFE98A;border-color:#7A6A1F}.tag.age.o{background:#4A2A10;color:#FFC690;border-color:#8A4F1F}}
 .chg{margin-top:10px;border:1.5px solid #1E4E8C;border-radius:8px;padding:10px;font-size:14px;background:var(--soft)}
 .chg ul{margin:6px 0;padding-left:18px;max-height:160px;overflow:auto}
 .chg li{margin:3px 0}
@@ -764,12 +771,13 @@ const ERRLOG=[];
   window.addEventListener("unhandledrejection",e=>add("Promise: "+((e.reason&&e.reason.message)||e.reason)));
 })();
 // ---------- version ----------
-const APP_VERSION = "4.18";
+const APP_VERSION = "4.19";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const GC_CODE = "";   // GoatCounter site code for anonymous usage counts (blank = nothing is sent)
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["4.19", "Call age badge on every call: 📅 days since the call was put in, colored 0–5 days green, 6 yellow, 7–8 orange, 9+ red. Exact when the dispatch text is known (from Companion), otherwise ≈ estimated. Turn it off in Settings if you don't want it."],
   ["4.18", "Copy route for team can include the total driving time (new Total driving time box under the Copy button, on by default)."],
   ["4.17", "Virginia: group areas on the maps are bolder, so each group is easier to pick out."],
   ["4.16", "Virginia: the route map shades each route group (A–F) in its own color under your stops. Turn it off with Show groups at the top of the map."],
@@ -1795,6 +1803,7 @@ function setupMode(){
 const FEATURES=[
   ["changes","What changed","After each import, tag new calls and list calls no longer in SAP."],
   ["repeats","Repeat-issue alerts","Flag devices and stores with several calls in 30 days."],
+  ["age","Call age","Color badge for how many days since each call was put in: 0–5 green, 6 yellow, 7–8 orange, 9+ red."],
   ["soon","Due soon","Show countdowns like \"due in 3 hrs\" for calls not yet past due."],
   ["replan","Re-plan from here","Reorder the remaining stops from where you are now."],
   ["eod","End-of-day summary","One-tap summary of the day to copy or email."],
@@ -1803,7 +1812,7 @@ const FEATURES=[
   ["send","Send to phone","QR codes to move your calls to your phone (online version)."]
 ];
 // Optional features start OFF; each person turns on what they use in Settings.
-const FEAT=Object.assign(Object.fromEntries(FEATURES.map(f=>[f[0],false])), store.get("features",{}));
+const FEAT=Object.assign(Object.fromEntries(FEATURES.map(f=>[f[0],f[0]==="age"])), store.get("features",{}));   // Call age starts on
 const F=k=>FEAT[k]===true;
 function applyFeatures(){
   const show=(id,on)=>{ const e=$(id); if(e) e.style.display=on?"":"none"; };
@@ -1827,6 +1836,33 @@ function setupSettings(){
 }
 
 // ---------- due soon / repeats ----------
+// ---------- call age: days since the call was put in ----------
+// SAP's IW49 export has no "created" date, so use the best we know: the dispatch text's time (exact), else an
+// estimate from the order number (orders count up over time; dated by nearby orders whose texts we have), else the
+// first time the call showed up in an import.
+let AGE_IDX=null, AGE_N=-1;
+function ageIndex(){
+  const n=Object.keys(S.history).length; if(AGE_IDX&&AGE_N===n) return AGE_IDX;
+  AGE_N=n; AGE_IDX=Object.values(S.history).filter(h=>h.src==="sms"&&/^\d{6,12}$/.test(h.o)).map(h=>[+h.o,Date.parse(h.at)]).filter(x=>!isNaN(x[1])).sort((a,b)=>a[0]-b[0]);
+  return AGE_IDX;
+}
+function orderDate(o){
+  const a=ageIndex(); if(a.length<2||o<a[0][0]||o>a[a.length-1][0]) return null;
+  let lo=0, hi=a.length-1; while(hi-lo>1){ const m=(lo+hi)>>1; if(a[m][0]<=o) lo=m; else hi=m; }
+  const [o1,t1]=a[lo], [o2,t2]=a[hi]; if(o2===o1) return t1;
+  if(t2-t1>30*864e5) return null;   // known orders too far apart to guess between
+  return t1+(t2-t1)*(o-o1)/(o2-o1);
+}
+function callAge(c){
+  const h=S.history[c.order]; let t=null, est=false, how="";
+  if(h&&h.src==="sms"){ t=Date.parse(h.at); how="when the dispatch text arrived"; }
+  else { const e=orderDate(+c.order); if(e){ t=e; est=true; how="estimated from the order number (nearby orders' dispatch texts)"; }
+    else if(h&&h.src==="sap"){ t=Date.parse(h.at); est=true; how="the first time this call showed up in an import (it may be older)"; } }
+  if(t===null||isNaN(t)) return null;
+  const days=Math.max(0,Math.floor((Date.now()-t)/864e5));
+  const cls=days<=5?"g":days===6?"y":days<=8?"o":"r";
+  return {days,est,cls,title:`Put in ${new Date(t).toLocaleDateString(undefined,{weekday:"short",month:"numeric",day:"numeric"})}${est?" (approx.)":""}: ${how}. 0–5 days green, 6 yellow, 7–8 orange, 9+ red.`};
+}
 function fmtSoon(c){
   const d=pastDays(c); if(d===null||d>0) return "";
   const hrs=-d*24; if(hrs>48) return "";
@@ -1850,6 +1886,7 @@ function storeRepeat(n){
 function callTags(c){
   let t="";
   if(F("changes")&&S.newOrders.has(c.order)) t+=`<span class="tag new">NEW</span>`;
+  if(F("age")&&!isDone(c)){ const a=callAge(c); if(a) t+=`<span class="tag age ${a.cls}" title="${esc(a.title)}">📅 ${a.est?"≈":""}${a.days} day${a.days===1?"":"s"} old</span>`; }
   if(F("soon")){ const s=fmtSoon(c); if(s) t+=`<span class="tag soon">⏱ ${s}</span>`; }
   if(F("repeats")){ const r=repeatCount(c); if(r) t+=`<span class="tag rep">🔁 device: ${r+1}${r+1===2?"nd":r+1===3?"rd":"th"} call in 30 days</span>`; }
   return t?`<div>${t}</div>`:"";
