@@ -706,12 +706,13 @@ const ERRLOG=[];
   window.addEventListener("unhandledrejection",e=>add("Promise: "+((e.reason&&e.reason.message)||e.reason)));
 })();
 // ---------- version ----------
-const APP_VERSION = "4.7";
+const APP_VERSION = "4.8";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const GC_CODE = "";   // GoatCounter site code for anonymous usage counts (blank = nothing is sent)
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["4.8", "New dispatch calls from Companion: choose Reroute now (re-plans from where you are) or Keep my route (your stop order stays the same and the new store goes at the end) right from Companion's notification."],
   ["4.7", "Past calls from Companion: after importing past dispatch texts in Companion, send them to Route Planner and they appear in History (by the day the text arrived), and count toward repeat-issue alerts and Your stats."],
   ["4.6", "Fixes: the ☰ Menu no longer runs off the edge of the screen on phones; dialogs and the tour stay on screen at every phone size. Send feedback now reminds you to attach a screenshot of the problem."],
   ["4.5", "Usage data is only sent from phones and tablets. Nothing is sent when you use the planner on a computer."],
@@ -2138,7 +2139,7 @@ function applySync(d){
     store.set("handed",S.handed); store.set("done",S.done);
     const cur=$("callsInput").value.replace(/\s+$/,"");
     $("callsInput").value = cur ? cur+"\n"+add.join("\n") : add.join("\n");
-    $("loadBtn").click(); toast(`Added ${add.length} handed-off call${add.length===1?"":"s"}.`); return;
+    $("loadBtn").click(); toast(`Added ${add.length} ${d.src==="companion"?"call":"handed-off call"}${add.length===1?"":"s"}${d.src==="companion"?" from Companion":""}.`); return;
   }
   $("callsInput").value=d.c||""; $("loadBtn").click();
   S.excluded=new Set(d.x||[]); store.set("excluded",[...S.excluded]);
@@ -2150,8 +2151,30 @@ function applySync(d){
   if(Array.isArray(d.o)){ S.manual=d.o; store.set("manual",d.o); }
   render(); $("savedNote").textContent="Loaded from your computer.";
 }
+// A new dispatch call from Companion's notification, where you already chose how to handle the route.
+function applyNewCall(d){
+  const before=(S.lastOrder||[]).slice();
+  const newStores=[...new Set((d.c||"").split("\n").map(r=>(r.split("\t")[5]||"").replace(/^P0*/,"").trim()).filter(Boolean))];
+  newStores.forEach(n=>S.excluded.delete(n)); store.set("excluded",[...S.excluded]);
+  applySync(d);
+  if(d.rt==="keep"){
+    const add=newStores.filter(n=>!before.includes(n));
+    if(before.length&&add.length){ S.manual=before.concat(add); store.set("manual",S.manual); $("modeSel").value="manual"; store.set("mode","manual"); render(); }
+    toast(add.length&&before.length?`New call added. Your route stays the same; store ${add.join(", ")} is now the last stop.`:"New call added to your list.");
+    return;
+  }
+  // Reroute: plan again from where you are (Companion sends your position when it has a recent one).
+  if(d.gps&&isFinite(d.gps.lat)&&isFinite(d.gps.lng)){
+    S.gps={lat:+d.gps.lat,lng:+d.gps.lng,acc:50,at:Date.now()}; store.set("gps",S.gps);
+    $("startSel").value="gps"; store.set("start","gps"); showStartExtras("gps"); gpsStatus();
+    if($("modeSel").value==="manual"||$("modeSel").value==="due"){ $("modeSel").value="optimize"; store.set("mode","optimize"); }
+    render(); const next=S.lastOrder[0];
+    toast(`New call added and route re-planned.${next?` Next stop: store ${next}${S.stores[next]?" in "+S.stores[next].city:""}.`:""}`);
+  } else replanHere();
+}
 function offerSync(d, packed, fromPaste){
   if(d.u && (d.v===2 || d.src==="companion")) adoptUid(d.u);   // only your own transfers carry your ID
+  if(d.a && d.src==="companion" && (d.rt==="reroute"||d.rt==="keep")){ applyNewCall(d); return; }
   if(Array.isArray(d.h)){   // past calls from Companion's dispatch texts → History only
     const n=d.h.length, have=d.h.filter(r=>S.history[String(r[0])]).length;
     $("recvText").innerHTML=`Add <b>${n} past call${n===1?"":"s"}</b> from Companion to your <b>History</b>?`+(have?` (${have} ${have===1?"is":"are"} already there.)`:"")+` They show on the History calendar by the day the dispatch text arrived. Your current list doesn't change.`;
