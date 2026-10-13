@@ -695,6 +695,8 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
           <option value="group">By group</option>
           <option value="most">Days past due: most first</option>
           <option value="least">Days past due: least first</option>
+          <option value="old">Days old: oldest first</option>
+          <option value="new">Days old: newest first</option>
         </select>
         <button id="copyList">📋 Copy list</button>
         <button id="histBtn">🗓 History</button>
@@ -774,12 +776,13 @@ const ERRLOG=[];
   window.addEventListener("unhandledrejection",e=>add("Promise: "+((e.reason&&e.reason.message)||e.reason)));
 })();
 // ---------- version ----------
-const APP_VERSION = "4.21";
+const APP_VERSION = "4.22";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const GC_CODE = "";   // GoatCounter site code for anonymous usage counts (blank = nothing is sent)
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["4.22", "Sort the store list by days old: oldest first or newest first (Sort menu above the stores)."],
   ["4.21", "Call age now comes from SAP itself: the due date and severity give the day the call was put in (Sev 1 same day by midnight, Sev 2 next day by 5 PM, Sev 3 72 hours, Sev 4 120 hours). Hover a badge to see the date."],
   ["4.20", "Call age colors: 0–3 days green, 4–5 yellow, 6 orange, 7–8 red, 9+ days 🔥 fire."],
   ["4.19", "Call age badge on every call: 📅 days since the call was put in, colored by age. Exact when the dispatch text is known (from Companion), otherwise ≈ estimated. Turn it off in Settings if you don't want it."],
@@ -839,106 +842,75 @@ const CHANGELOG = [
   ["1.0", "Import calls, group by store, filters, route ordering, Google Maps directions."]
 ];
 // ===EDITION-START===
-const EDITION = {id:"state-AL", name:"Service Route Planner \u2013 Alabama", key:"rp-AL.", resetLabel:"Restore Alabama store list", groupBy:"city"};
+const EDITION = {id:"state-NC", name:"Service Route Planner \u2013 North Carolina", key:"rp-NC.", resetLabel:"Restore North Carolina store list", groupBy:"city"};
 const DEFAULT_GROUPS = ``;
 const DEFAULT_STORES = `Store #	Shopping Center	Address	City	State	Zip	Phone	Latitude	Longitude
-45	Decatur Commons	1605 Beltline Rd SW	Decatur	AL	35601-5591	(256) 301-0023	34.5651	-87.013084
-75	The Shops of Lake Tuscaloosa	4851 Rice Mine Rd NE Ste 200	Tuscaloosa	AL	35406-3571	(205) 247-7666	33.263107	-87.51333
-165	Edgemont Town Center	411 Green Springs Hwy	Homewood	AL	35209-4909	(205) 944-1101	33.465294	-86.81963
-209	Mountain Cove Crossing	12796 Bailey Cove Rd SE	Huntsville	AL	35803-2659	(256) 885-0002	34.622765	-86.538506
-573	Hampton Cove Center	6707 Highway 431 S	Owens Cross Roads	AL	35763-9204	(256) 512-0990	34.6589	-86.481
-574	Piedmont Point Shopping Center	4851 Whitesburg Dr SE Ste B	Huntsville	AL	35802-1626	(256) 650-2390	34.692776	-86.56597
-598	Madison Centre	8000 Madison Blvd Ste A	Madison	AL	35758-2035	(256) 461-1860	34.691734	-86.71839
-838	Valleydale Village	5188 Caldwell Mill Rd	Hoover	AL	35244-1915	(205) 980-7500	33.385883	-86.7406
-839	Trace Crossings	2543 John Hawkins Pkwy	Hoover	AL	35244-3533	(205) 982-8506	33.35582	-86.84268
-841	Southgate Village	1944 Montgomery Hwy S	Birmingham	AL	35244-1141	(205) 987-3401	33.347034	-86.797356
-842	Vestavia Hills City Center	784 Montgomery Hwy	Vestavia Hills	AL	35216-1800	(205) 824-6005	33.444695	-86.793365
-882	The Village at Lee Branch	410 Doug Baker Blvd	Hoover	AL	35242-2682	(205) 981-7415	33.408936	-86.66846
-1024	Taylor Junction	7076 Atlanta Hwy	Montgomery	AL	36117-4242	(334) 290-4501	32.381226	-86.171616
-1025	Dalraida Commons	4045 Atlanta Hwy	Montgomery	AL	36109-2920	(334) 260-7782	32.38358	-86.24181
-1026	Cornerstone	7700 Vaughn Rd	Montgomery	AL	36116-1337	(334) 290-4920	32.33679	-86.18278
-1027	Zelda Place	3026 Zelda Rd	Montgomery	AL	36106-2700	(334) 244-4481	32.35555	-86.26592
-1059	Montclair Place	1325 Montclair Rd	Birmingham	AL	35210-2205	(205) 951-6626	33.52109	-86.73115
-1065	Allison-Bonnett Plaza	3014 Allison Bonnett Memorial Dr Ste 130	Hueytown	AL	35023-2395	(205) 497-5366	33.453255	-86.97826
-1069	Clay Marketplace	5150 Old Springville Rd	Pinson	AL	35126-3635	(205) 815-5224	33.65588	-86.646996
-1073	White Stone Center	9200 Highway 119 Ste 1400	Alabaster	AL	35007-5344	(205) 663-3443	33.212715	-86.825676
-1074	Crow's Corner	4730 Highway 17	Helena	AL	35080-3570	(205) 620-0199	33.279976	-86.854065
-1075	Northwood Crossings	2300 McFarland Blvd	Northport	AL	35476-2927	(205) 339-4232	33.241905	-87.57779
-1082	The Shoppes at Deerfoot	7272 Gadsden Hwy	Trussville	AL	35173-1687	(205) 661-1415	33.641434	-86.57991
-1083	Publix At University Town Center	1190 University Blvd	Tuscaloosa	AL	35401-1601	(205) 247-5044	33.212097	-87.55358
-1085	Publix On Overton	3141 Overton Rd	Mountain Brook	AL	35223-2846	(205) 967-2188	33.46575	-86.73279
-1086	Phenix Crossing	5408 Summerville Rd Ste 200	Phenix City	AL	36867-7481	(334) 291-8525	32.521423	-85.0282
-1126	Winchester Plaza	2246 Winchester Rd NE	Huntsville	AL	35811-6800	(256) 851-5807	34.816174	-86.48965
-1185	Village Shoppes of Madison	12070 County Line Rd Ste C	Madison	AL	35756-2000	(256) 230-2626	34.730225	-86.7882
-1200	Colonial Promenade Tannehill	4965 Promenade Pkwy	Bessemer	AL	35022-7304	(205) 426-7100	33.33517	-86.9934
-1202	Pelham Towne Center	365 Huntley Pkwy	Pelham	AL	35124-6164	(205) 620-0102	33.274746	-86.79236
-1203	Eastside Junction	22031 US Highway 72	Athens	AL	35613-2614	(256) 230-2076	34.78381	-86.92976
-1206	Magnolia City Place	655 Fieldstown Rd	Gardendale	AL	35071-2411	(205) 608-4677	33.65124	-86.82223
-1207	Hoover Place	1584 Montgomery Hwy	Hoover	AL	35216-4524	(205) 824-7218	33.403557	-86.80838
-1213	The Shoppes at Palm Pointe	25771 Perdido Beach Blvd	Orange Beach	AL	36561-6107	(251) 980-1400	30.271769	-87.58804
-1218	Harvest Square	5850 Highway 53	Harvest	AL	35749-4301	(256) 851-5958	34.846462	-86.7103
-1228	High Point Town Center	2451 Cobbs Ford Rd	Prattville	AL	36066-7763	(334) 285-0227	32.461422	-86.39835
-1253	Capital Market Center	1101 Southview Ln	Tuscaloosa	AL	35405-6389	(205) 247-7710	33.123127	-87.55273
-1265	The Shoppes at Fairhope Village	22530 US Highway 98 Ste 100	Fairhope	AL	36532-6398	(251) 929-7355	30.555693	-87.890915
-1281	Calera Crossings	90 Marketplace Cir	Calera	AL	35040-8200	(205) 668-3585	33.15549	-86.74836
-1292	Colonial Promenade at Craft Farms	160 Cotton Creek Dr Ste 100	Gulf Shores	AL	36542-2850	(251) 948-1281	30.298656	-87.681404
-1294	Hamilton Place	2415 Moores Mill Rd	Auburn	AL	36830-8480	(334) 502-8667	32.585373	-85.43644
-1355	The Shoppes at Cary Creek	2900 E University Dr	Auburn	AL	36830-7720	(334) 502-2416	32.63822	-85.48016
-1362	Magnolia Place	27955 US Highway 98 Ste 1	Daphne	AL	36526-4700	(251) 626-1305	30.630938	-87.912575
-1369	Northside Mall	3525 Ross Clark Cir Ste 100	Dothan	AL	36303-5935	(334) 792-4281	31.248392	-85.42902
-1370	Chelsea Crossroads	501 Chelsea Xrds	Chelsea	AL	35043-3900	(205) 678-5600	33.353226	-86.608795
-1375	Cottonwood Corners	1620 Ross Clark Cir	Dothan	AL	36301-5439	(334) 673-1200	31.197466	-85.37453
-1377	Westway	4650 W Main St Ste 700	Dothan	AL	36305-9421	(334) 792-6801	31.239414	-85.46214
-1391	South Park Center	2040 Martin St S	Pell City	AL	35128-2326	(205) 338-3472	33.563824	-86.2677
-1400	Eastern Shore Commons	10179 Eastern Shore Dr	Spanish Fort	AL	36527-5801	(251) 621-9065	30.674051	-87.848
-1402	Park Place	847 Boll Weevil Cir Ste 112	Enterprise	AL	36330-2476	(334) 348-1489	31.326006	-85.838264
-1404	Publix at Sunset Point	4628 Airport Blvd	Mobile	AL	36608-2223	(251) 341-5727	30.676668	-88.16773
-1409	Renaissance City Center	322 Cox Creek Pkwy	Florence	AL	35630-1540	(256) 718-1790	34.837173	-87.62942
-1420	Oxford Commons	115 Commons Way	Oxford	AL	36203-3483	(256) 835-4075	33.607628	-85.78837
-1436	Hillwood Shopping Center	2370 Hillcrest Rd, Unit J	Mobile	AL	36695-3838	(251) 661-5361	30.641775	-88.19231
-1451	Twickenham Square	310 Pelham Ave SW	Huntsville	AL	35801-5016	(256) 534-2330	34.723385	-86.58394
-1462	Guntersville Landing	2300 Gunter Ave	Guntersville	AL	35976-2238	(256) 571-2501	34.333763	-86.316414
-1476	Shoppes at Rainbow Landing	128 W Grand Ave	Rainbow City	AL	35906-3238	(256) 442-2509	33.955227	-86.04394
-1503	Cullman Shopping Center	1104 Cullman Shopping Ctr NW	Cullman	AL	35055-2855	(256) 736-7000	34.181503	-86.84922
-1508	The Village at Moody	2200 Village Dr	Moody	AL	35004-3241	(205) 640-3230	33.570053	-86.51761
-1512	20 Midtown	230 20th St S	Birmingham	AL	35233	(205) 250-7170	33.51	-86.80339
-1525	Park Place	1147 US Hwy 231 S	Troy	AL	36081	(334) 807-5761	31.780548	-85.95472
-1532	Muscle Shoals Commons	3220 Woodward Ave	Muscle Shoals	AL	35661-3322	(256) 389-0080	34.731277	-87.66976
-1545	Patchwork Farms  Shopping Center	3040 Healthy Way	Vestavia Hills	AL	35243	(205) 970-7501	33.42937	-86.737595
-1604	Midtown Center	100 N Florida St	Mobile	AL	36607	(251) 471-4860	30.69239	-88.09899
-1609	Point Mallard Centre	2934 Point Mallard Pkwy SE	Decatur	AL	35603	(256) 351-5261	34.542683	-86.9204
-1612	The Pinnacle at Providence	1660 Old Monrovia Rd NW	Huntsville	AL	35806	(256) 430-5443	34.75842	-86.6803
-1627	Lakeshore Pavilion	2860 Lakeshore Pkwy	Birmingham	AL	35211	(205) 945-2741	33.423016	-86.88869
-1629	The Shoppes at Redstone Square	2286 Zierdt Rd	Huntsville	AL	35824	(256) 774-3888	34.64777	-86.71972
-1638	Madison Commons Shopping Center	350 Hughes Rd	Madison	AL	35758	(256) 464-3422	34.708176	-86.743774
-1642	The Shops at Pine Grove	7129 Wall Triana Hwy	Madison	AL	35757	(256) 722-3786	34.7932	-86.74669
-1650	Saraland Crossing	21 Shell St	Saraland	AL	36571	(251) 679-2995	30.805569	-88.11064
-1672	Paradise Isle Shopping Center	1720 Gulf Shores Pkwy Ste 2	Gulf Shores	AL	36542-3438	(251) 240-3003	30.27005	-87.68654
-1673	Riviera Square	2614 S McKenzie St	Foley	AL	36535	(251) 943-3329	30.377172	-87.68633
-1675	Rocky Ridge Square	3350 Morgan Dr	Vestavia Hills	AL	35216	(205) 978-9842	33.42661	-86.77439
-1676	Lane Parke	1000 Jemison Ln	Mountain Brook	AL	35223	(205) 802-9189	33.486256	-86.77304
-1687	Publix at Tattersall Park	6219 Tattersall Blvd	Hoover	AL	35242	(205) 981-3995	33.41998	-86.667656
-1691	Publix at Bristol Park	13556 Hwy 69 N	Northport	AL	35475	(205) 330-7653	33.303192	-87.570305
-1692	The Market Place at The Bray	3201 Endeavor Ln	Vestavia Hills	AL	35242	(205) 967-5998	33.47266	-86.70333
-1726	Clift Farm	417 John Henry Way	Madison	AL	35757	(256) 325-0540	34.75281	-86.76138
-1728	Morgan Road Plaza	4293 S Shades Crest Rd	Hoover	AL	35244	(205) 428-4923	33.308758	-86.90357
-1756	Shops at Pike Road	9515 Vaughn Rd	Pike Road	AL	36064	(334) 694-5802	32.34635	-86.09324
-1785	Market at Hays Farm	9040 Memorial Pkwy SW	Huntsville	AL	35802	(256) 650-6086	34.64807	-86.56769
-1790	Midtown Centre	165 US Hwy 31 N	Athens	AL	35611	(256) 771-5662	34.804874	-86.9508
-1794	Marble City Square	165 MCS Blvd	Sylacauga	AL	35150-1138	(256) 487-0098	33.17279	-86.283325
-1796	Bickley Station	9124 Cottage Hill Rd	Mobile	AL	36695	(251) 634-5141	30.640327	-88.258064
-1799	Planters Pointe Shopping Center	9867 State Hwy 104	Fairhope	AL	36532-4392	(251) 279-6001	30.54868	-87.8558
-1809	The Shops at Point Clear	18125 Wright Blvd	Fairhope	AL	36532-7335	(251) 279-6442	30.488304	-87.8875
-1822	Shops on Gay Street	138 S Gay St	Auburn	AL	36830	(334) 502-3616	32.605694	-85.48019
-1830	Publix at Scottsboro	24540 John T Reid Pkwy	Scottsboro	AL	35768	(256) 672-6056	34.665695	-86.01539
-1831	Cahaba Crossing	1288 Grants Mill Rd	Irondale	AL	35210-2112	(205) 905-3598	33.535587	-86.674644
-1878	The Gateway at Lake Martin	4812 Hwy 280	Alexander City	AL	35010	(256) 414-6016	32.91492	-85.953384
-2002	Camp Grandview Plaza	1400 AL Hwy 14	Millbrook	AL	36054	(334) 604-4819	32.493607	-86.402794
-2010	The Shoppes at Fort Toulouse	5039 US Hwy 231	Wetumpka	AL	36092	(334) 478-6185	32.514515	-86.214165
-2027	Semmes Village Shopping Center	2035 Schillinger Rd N Ste 100	Semmes	AL	36575-7417	(251) 264-6020	30.732477	-88.227905
-2042	Flint Crossing Market Place	12290 Hwy 231/431 N	Meridianville	AL	35759-1200	(256) 804-4042	34.870956	-86.569336
-2098	The Village at Foley Crossroads	9913 Foley-Beach Express	Foley	AL	36535	(251) 240-3043	30.368826	-87.65549
-2145	French Mill Crossing	14210 Mooresville Rd	Athens	AL	35613	(256) 867-6148	34.764635	-86.876485`;
+1442	Ballantyne Town Center	11222 Providence Rd W	Charlotte	NC	28277	(704) 716-2344	35.04258	-80.84965
+1453	Shops at Southline	2222 South Blvd	Charlotte	NC	28203-6581	(704) 373-2122	35.206657	-80.86254
+1466	Bradford	1020 Bradford Plaza Way	Cary	NC	27519	(919) 460-2082	35.793247	-78.8448
+1470	Mint Hill Commons	6828 Matthews Mint Hill Rd	Mint Hill	NC	28227-9324	(704) 573-0234	35.17094	-80.65955
+1473	Pinnacle Point	1830 Hendersonville Rd	Asheville	NC	28803-3207	(828) 274-6287	35.5049	-82.52241
+1474	Magnolia Plaza	8315 Magnolia Estates Dr	Cornelius	NC	28031-7837	(704) 895-7057	35.475414	-80.88894
+1475	Publix at Miller Street	34 Miller St	Winston-Salem	NC	27104-4212	(336) 724-3707	36.094845	-80.27575
+1480	Whitehall Commons	8120 S Tryon St	Charlotte	NC	28273-3325	(704) 583-2323	35.14604	-80.929794
+1481	Market Square	9815 Rose Commons Dr	Huntersville	NC	28078-3334	(704) 948-4801	35.40851	-80.864296
+1483	Steele Creek Crossing	12810 S Tryon St	Charlotte	NC	28273-6949	(704) 587-0339	35.104816	-80.98803
+1484	McKee Farms	3110 Fincher Farm Rd	Matthews	NC	28105-5462	(704) 814-6001	35.082245	-80.729935
+1490	Willow Oaks Crossing	5015 Weddington Rd	Concord	NC	28027	(704) 795-7127	35.396206	-80.66127
+1509	Prosperity Village Square	10110 Benfield Rd	Charlotte	NC	28269	(704) 992-6951	35.3748	-80.788574
+1514	The Shoppes at Heritage Village	1030 Forestville Rd	Wake Forest	NC	27587	(919) 556-6671	35.945904	-78.50794
+1516	Publix at Pine Valley	716 Bragg Dr	Wilmington	NC	28412	(910) 313-2201	34.180668	-77.89324
+1518	Cotswold	4425 Randolph Rd	Charlotte	NC	28211	(704) 367-5208	35.1778	-80.7994
+1519	Brawley Commons	631 Brawley School Rd	Mooresville	NC	28117-6204	(704) 660-6800	35.581768	-80.87465
+1520	Millpond Village	3480 Kildaire Farm Rd	Cary	NC	27518-1541	(919) 303-4024	35.70501	-78.797
+1521	Hoffman Village	1949 Hoffman Rd	Gastonia	NC	28054-6574	(704) 853-7000	35.225433	-81.132645
+1533	River Place	2004 S Glenburnie Rd	New Bern	NC	28562-5227	(252) 634-1646	35.100266	-77.10051
+1539	North Pointe Shopping Center	134 Venture Ln	Statesville	NC	28625	(704) 878-4073	35.818302	-80.87841
+1544	Publix Pointe	1441 Kelly Rd	Apex	NC	27502	(919) 303-6200	35.737526	-78.89342
+1546	Weaverville Plaza	165 Weaver Blvd	Weaverville	NC	28787	(828) 658-1020	35.705868	-82.568794
+1548	Publix at Three Creeks	1620 Blowing Rock Rd	Boone	NC	28607	(828) 263-8126	36.19921	-81.66139
+1550	Lake Hickory Crossings	36 29th Ave NE	Hickory	NC	28601-1100	(828) 322-3675	35.769314	-81.32824
+1551	Leesville Market Place	9640 Leesville Rd	Raleigh	NC	27613	(919) 848-3480	35.90569	-78.72725
+1552	Amberly Place	425 Emissary Dr	Cary	NC	27519	(919) 388-7201	35.825207	-78.90321
+1555	Harris Square	4055 Harris Square Dr	Harrisburg	NC	28075	(704) 454-7832	35.320442	-80.64581
+1556	Shoppes at Hanfield Village	5132 Old Charlotte Hwy	Monroe	NC	28110	(704) 289-6598	35.048042	-80.64222
+1569	Greenville Square	705 Greenville Blvd SE	Greenville	NC	27858	(252) 756-4682	35.588303	-77.370125
+1574	Peace Haven Village	3150 Gammon Ln	Clemmons	NC	27012	(336) 766-2069	36.04019	-80.38912
+1575	Tallywood Shopping Center	3114 Raeford Rd	Fayetteville	NC	28303	(910) 321-0114	35.04692	-78.93146
+1580	Ogden Market Place	7144 Market St	Wilmington	NC	28411	(910) 681-3555	34.271004	-77.81954
+1582	Westchester Square	2005 N Main St Ste 101	High Point	NC	27262	(336) 905-8610	35.981407	-80.024864
+1583	The Village Shoppes	7883 Village Center N	Sherrills Ford	NC	28673	(828) 478-2644	35.584713	-80.98934
+1586	South Market Village	635 Greenville Hwy	Hendersonville	NC	28792	(828) 694-4440	35.305576	-82.45932
+1603	Cambridge Village	513 Brentwood Rd	Denver	NC	28037	(704) 483-7152	35.448223	-80.99328
+1615	Publix at First Flight Square	1530 N Croatan Hwy	Kill Devil Hills	NC	27948	(252) 255-5006	36.027336	-75.671135
+1619	Arboretum at Surf City	2765 NC Hwy 210 E	Hampstead	NC	28443	(910) 329-1000	34.45176	-77.56461
+1623	Egret Landing	8800 Crew Drive	Emerald Isle	NC	28594	(252) 354-2104	34.66231	-77.05169
+1631	Ocean Isle Beach Market Place	1560 Market Place Blvd	Ocean Isle Beach	NC	28469	(910) 393-2059	33.90404	-78.43869
+1640	Waynesville Pavilion	124 Frazier St	Waynesville	NC	28786	(828) 454-5700	35.504246	-82.99398
+1652	Peace	417 W Peace St Ste 100	Raleigh	NC	27603	(919) 755-5444	35.78837	-78.64446
+1658	Grandover Village	6029 W Gate City Blvd	Greensboro	NC	27407	(336) 894-2591	36.000057	-79.90604
+1660	Gateway Marketplace	2001 Marlin Dr Unit 100	Jacksonville	NC	28546	(910) 353-0433	34.79604	-77.40825
+1677	Publix Commons at Federal Point	1018 Lake Park Blvd N Ste 107	Carolina Beach	NC	28428	(910) 458-8615	34.04399	-77.89519
+1703	Oak Island Marketplace	5003 E Oak Island Dr	Oak Island	NC	28465	(910) 278-6785	33.91143	-78.112785
+1704	Marvin Gardens	1615 Providence Rd S	Marvin	NC	28173	(704) 843-0119	34.98699	-80.77168
+1706	Church Street Commons	2750 S Church St	Burlington	NC	27215	(336) 586-1873	36.08065	-79.483215
+1727	Marketplace at Flowers Crossroads	24 Publix Dr	Clayton	NC	27527	(919) 550-2812	35.652176	-78.351944
+1744	Publix at Wendell Falls	2257 Wendell Falls Pkwy	Wendell	NC	27591	(919) 365-7055	35.776608	-78.43507
+1765	North Creek Village	15010 Village Crossing Rd	Huntersville	NC	28078	(704) 977-0021	35.454235	-80.80321
+1817	Marketplace at Ellis Crossing	1065 Yunus Rd	Durham	NC	27703-7200	(919) 598-0245	35.9408	-78.8543
+1824	Publix at Arboretum	7933 Providence Rd	Charlotte	NC	28277	(980) 273-7487	35.099136	-80.77755
+1855	Wallbrook	821 S Main Street	Rolesville	NC	27571-9264	(919) 263-6027	35.906536	-78.4801
+1858	West Edge	5525 Robin Lark Cir	Winston-Salem	NC	27106-9906	(336) 815-6007	36.1205	-80.36928
+1872	Harris Farms Shopping Center	1254 Coddle Creek Hwy	Mooresville	NC	28115	(704) 360-6915	35.561268	-80.78994
+1881	Clear Creek Crossings	12925 Albemarle Rd	Charlotte	NC	28227	(980) 365-7588	35.22505	-80.63641
+1886	Buffaloe Bend	7330 Buffaloe Rd	Raleigh	NC	27616	(919) 679-6584	35.844086	-78.51527
+1888	Latta Park	4628 Guess Rd	Durham	NC	27712-2624	(984) 243-5497	36.078212	-78.930075
+2017	Publix At Quail Commons	11525 Carmel Commons Blvd	Charlotte	NC	28226-5317	(704) 496-5209	35.087196	-80.84484
+2029	Commons at Carolina Shores	9770 Ocean Hwy W	Calabash	NC	28467	(910) 393-4010	33.90847	-78.586439
+2031	Middlecreek Crossings	16100 NC Hwy 50 N	Garner	NC	27529	(919) 334-4539	35.59163	-78.597275
+2101	Rockfish Village	7483 Rockfish Rd	Fayetteville	NC	28306-8075	(910) 912-2926	34.980518	-79.01654
+2105	The Marketplace at Mills River	70 Vance Hill Dr	Mills River	NC	28759	(828) 393-6342	35.402587	-82.567743
+2120	Village Commons	6460 Weddington Rd	Wesley Chapel	NC	28104	(704) 839-5004	34.999227	-80.692369`;
 const DEFAULT_COORDS = ``;
 // ===EDITION-END===
 
@@ -1189,11 +1161,20 @@ function storeGroups(calls){
   calls.forEach(c=>{ if(!m.has(c.store)) m.set(c.store,[]); m.get(c.store).push(c); });
   return [...m.entries()].map(([num,cs])=>{
     const ls=S.listSort, dueKey=c=>c.due?c.due.getTime():Infinity;
-    cs.sort((a,b)=> ls==="most" ? (dueKey(a)-dueKey(b) || a.prio-b.prio)
+    if(ls==="old"||ls==="new") cs.forEach(c=>{ const a=callAge(c); c._made=a?a.t:null; });
+    const madeKey=c=>c._made==null?(ls==="old"?Infinity:-Infinity):c._made;   // calls with no known age go last
+    cs.sort((a,b)=> ls==="old" ? (madeKey(a)-madeKey(b) || a.prio-b.prio)
+      : ls==="new" ? (madeKey(b)-madeKey(a) || a.prio-b.prio)
+      : ls==="most" ? (dueKey(a)-dueKey(b) || a.prio-b.prio)
       : ls==="least" ? (leastKey(a.due)-leastKey(b.due) || a.prio-b.prio)
       : (a.prio-b.prio || (a.due||0)-(b.due||0)));
-    return {num, calls:cs, best:Math.min(...cs.map(c=>c.prio)), tier:Math.max(...cs.map(tierOf)), earliest:cs.reduce((m,c)=>c.due&&(!m||c.due<m)?c.due:m,null)};
-  }).sort((a,b)=> S.listSort==="most"
+    return {num, calls:cs, best:Math.min(...cs.map(c=>c.prio)), tier:Math.max(...cs.map(tierOf)), earliest:cs.reduce((m,c)=>c.due&&(!m||c.due<m)?c.due:m,null),
+      oldest:cs.reduce((m,c)=>c._made!=null&&(m==null||c._made<m)?c._made:m,null), newest:cs.reduce((m,c)=>c._made!=null&&(m==null||c._made>m)?c._made:m,null)};
+  }).sort((a,b)=> S.listSort==="old"
+    ? ((a.oldest??Infinity)-(b.oldest??Infinity) || a.best-b.best || a.num.localeCompare(b.num,undefined,{numeric:true}))
+    : S.listSort==="new"
+    ? ((b.newest??-Infinity)-(a.newest??-Infinity) || a.best-b.best || a.num.localeCompare(b.num,undefined,{numeric:true}))
+    : S.listSort==="most"
     ? ((a.earliest||Infinity)-(b.earliest||Infinity) || a.best-b.best || a.num.localeCompare(b.num,undefined,{numeric:true}))
     : S.listSort==="least"
     ? (leastKey(a.earliest)-leastKey(b.earliest) || a.best-b.best || a.num.localeCompare(b.num,undefined,{numeric:true}))
@@ -1971,7 +1952,7 @@ function callAge(c){
   const days=Math.max(0,Math.round((dayStart(Date.now())-dayStart(t))/864e5));   // calendar days since it was put in
   const cls=days<=3?"g":days<=5?"y":days===6?"o":days<=8?"r":"f";
   const when=new Date(t).toLocaleDateString(undefined,{weekday:"short",month:"numeric",day:"numeric"})+(exact?" "+new Date(t).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"}):"");
-  return {days,est,cls,title:`Put in ${when}${est?" (approx.)":""}: ${how}. 0–3 days green, 4–5 yellow, 6 orange, 7–8 red, 9+ fire.`};
+  return {days,est,cls,t,title:`Put in ${when}${est?" (approx.)":""}: ${how}. 0–3 days green, 4–5 yellow, 6 orange, 7–8 red, 9+ fire.`};
 }
 function fmtSoon(c){
   const d=pastDays(c); if(d===null||d>0) return "";

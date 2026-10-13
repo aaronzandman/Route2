@@ -695,6 +695,8 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
           <option value="group">By group</option>
           <option value="most">Days past due: most first</option>
           <option value="least">Days past due: least first</option>
+          <option value="old">Days old: oldest first</option>
+          <option value="new">Days old: newest first</option>
         </select>
         <button id="copyList">📋 Copy list</button>
         <button id="histBtn">🗓 History</button>
@@ -774,12 +776,13 @@ const ERRLOG=[];
   window.addEventListener("unhandledrejection",e=>add("Promise: "+((e.reason&&e.reason.message)||e.reason)));
 })();
 // ---------- version ----------
-const APP_VERSION = "4.21";
+const APP_VERSION = "4.22";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const GC_CODE = "";   // GoatCounter site code for anonymous usage counts (blank = nothing is sent)
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["4.22", "Sort the store list by days old: oldest first or newest first (Sort menu above the stores)."],
   ["4.21", "Call age now comes from SAP itself: the due date and severity give the day the call was put in (Sev 1 same day by midnight, Sev 2 next day by 5 PM, Sev 3 72 hours, Sev 4 120 hours). Hover a badge to see the date."],
   ["4.20", "Call age colors: 0–3 days green, 4–5 yellow, 6 orange, 7–8 red, 9+ days 🔥 fire."],
   ["4.19", "Call age badge on every call: 📅 days since the call was put in, colored by age. Exact when the dispatch text is known (from Companion), otherwise ≈ estimated. Turn it off in Settings if you don't want it."],
@@ -1154,11 +1157,20 @@ function storeGroups(calls){
   calls.forEach(c=>{ if(!m.has(c.store)) m.set(c.store,[]); m.get(c.store).push(c); });
   return [...m.entries()].map(([num,cs])=>{
     const ls=S.listSort, dueKey=c=>c.due?c.due.getTime():Infinity;
-    cs.sort((a,b)=> ls==="most" ? (dueKey(a)-dueKey(b) || a.prio-b.prio)
+    if(ls==="old"||ls==="new") cs.forEach(c=>{ const a=callAge(c); c._made=a?a.t:null; });
+    const madeKey=c=>c._made==null?(ls==="old"?Infinity:-Infinity):c._made;   // calls with no known age go last
+    cs.sort((a,b)=> ls==="old" ? (madeKey(a)-madeKey(b) || a.prio-b.prio)
+      : ls==="new" ? (madeKey(b)-madeKey(a) || a.prio-b.prio)
+      : ls==="most" ? (dueKey(a)-dueKey(b) || a.prio-b.prio)
       : ls==="least" ? (leastKey(a.due)-leastKey(b.due) || a.prio-b.prio)
       : (a.prio-b.prio || (a.due||0)-(b.due||0)));
-    return {num, calls:cs, best:Math.min(...cs.map(c=>c.prio)), tier:Math.max(...cs.map(tierOf)), earliest:cs.reduce((m,c)=>c.due&&(!m||c.due<m)?c.due:m,null)};
-  }).sort((a,b)=> S.listSort==="most"
+    return {num, calls:cs, best:Math.min(...cs.map(c=>c.prio)), tier:Math.max(...cs.map(tierOf)), earliest:cs.reduce((m,c)=>c.due&&(!m||c.due<m)?c.due:m,null),
+      oldest:cs.reduce((m,c)=>c._made!=null&&(m==null||c._made<m)?c._made:m,null), newest:cs.reduce((m,c)=>c._made!=null&&(m==null||c._made>m)?c._made:m,null)};
+  }).sort((a,b)=> S.listSort==="old"
+    ? ((a.oldest??Infinity)-(b.oldest??Infinity) || a.best-b.best || a.num.localeCompare(b.num,undefined,{numeric:true}))
+    : S.listSort==="new"
+    ? ((b.newest??-Infinity)-(a.newest??-Infinity) || a.best-b.best || a.num.localeCompare(b.num,undefined,{numeric:true}))
+    : S.listSort==="most"
     ? ((a.earliest||Infinity)-(b.earliest||Infinity) || a.best-b.best || a.num.localeCompare(b.num,undefined,{numeric:true}))
     : S.listSort==="least"
     ? (leastKey(a.earliest)-leastKey(b.earliest) || a.best-b.best || a.num.localeCompare(b.num,undefined,{numeric:true}))
@@ -1936,7 +1948,7 @@ function callAge(c){
   const days=Math.max(0,Math.round((dayStart(Date.now())-dayStart(t))/864e5));   // calendar days since it was put in
   const cls=days<=3?"g":days<=5?"y":days===6?"o":days<=8?"r":"f";
   const when=new Date(t).toLocaleDateString(undefined,{weekday:"short",month:"numeric",day:"numeric"})+(exact?" "+new Date(t).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"}):"");
-  return {days,est,cls,title:`Put in ${when}${est?" (approx.)":""}: ${how}. 0–3 days green, 4–5 yellow, 6 orange, 7–8 red, 9+ fire.`};
+  return {days,est,cls,t,title:`Put in ${when}${est?" (approx.)":""}: ${how}. 0–3 days green, 4–5 yellow, 6 orange, 7–8 red, 9+ fire.`};
 }
 function fmtSoon(c){
   const d=pastDays(c); if(d===null||d>0) return "";
