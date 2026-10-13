@@ -306,6 +306,23 @@ details.help kbd{font:12px ui-monospace,Consolas,monospace;border:1px solid var(
 .stop .t{font-weight:600}
 .stop .leg{font-size:12px;color:var(--muted)}
 .mv{display:flex;flex-direction:column;gap:2px}
+.stops.dnd .stop:not(.home){cursor:grab}
+.stops.dnd .stop:not(.home):hover{background:var(--soft)}
+.stop.dragging{opacity:.35}
+.stop.over{box-shadow:inset 0 3px 0 var(--road)}
+.stop.over-end{box-shadow:inset 0 -3px 0 var(--road)}
+.stop.flash{background:#FFF3C4;transition:background .6s}
+.dndhint{font-size:12px;color:var(--muted);margin-top:6px}
+.mapbtn{width:100%;margin-top:8px}
+#mapDlg .box{max-width:1320px;width:100%;height:calc(100vh - 32px);display:grid;grid-template-columns:340px 1fr;grid-template-rows:auto minmax(0,1fr) auto;gap:10px 14px;padding:14px}
+#mapDlg .maphead{grid-column:1/-1;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+#mapDlg .maphead h3{margin:0}
+#mapStops{overflow:auto;margin:0;padding-right:4px}
+#mapView{border-radius:8px;border:1px solid var(--line);min-height:0;background:var(--soft)}
+#mapDlg .mapfoot{grid-column:1/-1;font-size:12px;color:var(--muted)}
+@media (max-width:860px){ #mapDlg .box{grid-template-columns:1fr;grid-template-rows:auto 38% minmax(0,1fr) auto} }
+.mk{background:var(--road);color:#fff;border:2px solid #fff;border-radius:50%;display:grid!important;place-items:center;font:700 14px/1 var(--sign);box-shadow:0 1px 4px rgba(0,0,0,.45)}
+.mk.home{background:#222}
 .mv button{padding:0 7px;line-height:1.3;font-size:13px}
 .totals{display:flex;gap:18px;margin-top:10px;padding:10px;background:var(--soft);border-radius:8px}
 .totals b{font:700 22px/1 var(--sign);display:block}
@@ -526,6 +543,15 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
     <input type="file" id="histFileIn" accept=".txt,text/plain" hidden>
   </div>
 </div>
+<div class="bmk" id="mapDlg" role="dialog" aria-modal="true" aria-labelledby="mapTitle">
+  <div class="box">
+    <div class="maphead"><h3 id="mapTitle">Route map</h3><span class="hint" id="mapSum"></span><span style="flex:1"></span>
+      <button id="mapOpt" type="button" title="Put back the planner's order (your Stop order setting)">Re-optimize</button><button id="mapGo" type="button">Open in Google Maps</button><button class="primary" id="mapClose" type="button">Close</button></div>
+    <ol class="stops dnd" id="mapStops"></ol>
+    <div id="mapView"></div>
+    <div class="mapfoot">Drag stops in the list to change the order; the map and miles update right away. Click a number on the map to find that stop in the list. Lines are straight between stops, so real driving is a little longer. Only map pictures are loaded from the map service, never your calls. Map © OpenStreetMap contributors © CARTO.</div>
+  </div>
+</div>
 <div class="bmk" id="pasteDlg" role="dialog" aria-modal="true" aria-labelledby="pasteTitle">
   <div class="box">
     <h3 id="pasteTitle">Paste transfer</h3>
@@ -667,7 +693,7 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
       <option value="priority">Highest priority first, then shortest</option>
       <option value="pasttier">Most past due first, then shortest</option>
       <option value="due">Strictly oldest due first</option>
-      <option value="manual">Manual (use arrows)</option>
+      <option value="manual">Manual (drag or use arrows)</option>
     </select>
     <label class="incl" style="margin-top:10px"><input type="checkbox" id="roundTrip"> Return to start</label>
     <div class="row"><button id="allIn">Include all stores</button><button id="allOut">Exclude all</button></div>
@@ -676,8 +702,10 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
     <button class="dvbtn" id="dvBtn" type="button">▶ Day view: go stop by stop</button>
     <div class="row"><button id="replanBtn" type="button">📍 Re-plan from here</button><button id="eodBtn" type="button">📊 End-of-day summary</button></div>
     <div class="totals" id="totals"></div>
+    <button class="mapbtn" id="mapBtn" type="button" style="display:none">🗺 Show route on map</button>
     <div class="links" id="links"></div>
     <ol class="stops" id="stops"></ol>
+    <div class="dndhint" id="dndHint" style="display:none">Drag a stop up or down to change the order.</div>
     <div class="share">
       <button class="primary" id="copyBtn">Copy route for team</button>
       <div class="opts">
@@ -710,12 +738,13 @@ const ERRLOG=[];
   window.addEventListener("unhandledrejection",e=>add("Promise: "+((e.reason&&e.reason.message)||e.reason)));
 })();
 // ---------- version ----------
-const APP_VERSION = "4.11";
+const APP_VERSION = "4.12";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const GC_CODE = "";   // GoatCounter site code for anonymous usage counts (blank = nothing is sent)
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["4.12", "Computer only: 🗺 Show route on map opens a map of your stops in order, next to the stop list. Drag a stop up or down (on the map screen or in the route panel) to change the order; the map, miles and Google Maps links update right away. Re-optimize puts the planner's order back."],
   ["4.11", "Send to phone moved out of the menu: when it's turned on, it has its own button at the top, next to ☰ Menu. History now keeps every call you load from SAP (IW49), not just the ones you mark Done. To bring in your past dispatch texts on a computer, export them from Companion (Settings → Export all calls for desktop) and choose History → Import Companion file."],
   ["4.10", "How to get your calls from SAP now always starts collapsed; tap it to open."],
   ["4.9", "Automatic updates: an open planner checks for a new version every 30 minutes and when you come back to it, and refreshes itself (never while you're typing or have a window open). Your calls and settings stay."],
@@ -2094,7 +2123,7 @@ function renderRoute(groups){
     else if(i>0||start){ known=false; leg="Distance unknown (no map position)"; }
     prev=pt||prev;
     const s0=S.stores[s.num];
-    const li=document.createElement("li"); li.className="stop";
+    const li=document.createElement("li"); li.className="stop"; li.dataset.i=i; li.dataset.n=s.num;
     li.innerHTML=`<span class="num">${i+1}</span>
       <div><div class="t">${shieldHTML(groupOf(s.num),"sm")} ${esc(s.num)} ${s0?"· "+esc(s0.city):""}</div>
       <div class="leg">${s.calls.length} call${s.calls.length>1?"s":""}${s.extra&&s.extra.length?` + ${s.extra.length} more open`:""}, top priority ${esc(s.calls[0].prioLabel)}${s.tier?` <span class="tier t${s.tier}">${tierLabel(s.tier)}</span>`:""}</div>
@@ -2108,13 +2137,11 @@ function renderRoute(groups){
     if(start.pt&&last){ const d=miles(last,start.pt); total+=d; leg=`≈ ${d.toFixed(0)} mi · ${fmtTime(d/45*60)}`; }
     list.insertAdjacentHTML("beforeend",`<li class="stop home"><span class="num">⌂</span><div><div class="t">Back to start</div><div class="leg">${leg}</div></div><span></span></li>`);
   }
-  list.querySelectorAll("[data-up],[data-down]").forEach(b=>b.onclick=()=>{
-    const i=+(b.dataset.up??b.dataset.down), j=b.dataset.up!==undefined?i-1:i+1;
-    if(j<0||j>=S.lastOrder.length) return;
-    const o=S.lastOrder.slice(); [o[i],o[j]]=[o[j],o[i]]; S.manual=o; store.set("manual",o); render();
-  });
+  wireStops(list);
+  const desk=isDesk();
+  list.classList.toggle("dnd",desk); $("dndHint").style.display=desk&&seq.length>1?"":"none"; $("mapBtn").style.display=desk&&seq.length?"":"none";
   const calls=seq.reduce((n,s)=>n+s.calls.length,0);
-  S.routeTotals={stops:seq.length, calls, miles:known?total:null, start};
+  S.routeTotals={stops:seq.length, calls, miles:known?total:null, start, round};
   $("totals").innerHTML = seq.length
     ? `<div><b>${seq.length}</b><span>stops</span></div><div><b>${calls}</b><span>calls</span></div><div><b>${known?"≈ "+total.toFixed(0):"?"}</b><span>miles</span></div><div><b>${known?fmtTime(total/45*60):"?"}</b><span>driving</span></div>`
     : `<span class="hint">No stops selected. Check "In route" on a store to add it.</span>`;
@@ -2132,7 +2159,80 @@ function renderRoute(groups){
       links.appendChild(a);
     });
   }
+  if($("mapDlg").classList.contains("show")) syncMap(false);
 }
+// ---------- desktop: drag to reorder, route map ----------
+function isDesk(){ return !(/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints>1)) && !!(window.matchMedia && matchMedia("(pointer:fine)").matches); }
+function setOrder(o){
+  const m=$("modeSel").value; if(m!=="manual"){ store.set("modeBeforeManual",m); $("modeSel").value="manual"; store.set("mode","manual"); }
+  S.manual=o; store.set("manual",o); render();
+}
+function wireStops(list){
+  list.querySelectorAll("[data-up],[data-down]").forEach(b=>b.onclick=()=>{
+    const i=+(b.dataset.up??b.dataset.down), j=b.dataset.up!==undefined?i-1:i+1;
+    if(j<0||j>=S.lastOrder.length) return;
+    const o=S.lastOrder.slice(); [o[i],o[j]]=[o[j],o[i]]; setOrder(o);
+  });
+  if(!isDesk()) return;
+  const items=[...list.querySelectorAll("li.stop[data-i]")];
+  const clear=()=>items.forEach(x=>x.classList.remove("over","over-end"));
+  items.forEach(li=>{
+    li.draggable=true;
+    li.ondragstart=e=>{ S.dragFrom=+li.dataset.i; li.classList.add("dragging"); e.dataTransfer.effectAllowed="move"; try{ e.dataTransfer.setData("text/plain",li.dataset.n); }catch(_){} };
+    li.ondragend=()=>{ li.classList.remove("dragging"); clear(); };
+    li.ondragover=e=>{ if(S.dragFrom==null) return; e.preventDefault(); e.dataTransfer.dropEffect="move"; clear();
+      const r=li.getBoundingClientRect(), after=e.clientY>r.top+r.height/2; li.classList.add(after?"over-end":"over"); li.dataset.after=after?"1":""; };
+    li.ondragleave=()=>li.classList.remove("over","over-end");
+    li.ondrop=e=>{ e.preventDefault(); const from=S.dragFrom; S.dragFrom=null; clear(); if(from==null) return;
+      let to=+li.dataset.i+(li.dataset.after?1:0); const o=S.lastOrder.slice(); const [n]=o.splice(from,1); if(to>from) to--;
+      if(to===from) return; o.splice(to,0,n); setOrder(o); };
+  });
+}
+let MAP=null, MAPL=null;
+function loadLeaflet(){
+  if(window.L&&L.map) return Promise.resolve();
+  return new Promise((ok,bad)=>{
+    const c=document.createElement("link"); c.rel="stylesheet"; c.href=SITE_URL+"vendor/leaflet/leaflet.css"; document.head.appendChild(c);
+    const s=document.createElement("script"); s.src=SITE_URL+"vendor/leaflet/leaflet.js"; s.onload=ok; s.onerror=bad; document.head.appendChild(s);
+    setTimeout(bad,15000);
+  });
+}
+async function openMap(){
+  $("mapDlg").classList.add("show"); track("open-map"); syncMap(false);
+  try{ await loadLeaflet(); }catch(e){ if(!MAP) $("mapView").innerHTML=`<p class="hint" style="padding:20px">The map couldn't load. Check your internet connection and try again. You can still drag stops in the list.</p>`; return; }
+  if(!MAP){
+    $("mapView").innerHTML="";
+    MAP=L.map("mapView",{zoomControl:true});
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",{subdomains:"abcd",maxZoom:19,
+      attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>'}).addTo(MAP);
+    MAPL=L.layerGroup().addTo(MAP);
+  }
+  setTimeout(()=>{ MAP.invalidateSize(); drawMap(true); },30);
+}
+function syncMap(fit){
+  const t=S.routeTotals||{}, ml=$("mapStops");
+  ml.innerHTML=$("stops").innerHTML; wireStops(ml);
+  $("mapSum").textContent = t.stops ? `${t.stops} stop${t.stops>1?"s":""} · ${t.calls} call${t.calls>1?"s":""}`+(t.miles!=null?` · ≈ ${t.miles.toFixed(0)} mi · ${fmtTime(t.miles/45*60)} driving`:"")+($("modeSel").value==="manual"?" · your order":"") : "No stops in your route";
+  $("mapOpt").disabled = $("modeSel").value!=="manual";
+  $("mapGo").disabled = !S.mapLinks || !S.mapLinks.length;
+  drawMap(fit);
+}
+function drawMap(fit){
+  if(!MAP) return; MAPL.clearLayers();
+  const t=S.routeTotals||{}, st=t.start, pts=[], icon=(h,c)=>L.divIcon({className:"mk"+(c?" "+c:""),html:h,iconSize:[28,28],iconAnchor:[14,14]});
+  if(st&&st.pt){ pts.push(st.pt); L.marker(st.pt,{icon:icon("⌂","home"),keyboard:false}).bindTooltip(esc(st.label)).addTo(MAPL); }
+  S.lastOrder.forEach((n,i)=>{ const p=S.coords[n]; if(!p) return; pts.push(p); const s0=S.stores[n]||{};
+    L.marker(p,{icon:icon(String(i+1)),title:`Stop ${i+1}: store ${n}`}).bindTooltip(`${i+1}. Store ${esc(n)}${s0.city?" · "+esc(s0.city):""}`)
+      .on("click",()=>{ const li=$("mapStops").querySelector(`li[data-i="${i}"]`); if(li){ li.scrollIntoView({block:"center",behavior:"smooth"}); li.classList.add("flash"); setTimeout(()=>li.classList.remove("flash"),1200); } }).addTo(MAPL); });
+  if(t.round&&st&&st.pt&&pts.length>1) pts.push(st.pt);
+  if(pts.length>1) L.polyline(pts,{color:"#1F6B4F",weight:3,opacity:.85,dashArray:"7 6"}).addTo(MAPL);
+  if(fit&&pts.length) MAP.fitBounds(L.latLngBounds(pts).pad(0.12),{maxZoom:13});
+}
+$("mapBtn").onclick=openMap;
+$("mapClose").onclick=()=>$("mapDlg").classList.remove("show");
+$("mapOpt").onclick=()=>{ const m=store.get("modeBeforeManual","optimize"); $("modeSel").value=m==="manual"?"optimize":m; store.set("mode",$("modeSel").value); render(); syncMap(true); };
+$("mapGo").onclick=()=>{ (S.mapLinks||[]).forEach(u=>window.open(u,"_blank","noopener")); };
+document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&$("mapDlg").classList.contains("show")) $("mapDlg").classList.remove("show"); });
 
 // ---------- main render ----------
 function render(){

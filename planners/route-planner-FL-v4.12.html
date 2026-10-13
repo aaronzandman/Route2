@@ -306,6 +306,23 @@ details.help kbd{font:12px ui-monospace,Consolas,monospace;border:1px solid var(
 .stop .t{font-weight:600}
 .stop .leg{font-size:12px;color:var(--muted)}
 .mv{display:flex;flex-direction:column;gap:2px}
+.stops.dnd .stop:not(.home){cursor:grab}
+.stops.dnd .stop:not(.home):hover{background:var(--soft)}
+.stop.dragging{opacity:.35}
+.stop.over{box-shadow:inset 0 3px 0 var(--road)}
+.stop.over-end{box-shadow:inset 0 -3px 0 var(--road)}
+.stop.flash{background:#FFF3C4;transition:background .6s}
+.dndhint{font-size:12px;color:var(--muted);margin-top:6px}
+.mapbtn{width:100%;margin-top:8px}
+#mapDlg .box{max-width:1320px;width:100%;height:calc(100vh - 32px);display:grid;grid-template-columns:340px 1fr;grid-template-rows:auto minmax(0,1fr) auto;gap:10px 14px;padding:14px}
+#mapDlg .maphead{grid-column:1/-1;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+#mapDlg .maphead h3{margin:0}
+#mapStops{overflow:auto;margin:0;padding-right:4px}
+#mapView{border-radius:8px;border:1px solid var(--line);min-height:0;background:var(--soft)}
+#mapDlg .mapfoot{grid-column:1/-1;font-size:12px;color:var(--muted)}
+@media (max-width:860px){ #mapDlg .box{grid-template-columns:1fr;grid-template-rows:auto 38% minmax(0,1fr) auto} }
+.mk{background:var(--road);color:#fff;border:2px solid #fff;border-radius:50%;display:grid!important;place-items:center;font:700 14px/1 var(--sign);box-shadow:0 1px 4px rgba(0,0,0,.45)}
+.mk.home{background:#222}
 .mv button{padding:0 7px;line-height:1.3;font-size:13px}
 .totals{display:flex;gap:18px;margin-top:10px;padding:10px;background:var(--soft);border-radius:8px}
 .totals b{font:700 22px/1 var(--sign);display:block}
@@ -526,6 +543,15 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
     <input type="file" id="histFileIn" accept=".txt,text/plain" hidden>
   </div>
 </div>
+<div class="bmk" id="mapDlg" role="dialog" aria-modal="true" aria-labelledby="mapTitle">
+  <div class="box">
+    <div class="maphead"><h3 id="mapTitle">Route map</h3><span class="hint" id="mapSum"></span><span style="flex:1"></span>
+      <button id="mapOpt" type="button" title="Put back the planner's order (your Stop order setting)">Re-optimize</button><button id="mapGo" type="button">Open in Google Maps</button><button class="primary" id="mapClose" type="button">Close</button></div>
+    <ol class="stops dnd" id="mapStops"></ol>
+    <div id="mapView"></div>
+    <div class="mapfoot">Drag stops in the list to change the order; the map and miles update right away. Click a number on the map to find that stop in the list. Lines are straight between stops, so real driving is a little longer. Only map pictures are loaded from the map service, never your calls. Map © OpenStreetMap contributors © CARTO.</div>
+  </div>
+</div>
 <div class="bmk" id="pasteDlg" role="dialog" aria-modal="true" aria-labelledby="pasteTitle">
   <div class="box">
     <h3 id="pasteTitle">Paste transfer</h3>
@@ -667,7 +693,7 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
       <option value="priority">Highest priority first, then shortest</option>
       <option value="pasttier">Most past due first, then shortest</option>
       <option value="due">Strictly oldest due first</option>
-      <option value="manual">Manual (use arrows)</option>
+      <option value="manual">Manual (drag or use arrows)</option>
     </select>
     <label class="incl" style="margin-top:10px"><input type="checkbox" id="roundTrip"> Return to start</label>
     <div class="row"><button id="allIn">Include all stores</button><button id="allOut">Exclude all</button></div>
@@ -676,8 +702,10 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
     <button class="dvbtn" id="dvBtn" type="button">▶ Day view: go stop by stop</button>
     <div class="row"><button id="replanBtn" type="button">📍 Re-plan from here</button><button id="eodBtn" type="button">📊 End-of-day summary</button></div>
     <div class="totals" id="totals"></div>
+    <button class="mapbtn" id="mapBtn" type="button" style="display:none">🗺 Show route on map</button>
     <div class="links" id="links"></div>
     <ol class="stops" id="stops"></ol>
+    <div class="dndhint" id="dndHint" style="display:none">Drag a stop up or down to change the order.</div>
     <div class="share">
       <button class="primary" id="copyBtn">Copy route for team</button>
       <div class="opts">
@@ -710,12 +738,13 @@ const ERRLOG=[];
   window.addEventListener("unhandledrejection",e=>add("Promise: "+((e.reason&&e.reason.message)||e.reason)));
 })();
 // ---------- version ----------
-const APP_VERSION = "4.11";
+const APP_VERSION = "4.12";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const GC_CODE = "";   // GoatCounter site code for anonymous usage counts (blank = nothing is sent)
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["4.12", "Computer only: 🗺 Show route on map opens a map of your stops in order, next to the stop list. Drag a stop up or down (on the map screen or in the route panel) to change the order; the map, miles and Google Maps links update right away. Re-optimize puts the planner's order back."],
   ["4.11", "Send to phone moved out of the menu: when it's turned on, it has its own button at the top, next to ☰ Menu. History now keeps every call you load from SAP (IW49), not just the ones you mark Done. To bring in your past dispatch texts on a computer, export them from Companion (Settings → Export all calls for desktop) and choose History → Import Companion file."],
   ["4.10", "How to get your calls from SAP now always starts collapsed; tap it to open."],
   ["4.9", "Automatic updates: an open planner checks for a new version every 30 minutes and when you come back to it, and refreshes itself (never while you're typing or have a window open). Your calls and settings stay."],
@@ -765,84 +794,929 @@ const CHANGELOG = [
   ["1.0", "Import calls, group by store, filters, route ordering, Google Maps directions."]
 ];
 // ===EDITION-START===
-const EDITION = {id:"state-SC", name:"Service Route Planner \u2013 South Carolina", key:"rp-SC.", resetLabel:"Restore South Carolina store list", groupBy:"city"};
+const EDITION = {id:"state-FL", name:"Service Route Planner \u2013 Florida", key:"rp-FL.", resetLabel:"Restore Florida store list", groupBy:"city"};
 const DEFAULT_GROUPS = ``;
 const DEFAULT_STORES = `Store #	Shopping Center	Address	City	State	Zip	Phone	Latitude	Longitude
-17	Kennerly Crossing	7320 Broad River Rd	Irmo	SC	29063-9656	(803) 407-0127	34.096973	-81.15759
-35	Five Forks Place	2700 Woodruff Rd	Simpsonville	SC	29681-4804	(864) 234-3860	34.804302	-82.227325
-67	Rosewood Shopping Center	2800 Rosewood Dr	Columbia	SC	29205-3412	(803) 806-8839	33.987236	-81.00321
-205	Center Point	6525 Calhoun Memorial Hwy	Easley	SC	29640-3669	(864) 850-2270	34.820007	-82.58483
-360	Anderson Pavilion Shopping Center	1611 E Greenville St	Anderson	SC	29621-2006	(864) 231-5240	34.530933	-82.636505
-449	Queensborough Shopping Center	1000 Johnnie Dodds Blvd Ste 106	Mount Pleasant	SC	29464-3187	(843) 856-3000	32.813595	-79.86796
-459	St James Shopping Center	208 Saint James Ave Ste C	Goose Creek	SC	29445-2994	(843) 569-7920	33.006596	-80.04259
-472	Ashley Landing Mall	1401 Sam Rittenberg Blvd	Charleston	SC	29407-5031	(843) 852-3350	32.814617	-79.995285
-473	Festival Centre at Indigo Park	45 Pembroke Dr	Hilton Head Island	SC	29926-2262	(843) 689-9977	32.21035	-80.72526
-483	Oakbrook Shopping Center	1575 Old Trolley Rd	Summerville	SC	29485-8208	(843) 832-0456	32.96681	-80.166
-486	North Augusta Plaza	334 E Martintown Rd	North Augusta	SC	29841-4261	(803) 441-3900	33.49586	-81.962395
-506	Eastgate Shopping Center	250 Eastgate Dr	Aiken	SC	29803-7698	(803) 643-7970	33.511307	-81.716354
-512	Lexington Place	100 Old Cherokee Rd	Lexington	SC	29072-9316	(803) 951-3999	33.999886	-81.21981
-530	Publix at Woodruff	1750 Woodruff Rd	Greenville	SC	29607-5933	(864) 987-7080	34.81824	-82.27172
-531	Publix at Thornblade	411 The Pkwy	Greer	SC	29650-4522	(864) 848-7820	34.87138	-82.25606
-543	Poplar Springs Plaza	2153 E Main St Ste B9	Duncan	SC	29334-8863	(864) 486-4700	34.88853	-82.067245
-563	Boulevard Market Fair	3801-E Clemson Blvd	Anderson	SC	29621-1318	(864) 231-1170	34.553623	-82.68535
-587	North Pointe Shopping Center	10128 Two Notch Rd	Columbia	SC	29223-4384	(803) 788-9484	34.11447	-80.88457
-597	Trenholm Plaza	4840 Forest Dr Ste 10	Columbia	SC	29206-4810	(803) 790-4920	34.016594	-80.96496
-602	McAlister Square	235 S Pleasantburg Dr	Greenville	SC	29607-2521	(864) 250-4700	34.836174	-82.36451
-632	Hampton Village	2801 Wade Hampton Blvd Ste 120	Taylors	SC	29687-2758	(864) 609-7300	34.9022	-82.33722
-633	Merchants Village	520 Folly Rd	Charleston	SC	29412-3019	(843) 762-5670	32.75359	-79.97096
-656	Columbiana Station	150 Harbison Blvd	Columbia	SC	29212-2204	(803) 407-0449	34.067978	-81.1622
-687	Hillcrest Shopping Center	1905 E Main St	Spartanburg	SC	29307-2308	(864) 253-1820	34.967255	-81.89057
-700	Island Crossing Shopping Center	11 Palmetto Bay Rd	Hilton Head Island	SC	29928-3293	(843) 842-2632	32.15791	-80.766136
-824	Palmetto Pavilion	8409 Dorchester Rd Ste 104	North Charleston	SC	29420-7324	(843) 767-5970	32.912964	-80.109795
-829	Rice Creek Village	4611 Hard Scrabble Rd	Columbia	SC	29229-8584	(803) 699-8131	34.153267	-80.91329
-845	Bluffton Commons at Belfair	80 Baylor Dr	Bluffton	SC	29910-8902	(843) 706-3049	32.277798	-80.87721
-874	Pelham Commons	215 Pelham Rd	Greenville	SC	29615-2546	(864) 370-8210	34.867878	-82.34706
-883	Murray Landing	2732 N Lake Dr	Columbia	SC	29212-8733	(803) 407-2216	34.09795	-81.22081
-1012	Mauldin Square	111 W Butler Rd	Mauldin	SC	29662-2534	(864) 987-1601	34.776943	-82.31019
-1055	Publix at North Point	1435 Ben Sawyer Blvd	Mount Pleasant	SC	29464-4574	(843) 856-3018	32.791634	-79.85432
-1081	The Shoppes of Park West	1125 Park West Blvd	Mount Pleasant	SC	29466-6974	(843) 388-2263	32.874115	-79.779335
-1095	Gervais Place	501 Gervais St	Columbia	SC	29201-3045	(803) 255-4351	33.99827	-81.0445
-1120	Paradise Shoppes of Summerville	1585 Central Ave Unit A	Summerville	SC	29483-5587	(843) 832-4017	33.01167	-80.234856
-1145	West Ashley Place	3642 Savannah Hwy Ste 132	Johns Island	SC	29455-7948	(843) 573-8734	32.805138	-80.11151
-1148	McBee Station	400 E McBee Ave Ste 100	Greenville	SC	29601-2940	(864) 240-2015	34.847927	-82.39516
-1205	Buckwalter Place	101 Buckwalter Place Blvd	Bluffton	SC	29910-5155	(843) 815-6430	32.270252	-80.91682
-1266	The Market at Cane Bay	1724 State Rd	Summerville	SC	29486	(843) 761-3750	33.10635	-80.12522
-1354	New River Crossing	112 Nickle Plate Rd	Hardeeville	SC	29927-4414	(843) 208-3600	32.308353	-80.97333
-1379	Gateway Village	1390 Tiger Blvd	Clemson	SC	29631-2617	(864) 654-3776	34.68573	-82.8174
-1383	Hendrix Crossing	847 Highway 378 W	Lexington	SC	29072-8316	(803) 996-6160	33.991127	-81.30632
-1412	Cross Creek	8360 Charlotte Hwy	Indian Land	SC	29707-6532	(803) 548-9000	34.95623	-80.8498
-1419	Publix On Gold Hill	928 Gold Hill Rd	Fort Mill	SC	29708-7947	(803) 548-7900	35.062683	-80.96444
-1463	Lady's Island	61 Ladys Island Dr	Beaufort	SC	29907-1618	(843) 770-0026	32.41221	-80.65107
-1464	Shops at Publix Pavilion	479 Bypass 72 NW Ste 100	Greenwood	SC	29649-1484	(864) 223-8902	34.20627	-82.18599
-1478	Pawleys Island Plaza	10225 Ocean Hwy # 17	Pawleys Island	SC	29585-6507	(843) 235-3755	33.43828	-79.13194
-1479	Coastal North Town Center	1576 Highway 17 N	North Myrtle Beach	SC	29582-2552	(843) 272-0050	33.84235	-78.658195
-1482	Wedgewood Square Shopping Center	1735 Heckle Blvd	Rock Hill	SC	29732-4803	(803) 372-6364	34.95063	-81.06379
-1485	Cherry Road Crossing	2186 Cherry Rd Ste 101	Rock Hill	SC	29732-3282	(803) 366-7500	34.96478	-80.996994
-1486	Landing Station	158 Highway 274	Lake Wylie	SC	29710-6045	(803) 831-5667	35.120228	-81.081085
-1510	Publix at Forest Square	2170 Oakheart Rd	Myrtle Beach	SC	29579-1253	(843) 903-4603	33.75856	-78.95881
-1511	Chapin Crossing	1235 Chapin Rd	Chapin	SC	29036	(803) 345-7536	34.164394	-81.35174
-1524	Village Shops at Grande Dunes	7925 N Kings Hwy	Myrtle Beach	SC	29572-3056	(843) 449-1660	33.751034	-78.81594
-1568	Prince Creek Village Center	11920 Hwy 707 Ste A	Murrells Inlet	SC	29576	(843) 357-0739	33.585896	-79.05471
-1599	10 Westedge	10 Westedge St Ste 100	Charleston	SC	29403	(843) 720-7000	32.786217	-79.956406
-1608	Martin Farms Shopping Center	704 Fairview Rd	Simpsonville	SC	29680	(864) 962-1030	34.702866	-82.25975
-1637	Publix at Lake Crossing	5441 Platt Springs Rd	Lexington	SC	29073	(803) 358-9587	33.906555	-81.22073
-1645	Riverland Market	1411 Folly Rd Ste 100	Charleston	SC	29412	(843) 762-5570	32.714508	-79.96693
-1646	Point Hope Commons	730 Hopewell Dr	Charleston	SC	29492	(843) 856-5193	32.921623	-79.871284
-1671	Seneca 130 Plaza	115 Rochester Hwy	Seneca	SC	29672	(864) 885-7055	34.702732	-82.938896
-1714	May River Crossing	2501 May River Crossing	Bluffton	SC	29910	(843) 815-3800	32.242702	-80.97825
-1716	Beaufort Plaza	33 Robert Smalls Pkwy	Beaufort	SC	29906	(843) 470-1231	32.43967	-80.70342
-1717	Market at Standing Springs	1400 W Georgia Rd	Simpsonville	SC	29680	(864) 962-1183	34.724815	-82.29491
-1767	University Square	5000 Old Buncombe Rd Unit 15	Greenville	SC	29617-8208	(864) 448-7652	34.910557	-82.42777
-1775	Moncks Corner Marketplace	2830 Hwy 52	Moncks Corner	SC	29461	(843) 761-7741	33.091057	-80.03289
-1806	Coventry Marketplace	955 Wood Duck Dr	Myrtle Beach	SC	29577-9412	(843) 293-1012	33.66426	-78.969376
-1812	Marketplace at the Mill	136 Sapwood Rd	Myrtle Beach	SC	29579-3738	(843) 903-2807	33.75309	-78.870155
-1856	Market at Boiling Springs	4400 Highway 9	Boiling Springs	SC	29316	(864) 381-6929	35.0622	-81.99729
-1866	One Nexton	1274 Nexton Pkwy	Summerville	SC	29486-2167	(843) 879-5573	33.06032	-80.1538
-2001	Market at Spears Creek	185 Earth Rd	Columbia	SC	29229	(803) 769-0440	34.113445	-80.844604
-2038	The Market Place at Carnes Crossroads	2700 N Main St Ste A	Summerville	SC	29486-7841	(843) 879-5076	33.063465	-80.09442
-2040	The Village at Woodside	1535 Silver Bluff Rd	Aiken	SC	29803	(803) 845-6298	33.495453	-81.750007
-2090	Daniel Island Town Center	162 Seven Farms Dr Ste 100	Charleston	SC	29492-8024	(843) 972-6081	32.863676	-79.903614
-2100	The Shops at Arden Woods	1311 Fork Shoals Rd	Mauldin	SC	29605	(864) 248-1125	34.74568	-82.352922`;
+4	Mulberry Grove Plaza Shopping Center	8780 SE 165th Mulberry Ln	The Villages	FL	32162-5861	(352) 751-0301	28.98003	-82.00723
+6	Shoppes at New Tampa	1920 County Road 581	Wesley Chapel	FL	33544-9262	(813) 994-4566	28.184633	-82.350746
+10	Flagler Park Plaza	8341 W Flagler St	Miami	FL	33144-2029	(305) 266-0713	25.771282	-80.33183
+12	Pembroke Commons	600 N University Dr	Pembroke Pines	FL	33024-6731	(954) 433-4400	26.013746	-80.25175
+15	Citrus Tower Village	250 Citrus Tower Blvd	Clermont	FL	34711-2790	(352) 241-6670	28.565844	-81.7414
+19	Duval Station Centre	731 Duval Station Rd Ste 4	Jacksonville	FL	32218-0804	(904) 696-3093	30.485512	-81.60488
+21	Publix At Glade Crossing	2465 Glades Cir	Weston	FL	33327-2204	(954) 217-0022	26.139109	-80.4206
+22	Publix at Northridge	5100 Clark Rd	Sarasota	FL	34233-3226	(941) 926-8297	27.265808	-82.4679
+23	Riverbridge Centre	6790 Forest Hill Blvd	Greenacres	FL	33413-3351	(561) 641-4500	26.649017	-80.147804
+24	Hammocks Town Center	10201 Hammocks Blvd Ste 111	Miami	FL	33196-3780	(305) 382-3002	25.672375	-80.44305
+27	East Towne Center	13900 County Road 455	Clermont	FL	34711-9052	(407) 877-1545	28.548548	-81.6811
+28	University Village	250 3rd St S	Saint Petersburg	FL	33701-4235	(727) 822-1125	27.769136	-82.63634
+31	Doral Park Shopping Center	9755 NW 41st St	Doral	FL	33178-2381	(305) 591-2145	25.812944	-80.35544
+32	Shops At Hammock Cove	4370 Thomasson Dr	Naples	FL	34112	(239) 774-1072	26.10604	-81.74997
+44	Tropicaire Center	7805 SW 40th St	Miami	FL	33155-3547	(305) 266-1950	25.735987	-80.32244
+50	Southdale Shopping Center	828 Southern Blvd	West Palm Beach	FL	33405-2530	(561) 832-1661	26.674541	-80.061874
+51	Douglas Grand	1500 S Douglas Rd	Coral Gables	FL	33134-4108	(305) 445-3221	25.757294	-80.2556
+53	Sheridan Plaza	5211 Sheridan St	Hollywood	FL	33021-3344	(954) 987-6331	26.034569	-80.197205
+54	Publix at Miami River	311 SW 7th St	Miami	FL	33130-2917	(305) 860-9477	25.767454	-80.19942
+55	Greenwood Shopping Centre	1700 S Congress Ave	Palm Springs	FL	33461	(561) 965-8700	26.63856	-80.08676
+56	Venetian Isle Shopping Center	3700 N Federal Hwy	Lighthouse Point	FL	33064-6610	(954) 786-3056	26.276258	-80.09587
+61	Forty East Shopping Center	3450 E Silver Springs Blvd	Ocala	FL	34470-6406	(352) 671-3443	29.194359	-82.088264
+62	Winter Springs Town Center	1160 E State Road 434	Winter Springs	FL	32708-2715	(407) 327-9725	28.69944	-81.26415
+69	Higate Square	13820 SW 88th St	Miami	FL	33186-1304	(305) 385-0200	25.683933	-80.4192
+70	Coral Ridge Shopping Center	3400 N Federal Hwy	Fort Lauderdale	FL	33306-1036	(954) 564-9612	26.169691	-80.11767
+73	Publix at Surfside	9400 Harding Ave	Surfside	FL	33154-2804	(305) 865-1263	25.883871	-80.123764
+84	Publix Super Market	2551 S Le Jeune Rd	Coral Gables	FL	33134-5805	(305) 445-2641	25.748009	-80.26119
+91	Publix Super Market	1045 Dade Blvd	Miami Beach	FL	33139-1509	(305) 534-4621	25.794601	-80.14019
+94	Publix Super Market	1401 Monza Ave	Coral Gables	FL	33146-3117	(305) 667-1681	25.708069	-80.28215
+95	Bardmoor Promenade	10801 Starkey Rd Ste 200	Seminole	FL	33777-1161	(727) 397-4223	27.870249	-82.759766
+97	Shoppes on the Ridge	23965 Hwy 27	Lake Wales	FL	33859-7812	(863) 676-1215	27.958635	-81.62083
+99	Cobblestone Village At St Augustine	125 Jenkins St	Saint Augustine	FL	32086-5167	(904) 808-0514	29.86603	-81.32784
+102	Shoppes of Golden Acres	9850 Little Rd	New Port Richey	FL	34654-3470	(727) 862-5866	28.298422	-82.67014
+103	Mango Square	11782 E Dr Martin Luther King Jr Blvd	Seffner	FL	33584-4923	(813) 684-6029	27.982716	-82.298996
+111	Pinellas Crossings	7333 Park Blvd N	Pinellas Park	FL	33781-2922	(727) 546-5866	27.841389	-82.74018
+114	Central Shopping Center	100 W Oakland Park Blvd	Wilton Manors	FL	33311-2522	(954) 565-4891	26.16554	-80.148
+118	Northlake Village	3551 US Highway 441 S	Okeechobee	FL	34974-6247	(863) 763-3500	27.210558	-80.83172
+126	The Reserve at Boca Raton	9720 Clint Moore Rd	Boca Raton	FL	33496-1011	(561) 218-6114	26.40772	-80.2001
+127	Publix Super Market	2270 SW 27th Ave	Miami	FL	33145-3434	(305) 445-9661	25.748947	-80.23903
+128	OakLeaf Plantation Center	9518 Argyle Forest Blvd	Jacksonville	FL	32222-2800	(904) 317-5755	30.193377	-81.82557
+129	Kingsway Crossing	1220 Kingsway Rd	Brandon	FL	33510-2514	(813) 654-7689	27.958672	-82.27914
+133	The Grove	4870 S Apopka Vineland Rd	Orlando	FL	32819-3127	(407) 909-8080	28.49068	-81.51058
+139	Dolphin Village Shopping Center	4655 Gulf Blvd	St Pete Beach	FL	33706-2405	(727) 360-7091	27.722445	-82.73887
+140	Carillon Town Center	120 Carillon Pkwy	Saint Petersburg	FL	33716-1201	(727) 540-1660	27.893223	-82.662155
+144	Tarpon Mall	40932 US Highway 19 N	Tarpon Springs	FL	34689-5446	(727) 934-6535	28.143717	-82.742775
+148	Sarasota Crossings	5391 Fruitville Rd	Sarasota	FL	34232-6402	(941) 377-4405	27.339561	-82.46233
+153	Watercolor Crossings	110 Watercolor Way	Santa Rosa Beach	FL	32459-7354	(850) 534-4565	30.328297	-86.126
+157	Grand Bay Plaza	19100 S Tamiami Trl	Fort Myers	FL	33908-1011	(239) 432-2522	26.462797	-81.83309
+162	Crossroads Shopping Center	5781 Lee Blvd	Lehigh Acres	FL	33971-6337	(239) 226-9701	26.618345	-81.765076
+167	Publix Super Market	6890 Miramar Pkwy	Miramar	FL	33023-6000	(954) 966-9100	25.981077	-80.22524
+179	Oakbrook Square Shopping Center	11566 US Highway 1	Palm Beach Gardens	FL	33408-3019	(561) 622-0804	26.84509	-80.05947
+180	Nassau Square	7745 Lake Worth Rd	Lake Worth	FL	33467-2536	(561) 969-3880	26.618856	-80.16854
+181	The Plaza at Delray	1538 S Federal Hwy	Delray Beach	FL	33483-5032	(561) 272-1291	26.443813	-80.07052
+184	Publix at Town Commons	8899 Hypoluxo Rd	Lake Worth	FL	33467-5203	(561) 304-0697	26.56885	-80.187386
+188	Gardens Square	8601 NW 186th St	Hialeah	FL	33015-2553	(305) 829-0423	25.943863	-80.34121
+212	Garden Square	10913 N Military Trl	Palm Beach Gardens	FL	33410-6501	(561) 622-3584	26.839392	-80.106445
+215	Palm Bay Center	4711 Babcock St NE	Palm Bay	FL	32905-2805	(321) 724-4724	28.032347	-80.619835
+222	Miller Square Shopping Center	13890 SW 56th St	Miami	FL	33175-6021	(305) 387-3100	25.71329	-80.41852
+223	Publix Super Market	14601 S Dixie Hwy	Palmetto Bay	FL	33176-7926	(305) 255-8005	25.633915	-80.33656
+227	Hunt Club Corners	540 S Hunt Club Blvd	Apopka	FL	32703-4960	(407) 862-5255	28.671452	-81.45134
+228	Chasewood Plaza	6330 W Indiantown Rd	Jupiter	FL	33458-7981	(561) 741-1220	26.93246	-80.13103
+229	Indian River Village Shopping Center	709 E 3rd Ave	New Smyrna Beach	FL	32169-3101	(386) 428-6465	29.02674	-80.89466
+235	Publix Center Of St Cloud	4401 13th St	Saint Cloud	FL	34769-6724	(407) 498-3070	28.25095	-81.316956
+238	Alegre Plaza	14630 SW 26th St	Miami	FL	33175-8065	(305) 223-0332	25.741756	-80.43093
+239	Welleby Plaza	10155 W Oakland Park Blvd	Sunrise	FL	33351-6918	(954) 748-5300	26.170807	-80.286766
+240	12th Street Plaza	1255 US Highway 1	Vero Beach	FL	32960-5729	(772) 778-1984	27.62458	-80.390945
+242	Tamarac Town Square	8245 NW 88th Ave	Tamarac	FL	33321-1541	(954) 726-1990	26.227213	-80.271194
+246	Sawgrass Promenade	1337 S Military Trl	Deerfield Beach	FL	33442-7634	(954) 427-5828	26.301834	-80.13513
+252	Pine Island Ridge Plaza	8842 W State Road 84	Davie	FL	33324-4415	(954) 472-4511	26.100746	-80.26671
+261	The Palms at Town & Country	8250 Mills Dr	Miami	FL	33183-4805	(305) 274-2420	25.690912	-80.387726
+262	Country Club Plaza	18496 NW 67th Ave	Hialeah	FL	33015-3440	(305) 822-4636	25.941051	-80.30901
+263	Oak Hill Village	7628 103rd St Ste 24	Jacksonville	FL	32210-8719	(904) 777-3122	30.24686	-81.77519
+266	Punta Gorda Crossing	2310 Tamiami Trl Unit 1129	Punta Gorda	FL	33950-5933	(941) 575-4740	26.919071	-82.04661
+279	Shops of San Marco	13860 S Jog Rd	West Delray Beach	FL	33446-5902	(561) 498-2229	26.471268	-80.1456
+284	Ryanwood Square	2040 58th Ave	Vero Beach	FL	32966-4646	(772) 569-1204	27.640377	-80.44495
+287	Riverwalk Shopping Center	13435 US Highway 1	Sebastian	FL	32958-3757	(772) 589-5110	27.838484	-80.487045
+293	Country Walk Shopping Center	13735 SW 152nd St	Miami	FL	33177-1106	(305) 251-9889	25.627438	-80.41567
+294	Cypress Lakes Town Center	1297 S State Road 7	North Lauderdale	FL	33068-4021	(954) 973-3337	26.212313	-80.20584
+302	Midway Plaza	5881 N University Dr	Tamarac	FL	33321-4618	(954) 721-7800	26.196949	-80.25535
+303	Flamingo Pines Plaza	170 S Flamingo Rd	Pembroke Pines	FL	33027-1720	(954) 437-9500	26.005905	-80.31427
+305	Eagles Park Retail Center	5577 Park St N	Saint Petersburg	FL	33709-6309	(727) 545-8488	27.822636	-82.75153
+306	Newberry Square	1200 NW 76th Blvd	Gainesville	FL	32606-6750	(352) 332-0661	29.663877	-82.425095
+313	Bluffs Square Shopping Center	4060 S US Highway 1	Jupiter	FL	33477-1121	(561) 694-2662	26.8944	-80.0617
+324	West Boca Plaza	22973 State Road 7	Boca Raton	FL	33428-5400	(561) 488-5994	26.334824	-80.204315
+327	Tamiami Trail Shops	13850 SW 8th St	Miami	FL	33184-3033	(305) 221-1924	25.759823	-80.42025
+328	Old Cutler Town Center	20425 Old Cutler Rd	Cutler Bay	FL	33189-1833	(305) 235-2214	25.577007	-80.33663
+331	Kirkman Oaks Shopping Center	4606 S Kirkman Rd	Orlando	FL	32811-2891	(407) 293-7673	28.495388	-81.46114
+340	East Port Plaza	9100 S US Highway 1	Port Saint Lucie	FL	34952-3406	(772) 337-1600	27.30035	-80.30249
+343	El Mercado Shopping Center	2414 W 60th St	Hialeah	FL	33016-4418	(305) 557-0566	25.875648	-80.33213
+348	Deerfield Mall	3740 W Hillsboro Blvd	Deerfield Beach	FL	33442-9411	(954) 481-2266	26.315779	-80.15384
+353	Granada Plaza	1491 Main St	Dunedin	FL	34698-4612	(727) 736-9284	28.018328	-82.76209
+356	Lake Miriam Square	4738 S Florida Ave	Lakeland	FL	33813-2181	(863) 646-5471	27.97839	-81.95594
+361	Centergate Village	5804 Bee Ridge Rd	Sarasota	FL	34233-5051	(941) 378-2111	27.297447	-82.454094
+368	River Run Shopping Center	9951 Miramar Pkwy	Miramar	FL	33025-2397	(954) 437-6124	25.982233	-80.27775
+369	Boca Valley Plaza	7431 N Federal Hwy	Boca Raton	FL	33487-1601	(561) 241-9700	26.415659	-80.07621
+371	Crosstown Plaza	2895 N Military Trl	West Palm Beach	FL	33409-2900	(561) 687-0445	26.720072	-80.11255
+372	Shenandoah Square	13700 W State Road 84	Davie	FL	33325-5302	(954) 472-0018	26.11651	-80.332726
+374	Tri City Plaza	5000 E Bay Dr	Clearwater	FL	33764-5719	(727) 538-8500	27.918118	-82.73503
+375	University Park Center North	1525 SW 107th Ave	Miami	FL	33174-2510	(305) 552-8733	25.755201	-80.366615
+379	Casselberry Collection	3385 S US Highway 17/92 Suite 181	Casselberry	FL	32707-2915	(407) 831-2020	28.678747	-81.334045
+383	Sun Plaza Shopping Center	421 Mary Esther Cut Off NW	Fort Walton Beach	FL	32548-4084	(850) 301-0033	30.426628	-86.64465
+385	South Vero Square	810 S US Highway 1	Vero Beach	FL	32962-4703	(772) 778-9600	27.587923	-80.37669
+386	Bayside Bridge Plaza	1520 N McMullen Booth Rd	Clearwater	FL	33759-2594	(727) 725-4900	27.979994	-82.710846
+388	Village of Oriole Plaza	7375 Atlantic Ave	Delray Beach	FL	33446-1304	(561) 498-2221	26.45555	-80.16142
+393	Old St Augustine Plaza	11250 St Augustine Rd Ste 4	Jacksonville	FL	32257-1147	(904) 262-5474	30.17293	-81.606255
+395	Gateway Crossing	10496 Roosevelt Blvd N	Saint Petersburg	FL	33716-3820	(727) 576-5858	27.866974	-82.646126
+396	Regency Square	4901 SW 148th Ave	Davie	FL	33330-2400	(954) 680-1900	26.059834	-80.34813
+398	North Pointe Plaza	15151 N Dale Mabry Hwy	Tampa	FL	33618-1818	(813) 265-3288	28.087334	-82.502594
+399	Twelve Oaks Plaza	7018 W Waters Ave	Tampa	FL	33634-2292	(813) 884-3764	28.024458	-82.56007
+400	Merchants Crossing	1500 Placida Rd Ste C	Englewood	FL	34223-4951	(941) 475-8823	26.936869	-82.33877
+401	Jupiter Square Shopping Center	95 S US Highway 1	Jupiter	FL	33477-5117	(561) 743-7400	26.93317	-80.07738
+402	Hallandale Place Shopping Center	1400 E Hallandale Beach Blvd	Hallandale Beach	FL	33009-4617	(954) 454-6440	25.984564	-80.133575
+405	Good Homes Plaza	8863 W Colonial Dr	Ocoee	FL	34761-6951	(407) 299-4550	28.55332	-81.50607
+406	Coral Creek Shops	6570 N State Road 7	Coconut Creek	FL	33073-3625	(954) 425-0400	26.311066	-80.20025
+409	The Plaza at Palmer Ranch	8409 S Tamiami Trl	Sarasota	FL	34238-2937	(941) 925-4778	27.228443	-82.4914
+410	Berkshire Commons	7101 Radio Rd	Naples	FL	34104-6706	(239) 455-3001	26.155598	-81.72209
+413	Woods Walk Plaza	9855 Lake Worth Rd	Lake Worth	FL	33467-2305	(561) 966-9111	26.619036	-80.201675
+414	Riverchase Shopping Center	11200 Tamiami Trl N	Naples	FL	34110-1640	(239) 592-5005	26.274035	-81.800224
+415	Coral Landings Shopping Center	33343 US Highway 19 N	Palm Harbor	FL	34684-3128	(727) 789-1920	28.07518	-82.737305
+418	Camelot Isles Shopping Center	1616 Cape Coral Pkwy W # 5	Cape Coral	FL	33914-6979	(239) 945-6222	26.560911	-82.008
+420	Chelsea Place	1346 Seven Springs Blvd	New Port Richey	FL	34655-5636	(727) 372-7400	28.179071	-82.697075
+421	Westwinds of Boca	9846 Glades Rd	Boca Raton	FL	33434-3917	(561) 852-5580	26.364796	-80.201004
+422	Crown Centre	2556 Enterprise Rd Ste 100	Orange City	FL	32763-7939	(386) 774-8255	28.91509	-81.29653
+424	Shoppes of Palm Bay	1150 Malabar Rd SE Ste 120	Palm Bay	FL	32907-3239	(321) 727-3654	27.996925	-80.63624
+425	Spirit Lake Crossing	1090 Spirit Lake Rd	Winter Haven	FL	33880-1226	(863) 293-3804	28.005638	-81.77672
+426	Colonial Crossings	4600 Summerlin Rd	Fort Myers	FL	33919-3005	(239) 939-1771	26.595095	-81.885216
+427	Hunter's Creek Promenade	3972 Town Ctr Blvd	Orlando	FL	32837-6103	(407) 850-4351	28.361607	-81.42433
+428	Woodfield Plaza (Regency Court)	3003 Yamato Rd Ste C9	Boca Raton	FL	33434-5355	(561) 241-5005	26.395496	-80.14707
+429	Edgewater Commons	2970 S Ridgewood Ave	Edgewater	FL	32141-7527	(386) 427-6022	28.94864	-80.885666
+432	Hollywood Mall	3251 Hollywood Blvd	Hollywood	FL	33021	(954) 964-5005	26.014526	-80.17366
+433	Intracoastal Plaza	14444 Beach Blvd Ste 6	Jacksonville	FL	32250-2010	(904) 223-0286	30.28545	-81.43651
+434	Gardens Towne Square	4200 Northlake Blvd	Palm Beach Gardens	FL	33410-6252	(561) 625-9632	26.806028	-80.10103
+435	Hunter's Crossing	5200 NW 43rd St Ste 401	Gainesville	FL	32606-4483	(352) 375-5310	29.702002	-82.39065
+436	The Market at Southside	2873 S Orange Ave	Orlando	FL	32806-5403	(407) 872-0395	28.510117	-81.37318
+442	Gateway Crossing	851 S State Road 434	Altamonte Springs	FL	32714-4811	(407) 522-1100	28.64536	-81.41161
+446	Ormond Towne Square	1478 W Granada Blvd	Ormond Beach	FL	32174-9165	(386) 673-5380	29.255627	-81.11159
+447	La Plaza Grande West	1120 Bichara Blvd	Lady Lake	FL	32159-7716	(352) 750-2400	28.939558	-81.94795
+448	Winter Haven Square	6031 Cypress Gardens Blvd	Winter Haven	FL	33884-4115	(863) 324-1182	27.98718	-81.68591
+452	Santa Barbara Centre	100 Hancock Bridge Pkwy W	Cape Coral	FL	33991-2088	(239) 458-8900	26.64852	-81.976845
+453	Crossroads Market Shopping Center	5991 Pine Ridge Rd	Naples	FL	34119-3956	(239) 352-2200	26.213255	-81.72854
+454	Loehmann's Fashion Island	18995 Biscayne Blvd	Aventura	FL	33180-2818	(305) 931-3761	25.950712	-80.14331
+457	Lakewood Plaza	4365 Commercial Way	Spring Hill	FL	34606-1917	(352) 597-8500	28.494043	-82.599724
+458	University Palms Shopping Center	4250 Alafaya Trl Ste 148	Oviedo	FL	32765-9430	(407) 366-9480	28.613272	-81.20607
+467	Suntree Square	7777 N Wickham Rd	Melbourne	FL	32940-7976	(321) 253-6142	28.229345	-80.69752
+475	Shoppes of Citrus Hills	2685 N Forest Ridge Blvd	Hernando	FL	34442-5123	(352) 527-6550	28.90191	-82.44609
+478	Allapattah & US 1 Shopping Center	20711 S Dixie Hwy	Miami	FL	33189-2215	(305) 256-3140	25.574114	-80.37304
+481	23rd Street Plaza	650 W 23rd St	Panama City	FL	32405-3921	(850) 747-9780	30.191727	-85.669365
+484	Fountains of Boynton	6627 Boynton Beach Blvd	Boynton Beach	FL	33437-3526	(561) 731-2065	26.529533	-80.14985
+487	Fairway Oaks Plaza	13752 Little Rd	Hudson	FL	34667-8024	(727) 861-1990	28.357544	-82.66458
+488	Pine Ridge Crossing Shopping Center	2310 Pine Ridge Rd	Naples	FL	34109-2006	(239) 435-0387	26.210485	-81.77169
+491	Twelve Oaks Plaza	7290 55th Ave E	Bradenton	FL	34203-8002	(941) 727-8808	27.441647	-82.464645
+493	Tuscawilla Bend Shopping Center	2100 Winter Springs Blvd	Oviedo	FL	32765-9342	(407) 366-9740	28.669367	-81.22583
+497	Publix at Brooker Creek	36301 E Lake Rd	Palm Harbor	FL	34685-3200	(727) 785-5521	28.102358	-82.69262
+499	Driftwood Plaza	3830 S Highway A1A	Melbourne Beach	FL	32951-3143	(321) 725-3305	28.01551	-80.534904
+500	Searstown Shopping Center	3316 N Roosevelt Blvd	Key West	FL	33040-4115	(305) 296-2225	24.569492	-81.76384
+501	Wekiva Plaza	1545 Rock Springs Rd	Apopka	FL	32712-2231	(407) 880-4040	28.707294	-81.5076
+502	Fleming Island Shopping Center	5000 US Highway 17 Ste 11	Fleming Island	FL	32003-8223	(904) 269-3600	30.1041	-81.7113
+504	Holiday Centre	4701 Sunray Dr	Holiday	FL	34690-3808	(727) 944-3551	28.199293	-82.73781
+507	Woodland Center	1950 N Highway 19	Eustis	FL	32726-6729	(352) 357-4989	28.874245	-81.68942
+509	Sawgrass Square	12500 W Sunrise Blvd	Sunrise	FL	33323-2987	(954) 851-1000	26.144165	-80.31553
+510	Homestead Towne Square	891 N Homestead Blvd	Homestead	FL	33030-5024	(305) 242-1500	25.478312	-80.462585
+511	Publix Super Market	6001 N Nebraska Ave	Tampa	FL	33604-6855	(813) 238-7720	28.002115	-82.4506
+516	Freedom Square	12663 Tamiami Trl E	Naples	FL	34113-8423	(239) 775-7383	26.066734	-81.7013
+518	Springs Plaza	3942 S Suncoast Blvd	Homosassa	FL	34448-2601	(352) 621-0884	28.804731	-82.57889
+523	Indiavista Center	7325 N US Highway 1	Cocoa	FL	32927-5006	(321) 635-8560	28.486197	-80.77385
+524	Northgate Square	3939 Van Dyke Rd	Lutz	FL	33558-8001	(813) 264-5591	28.129515	-82.50399
+527	Tower Square	5801 SW 75th St	Gainesville	FL	32608-8513	(352) 375-1110	29.601921	-82.42065
+528	The Shoppes At Silver Lake	18341 Pines Blvd	Pembroke Pines	FL	33029-1413	(954) 430-6100	26.009367	-80.391495
+529	Shoppes at Lago Mar	15750 SW 72nd St	Miami	FL	33193-5060	(305) 383-6990	25.698078	-80.447945
+532	Brandon Mall	939 W Brandon Blvd	Brandon	FL	33511-4905	(813) 684-6562	27.935543	-82.297516
+533	Bradfordville Center	6753 Thomasville Rd	Tallahassee	FL	32312-3966	(850) 668-5702	30.56276	-84.21331
+537	The Exchange	3720 NW 13th St Ste 9	Gainesville	FL	32609-5910	(352) 335-3785	29.687328	-82.34065
+542	Plantation Grove Shopping Center	2600 Maguire Rd	Ocoee	FL	34761-4752	(407) 656-9343	28.53217	-81.539604
+549	Lakeview Center	1400 Coral Ridge Dr	Coral Springs	FL	33071-5433	(954) 346-1705	26.24799	-80.28124
+550	Kendall Mall	9041 SW 107th Ave	Miami	FL	33176-1414	(305) 273-2185	25.684378	-80.36601
+551	Orange Lake Town Center	14928 E Orange Lake Blvd	Kissimmee	FL	34747-8210	(407) 239-4989	28.34919	-81.6142
+552	South Beach Parkway	670 Marsh Landing Pkwy	Jacksonville Beach	FL	32250-5850	(904) 273-7600	30.2536	-81.39216
+553	Palmetto Park Square	1339 W Palmetto Park Rd	Boca Raton	FL	33486-3303	(561) 362-5305	26.353252	-80.11193
+555	Shops at Siesta Row	3825 S Osprey Ave	Sarasota	FL	34239-6803	(941) 316-0616	27.299818	-82.532394
+557	Southgate Shopping Center	102 Hwy 60 E	Lake Wales	FL	33853	(863) 676-0511	27.892653	-81.589096
+567	Sabal Palm Plaza	2517 S Federal Hwy	Fort Pierce	FL	34982-5922	(772) 595-1700	27.422897	-80.328255
+568	Brookside Square	10701 Wiles Rd	Coral Springs	FL	33076-2014	(954) 796-2090	26.288286	-80.269936
+571	Island Crossings	11750 SE Federal Hwy	Hobe Sound	FL	33455-5303	(772) 545-5660	27.060873	-80.13949
+575	Publix at Marathon	5407 Overseas Hwy	Marathon	FL	33050-2710	(305) 289-2920	24.714636	-81.07619
+577	Town Center at Martin Downs	2750 SW Martin Downs Blvd	Palm City	FL	34990-6019	(772) 781-3012	27.170918	-80.29084
+578	Gladiolus Gateway	11600 Gladiolus Dr	Fort Myers	FL	33908-4567	(239) 437-3674	26.517443	-81.94183
+581	Publix At Brickell Village	134 SW 13th St	Miami	FL	33130-4211	(305) 860-2280	25.761217	-80.19665
+582	Hillsboro Plaza	2724 W Hillsborough Ave	Tampa	FL	33614-6053	(813) 673-8900	27.994726	-82.48743
+583	Weston Lakes Plaza	294 Indian Trace	Weston	FL	33326-4509	(954) 384-4190	26.11808	-80.39165
+584	New Tampa Center	19034 Bruce B. Downs Blvd	Tampa	FL	33647-2434	(813) 631-1911	28.145258	-82.355225
+586	Paraiso Plaza	3339 W 80th St	Hialeah	FL	33018-5065	(305) 819-2600	25.89626	-80.349815
+588	Publix at The Meadows	4260 SW 152nd Ave	Miami	FL	33185-5252	(305) 222-8120	25.726847	-80.440994
+589	Publix Plaza	9100 Merrill Rd	Jacksonville	FL	32225-4358	(904) 745-4260	30.351023	-81.54883
+590	Colonial Plaza Shopping Center	9510 SW 160th St	Miami	FL	33157-3300	(305) 971-9790	25.618809	-80.34742
+591	Sea Ranch Village Shopping Center	4703 N Ocean Dr	Sea Ranch Lakes	FL	33308-2914	(954) 784-3707	26.19743	-80.09723
+600	Mercado Real	1001 S Federal Hwy	Boca Raton	FL	33432-7333	(561) 417-2445	26.340378	-80.087616
+604	Shoppes at Pelican Landing	24600 S Tamiami Trl Ste 300	Bonita Springs	FL	34134-7023	(239) 948-1164	26.381836	-81.809845
+605	Publix Plaza At Millenia	5265 S John Young Pkwy	Orlando	FL	32839-5025	(407) 816-8335	28.487751	-81.41508
+606	Lakeside Square at Loggers' Run	11650 W Palmetto Park Rd	Boca Raton	FL	33428-2501	(561) 470-9370	26.347095	-80.23229
+607	The Shoppes Of Eastwood	1921 S Alafaya Trl	Orlando	FL	32828-8732	(407) 277-3117	28.525946	-81.19392
+610	Forest Village Shopping Center	5032 Capital Cir SW Ste 1	Tallahassee	FL	32305-7886	(850) 878-1133	30.373264	-84.29156
+611	Dale Mabry Shopping Center	1313 S Dale Mabry Hwy	Tampa	FL	33629-5010	(813) 258-9801	27.930782	-82.50732
+614	Corkscrew Village	21301 S Tamiami Trl Ste 200	Estero	FL	33928-2943	(239) 948-1174	26.42985	-81.80785
+618	Hollybrook Plaza	5400 Bruce B Downs Blvd	Wesley Chapel	FL	33544-8616	(813) 907-1699	28.23566	-82.34697
+619	Coquina Plaza	15801 Sheridan St	Southwest Ranches	FL	33331-3487	(954) 442-6869	26.03095	-80.35774
+620	Crestwood Square	11977 Southern Blvd	Royal Palm Beach	FL	33411-7619	(561) 792-2100	26.683645	-80.245285
+621	Publix On The Bay	1920 West Ave	Miami Beach	FL	33139-1434	(305) 535-4268	25.795124	-80.14327
+622	Marco Town Center	1089 N Collier Blvd Ste 401	Marco Island	FL	34145-2555	(239) 642-2202	25.954185	-81.72221
+627	Publix at Westchase	12139 W Linebaugh Ave	Tampa	FL	33626-1732	(813) 814-0737	28.057121	-82.62483
+628	Publix on Bayshore	243 Bayshore Blvd	Tampa	FL	33606-2328	(813) 251-1173	27.94222	-82.4604
+629	Ives Dairy Crossing	19955 NW 2nd Ave	Miami Gardens	FL	33169	(305) 654-5771	25.95834	-80.2033
+630	Publix at Barclay	14371 Spring Hill Dr	Spring Hill	FL	34609-8199	(352) 666-2000	28.480055	-82.48661
+631	Roosevelt Square Shopping Center	4495 Roosevelt Blvd Ste 103	Jacksonville	FL	32210-3390	(904) 388-0512	30.280037	-81.71769
+635	Pelican Strand	5624 Strand Blvd	Naples	FL	34110-1325	(239) 596-0479	26.27516	-81.74582
+637	Winston Park Center	5365 Lyons Rd	Coconut Creek	FL	33073-2810	(954) 427-0563	26.297342	-80.18824
+638	Jupiter Farms Village	10142 Indiantown Rd	Jupiter	FL	33478-4707	(561) 748-5812	26.939087	-80.192406
+639	Seabreeze Shoppes	900 NE Ocean Blvd	Stuart	FL	34996-1519	(772) 334-0578	27.216686	-80.17816
+640	Northeast Park Shopping Center	200 37th Ave N	Saint Petersburg	FL	33704-1416	(727) 895-1670	27.806377	-82.63502
+641	Publix at Lake Forest	5240 W State Road 46	Sanford	FL	32771-9230	(407) 321-0423	28.813007	-81.35351
+643	Publix at River Crossing	5324 Little Rd	New Port Richey	FL	34655-1294	(727) 375-5377	28.237413	-82.66813
+644	Kernan Square	12620 Beach Blvd Ste 12	Jacksonville	FL	32246-7130	(904) 564-3580	30.285887	-81.48705
+645	Jacaranda Plaza	8101 W Sunrise Blvd	Plantation	FL	33322-5401	(954) 452-1362	26.149088	-80.25902
+648	Sanibel Beach Place	20321 Summerlin Rd	Fort Myers	FL	33908-3706	(239) 454-0145	26.491554	-81.97265
+649	Argyle Village	6001 Argyle Forest Blvd Ste 45	Jacksonville	FL	32244-6127	(904) 908-5906	30.19452	-81.74401
+651	Shoppes at Ibis	10130 Northlake Blvd	West Palm Beach	FL	33412-1101	(561) 799-6802	26.81011	-80.1989
+652	Miramar Commons	11000 Pembroke Rd	Miramar	FL	33025-1704	(954) 441-7918	25.991306	-80.29441
+653	Shoppes at Andros Isle	8989 Okeechobee Blvd	West Palm Beach	FL	33411-1826	(561) 792-2113	26.710564	-80.18395
+654	Publix at Southchase	12195 S Orange Blossom Trl	Orlando	FL	32837-6502	(407) 816-0884	28.388672	-81.40236
+655	Publix at Doral Isle	10755 NW 58th St	Doral	FL	33178-2801	(305) 597-8295	25.827547	-80.37114
+657	The Shoppes of Paradise Lakes	16800 SW 88th St	Miami	FL	33196-5935	(305) 382-5551	25.682602	-80.464745
+658	Publix at Dadeland	9105 S Dadeland Blvd	Miami	FL	33156-7813	(305) 670-8929	25.6863	-80.31544
+659	Publix at College Park	2015 Edgewater Dr	Orlando	FL	32804-5311	(407) 872-0173	28.569975	-81.388435
+660	Halifax Plantation Village	3750 Roscommon Dr	Ormond Beach	FL	32174-2849	(386) 615-8885	29.401295	-81.147995
+662	Publix at Colonialtown	1500 E Colonial Dr	Orlando	FL	32803-4704	(407) 896-8154	28.552732	-81.36153
+663	Lake Brandon Plaza	11255 Causeway Blvd	Brandon	FL	33511-2903	(813) 655-8911	27.92135	-82.32368
+667	Publix at Deltona Landings	915 Doyle Rd	Deltona	FL	32725-8254	(386) 575-0521	28.867777	-81.25197
+668	Pine Tree Plaza	410 Blanding Blvd	Orange Park	FL	32073-5051	(904) 276-6016	30.16322	-81.748924
+669	Skylake Mall	1700 NE Miami Gardens Dr	North Miami Beach	FL	33179-5301	(305) 945-7119	25.944626	-80.16589
+671	Publix in the Highlands	2125 E County Road 540a	Lakeland	FL	33813-3794	(863) 607-4522	27.95181	-81.924995
+673	Publix at Monarch Lakes	14375 Miramar Pkwy	Miramar	FL	33027-4134	(954) 447-9212	25.98053	-80.337494
+674	Shops at Sunset Lakes	18409 Miramar Pkwy	Miramar	FL	33029-5802	(954) 447-3334	25.980047	-80.39265
+675	Riverside Landings Shopping Center	1801 E Broadway St	Oviedo	FL	32765-8597	(407) 971-1774	28.66115	-81.17839
+676	Naples Walk	2450 Vanderbilt Beach Rd	Naples	FL	34109-0620	(239) 513-1356	26.241955	-81.767456
+677	Paradise Key	4425 Commons Dr E	Destin	FL	32541-3414	(850) 837-9094	30.39047	-86.43019
+678	Publix at Sawgrass Center	5950 Coral Ridge Dr	Coral Springs	FL	33076-3300	(954) 757-4405	26.305178	-80.28075
+679	Taft Hollywood Shopping Center	6901 Taft St	Hollywood	FL	33024-3801	(954) 961-1770	26.02581	-80.22652
+680	Esplanade At Butler Plaza	3100 SW 35th Blvd	Gainesville	FL	32608-2415	(352) 367-4324	29.625057	-82.37917
+681	Publix at Holmes Beach	3900 E Bay Dr	Holmes Beach	FL	34217-1983	(941) 778-5422	27.49568	-82.70829
+682	Town Center Shops	4231 NW Federal Hwy	Jensen Beach	FL	34957-3600	(772) 692-7090	27.257946	-80.27778
+683	Southpointe Commons	5997 S Pointe Blvd Ste 106	Fort Myers	FL	33919-3272	(239) 415-1515	26.55872	-81.90502
+684	Publix at Summer Bay	17445 US Highway 192 Ste 11	Clermont	FL	34714-7016	(352) 243-0529	28.348576	-81.66556
+685	Publix at Temple Terrace	5450 E Busch Blvd	Temple Terrace	FL	33617-5418	(813) 984-6411	28.033882	-82.394775
+686	Highland Square	1100 Dunn Ave Bldg 100	Jacksonville	FL	32218-4832	(904) 751-1445	30.4281	-81.66381
+688	Gateway Mall	7999 Dr Martin Luther King Jr St N	Saint Petersburg	FL	33702-4107	(727) 578-2833	27.845388	-82.64372
+690	Publix at Steeplechase	14130 W Newberry Rd	Newberry	FL	32669-2759	(352) 332-5114	29.65546	-82.494835
+692	Conway Plaza Shopping Center	4402 Curry Ford Rd	Orlando	FL	32812-2709	(407) 282-7997	28.521473	-81.330345
+693	Publix at Pine Lake Plaza	411 S Cypress Rd	Pompano Beach	FL	33060-7135	(954) 784-3277	26.22514	-80.12447
+695	Palm Crossings	145 Palm Bay Rd NE Ste 117	West Melbourne	FL	32904-8601	(321) 722-0022	28.037718	-80.66906
+696	Sarasota Pavilion	6543 S Tamiami Trl	Sarasota	FL	34231-4827	(941) 922-7644	27.261383	-82.51901
+697	Publix At Cape Haze	8725 Placida Rd	Placida	FL	33946-2429	(941) 698-1699	26.853062	-82.28938
+698	Lake Mary Pointe	601 Weldon Blvd	Lake Mary	FL	32746-3866	(407) 321-7616	28.73767	-81.30417
+699	Northlake Promenade Shoppes	374 Northlake Blvd	Lake Park	FL	33408-5421	(561) 842-1193	26.804638	-80.058495
+701	Orange Grove Center	4065 Hancock Bridge Pkwy	North Fort Myers	FL	33903-4294	(239) 997-0212	26.653381	-81.91308
+702	Town and Country Square	2300 Griffin Rd	Lakeland	FL	33810-6760	(863) 858-1146	28.079325	-81.99231
+703	Plantation Towne Square	6921 W Broward Blvd	Plantation	FL	33317-2902	(954) 327-9705	26.122307	-80.23914
+704	Melbourne Shopping Center	1411 S Babcock St	Melbourne	FL	32901-3024	(321) 727-8085	28.086508	-80.62001
+705	Pinellas Shopping Center	857 W Bay Dr	Largo	FL	33770-3221	(727) 518-7747	27.91521	-82.79785
+707	Columbia Promenade	1910 N John Young Pkwy	Kissimmee	FL	34741-3221	(407) 933-0367	28.308819	-81.41818
+708	Reedy Branch Commons	10920 Baymeadows Rd	Jacksonville	FL	32256-4570	(904) 538-3851	30.213993	-81.518005
+709	Lakewood Ranch Town Center	8330 Market St	Bradenton	FL	34202-5137	(941) 907-6600	27.39055	-82.4434
+710	Publix At Lake Harris	27615 US Highway 27 # U	Leesburg	FL	34748-9396	(352) 787-0440	28.749166	-81.87901
+712	Goolsby Point Shopping Center	11667 Boyette Rd	Riverview	FL	33569-5531	(813) 672-4353	27.85215	-82.30412
+713	Windsor Commons Shopping Center	4765 Hodges Blvd	Jacksonville	FL	32224-5280	(904) 223-0554	30.254208	-81.464874
+714	Baypoint	4870 Biscayne Blvd	Miami	FL	33137-3215	(305) 573-8601	25.820353	-80.18817
+715	Publix at Oakbridge	3102 Griffin Rd	Dania Beach	FL	33312	(954) 961-0717	26.061554	-80.185
+716	Julington Village	450 State Road 13 N Ste 109	Saint Johns	FL	32259-3861	(904) 230-3201	30.119417	-81.62696
+727	Town & Country Shopping Center	171 Town and Country Dr	Palatka	FL	32177-3962	(386) 312-8305	29.645638	-81.671555
+728	Shoppes at Beacon Light	2450 N Federal Hwy	Lighthouse Point	FL	33064-6854	(954) 784-3011	26.261911	-80.09753
+732	Kings Crossing	4854 Sun City Center Blvd	Sun City Center	FL	33573-6281	(813) 633-3440	27.714417	-82.336555
+733	Heather Island Plaza	7578 SE Maricamp Rd Ste 100	Ocala	FL	34472	(352) 687-8200	29.116344	-82.02772
+734	Venice Commons	1445 E Venice Ave	Venice	FL	34292-3064	(941) 480-0779	27.098291	-82.41484
+735	Springhill Commons	9200 NW 39th Ave	Gainesville	FL	32606-7331	(352) 375-1285	29.691765	-82.44012
+736	Middleburg Crossing	2640 Blanding Blvd	Middleburg	FL	32068-9107	(904) 291-5123	30.065401	-81.871826
+737	Olde Village Publix	55 N Indiana Ave	Englewood	FL	34223-2944	(941) 473-5441	26.963068	-82.35158
+738	Post Commons Shopping Center	4100 N Wickham Rd Ste 109	Melbourne	FL	32935-2487	(321) 242-2678	28.173365	-80.674065
+739	North Delray Commons	555 NE 5th Ave	Delray Beach	FL	33483-5634	(561) 272-9460	26.471111	-80.06756
+740	Publix at Fort Myers Beach	4791 Estero Blvd	Fort Myers Beach	FL	33931-3923	(239) 463-0378	26.437233	-81.9202
+741	Plaza Venezia	7640 W Sand Lake Rd	Orlando	FL	32819-5112	(407) 226-3315	28.448689	-81.486534
+742	Publix at Palm Springs Crossing	482 E Altamonte Dr Ste 1005	Altamonte Springs	FL	32701-4604	(407) 260-9973	28.661963	-81.374275
+743	Publix At Laguna Isle	19441 Sheridan St	Fort Lauderdale	FL	33332-1653	(954) 434-1668	26.030731	-80.40765
+746	Rivers Edge	5001 E State Road 64	Bradenton	FL	34208-5531	(941) 744-0866	27.49772	-82.49902
+747	Publix Plaza	225 S Flamingo Rd	Plantation	FL	33325-2817	(954) 472-5110	26.116762	-80.31584
+748	Publix at Palm Aire	1140 SW 36th Ave	Pompano Beach	FL	33069-4835	(954) 975-0119	26.21529	-80.17148
+749	Downtown Stuart Shopping Center	746 SW Federal Hwy	Stuart	FL	34994-2937	(772) 221-3922	27.191217	-80.256516
+750	Northridge Shopping Center	1003 E Commercial Blvd	Oakland Park	FL	33334-3957	(954) 491-9330	26.190994	-80.134415
+751	Oakhurst Plaza	9201 Oakhurst Rd	Seminole	FL	33776-2158	(727) 593-7794	27.857616	-82.8299
+754	Shoppes of Citrus Park	7835 Gunn Hwy	Tampa	FL	33626-1611	(813) 926-6664	28.080635	-82.57637
+755	Bayshore Village	4265 Tamiami Trl	Port Charlotte	FL	33980-2152	(941) 629-1100	26.966524	-82.080635
+756	Abacoa Plaza	5500 Military Trl Ste 25	Jupiter	FL	33458-2865	(561) 799-3181	26.88425	-80.10623
+757	First Merritt Shopping Center	125 E Merritt Island Cswy	Merritt Island	FL	32952-3699	(321) 452-0288	28.355518	-80.697655
+758	The Promenade	841 Cypress Pkwy	Poinciana	FL	34759-3408	(321) 697-5487	28.14839	-81.451485
+759	Weston Town Center	1601 Promenade Blvd	Weston	FL	33326-3652	(954) 660-0322	26.098251	-80.38087
+760	Cocoa Commons	2301 State Road 524 Ste 150	Cocoa	FL	32926-5822	(321) 636-2583	28.39519	-80.76494
+761	Publix at Silver Crossing	1720 E Silver Star Rd	Ocoee	FL	34761-7014	(407) 522-1808	28.575169	-81.51614
+763	Publix At Kings Ridge	4351 S Highway 27	Clermont	FL	34711-5349	(352) 394-4437	28.501213	-81.71667
+766	The Shoppes at Paradise Point	251 Miracle Strip Pkwy SE	Fort Walton Beach	FL	32548-5853	(850) 796-1841	30.404762	-86.60323
+767	Regency Crossing	7037 Ridge Rd	Port Richey	FL	34668-6849	(727) 844-3955	28.282652	-82.69825
+768	Sunshine Park Shopping Center	2400 S Ridgewood Ave	South Daytona	FL	32119-3097	(386) 756-9969	29.16519	-81.00142
+770	Champions Gate Village Shopping Center	8301 Champions Gate Blvd	Champions Gate	FL	33896-8389	(407) 390-1315	28.263107	-81.619194
+772	Publix at Indian River	9621 N US Highway 1	Sebastian	FL	32958-6363	(772) 581-5755	27.769463	-80.44734
+774	Five Points Plaza	2633 N Dixie Hwy	Wilton Manors	FL	33334-3724	(954) 566-6363	26.160652	-80.13251
+775	Summerlin Crossings	15880 Summerlin Rd	Fort Myers	FL	33908-9612	(239) 433-0297	26.514982	-81.90065
+777	Publix At Sunrise West	9300 W Commercial Blvd	Sunrise	FL	33351-4302	(954) 748-0418	26.19235	-80.27433
+778	Publix at Gulf Cove	13435 S McCall Rd	Port Charlotte	FL	33981-6422	(941) 697-0279	26.931719	-82.223465
+779	Publix At Bayside Lakes	3450 Bayside Lakes Blvd SE	Palm Bay	FL	32909-6815	(321) 725-2420	27.951527	-80.658104
+780	Westgate Shopping Center	3913 Manatee Ave W	Bradenton	FL	34205-1715	(941) 746-1660	27.49452	-82.6008
+781	The Shoppes at Pebblebrooke	15265 Collier Blvd	Naples	FL	34119-7715	(239) 348-2931	26.27136	-81.69111
+782	Ocala Corners	800 Ocala Rd	Tallahassee	FL	32304-1669	(850) 575-3929	30.44545	-84.318756
+784	Rockledge Crossing	3820 Murrell Rd	Rockledge	FL	32955-4741	(321) 636-0282	28.29349	-80.723816
+785	Publix at Spanish River	4141 N Federal Hwy	Boca Raton	FL	33431-4528	(561) 361-0529	26.386908	-80.07812
+787	Sunshine Plaza	4121 W Commercial Blvd	Tamarac	FL	33319-3303	(954) 735-4808	26.188354	-80.205826
+788	Beachway Plaza	402 E Dania Beach Blvd	Dania Beach	FL	33004-3040	(954) 920-4289	26.05134	-80.13653
+791	Imperial Lakes Plaza	2040 Shepherd Rd	Mulberry	FL	33860-8699	(863) 644-4166	27.93673	-81.98812
+792	Heron Creek Towne Center	1291 S Sumter Blvd	North Port	FL	34287-2337	(941) 426-6672	27.069315	-82.210495
+793	Plant City Crossing	2515 Thonotosassa Rd	Plant City	FL	33563-1464	(813) 719-6933	28.02394	-82.15042
+794	Publix at Miami Shores	9050 Biscayne Blvd	Miami Shores	FL	33138-3222	(305) 751-4075	25.858702	-80.1844
+795	Gainesville Shopping Center	1302 N Main St	Gainesville	FL	32601-2346	(352) 375-2919	29.663958	-82.32578
+796	Willa Springs Village	5655 Red Bug Lake Rd	Winter Springs	FL	32708-5013	(407) 695-0922	28.646414	-81.26989
+797	Crystal Springs Shopping Center	6760 W Gulf To Lake Hwy	Crystal River	FL	34429-9348	(352) 795-4679	28.889448	-82.54895
+798	Lakewood Ranch Gateway	1755 Lakewood Ranch Blvd	Bradenton	FL	34211-4906	(941) 745-5677	27.48329	-82.43164
+801	Bent Creek Shopping Center	2250 S Ferdon Blvd	Crestview	FL	32536-8457	(850) 682-0942	30.737944	-86.5667
+802	Venice Shopping Center	535 Tamiami Trl S	Venice	FL	34285-2927	(941) 484-3346	27.092075	-82.44246
+805	Coconut Creek Plaza	4849 Coconut Creek Pkwy	Coconut Creek	FL	33063-3944	(954) 975-2490	26.246216	-80.18859
+810	Riverwalk Crossing	11400 Ridge Rd	New Port Richey	FL	34654-5310	(727) 848-4185	28.27336	-82.627655
+811	Naples Lakes Village Center	8585 Collier Blvd	Naples	FL	34114-3548	(239) 774-5080	26.110378	-81.68873
+812	Regency Village Shopping Center	8145 Vineland Ave	Orlando	FL	32821-6847	(407) 238-9924	28.387066	-81.48547
+813	Mariner Commons	4158 Mariner Blvd	Spring Hill	FL	34609-2468	(352) 688-0161	28.491423	-82.54005
+814	Bellair Plaza	2595 N Atlantic Ave	Daytona Beach	FL	32118-3203	(386) 677-3098	29.262371	-81.02847
+815	Palm Plaza	717 N 14th St	Leesburg	FL	34748-4205	(352) 787-4176	28.819242	-81.88909
+817	Lantana Shopping Center	1589 Lantana Rd	Lantana	FL	33462-1537	(561) 585-4225	26.58883	-80.06724
+818	Aberdeen	8340 S Jog Rd	Boynton Beach	FL	33472-6904	(561) 734-6252	26.550993	-80.14945
+819	Publix at St. Andrews	5473 NW Saint James Dr	Port Saint Lucie	FL	34983-3444	(772) 878-6119	27.35494	-80.35816
+820	Cooper City Commons	9359 Sheridan St	Cooper City	FL	33024	(954) 433-2262	26.03267	-80.26689
+821	Paradise Place	4075 N Haverhill Rd	West Palm Beach	FL	33417-7434	(561) 683-0412	26.737389	-80.11969
+822	The Shoppes at Western Woods	8140 W McNab Rd	North Lauderdale	FL	33068-4138	(954) 722-0599	26.206242	-80.236916
+823	Lynn Haven Center	2310 S Highway 77	Lynn Haven	FL	32444-4616	(850) 271-6180	30.223108	-85.651505
+826	Coral Pointe Shopping Center	1631 Del Prado Blvd S	Cape Coral	FL	33990-6739	(239) 772-3332	26.618364	-81.93929
+827	Publix at Holly Hill	1850 Ridgewood Ave	Holly Hill	FL	32117-1738	(386) 677-7161	29.261812	-81.05193
+828	University Walk	2875 University Pkwy	Sarasota	FL	34243-4201	(941) 358-1169	27.390854	-82.51152
+830	Conway Crossing	4501 Hoffner Ave	Orlando	FL	32812-2305	(407) 850-1018	28.481932	-81.32937
+831	Lutz Lake Crossing	19221 N Dale Mabry Hwy	Lutz	FL	33548-5067	(813) 949-3882	28.156479	-82.481064
+832	Hialeah Mercado	1585 W 49th St	Hialeah	FL	33012-2924	(305) 828-2180	25.869045	-80.31399
+833	Cornerstone at Lake Mary	825 Rinehart Rd	Lake Mary	FL	32746-4867	(407) 322-9985	28.780968	-81.3454
+834	Apex	16560 N Nebraska Ave	Lutz	FL	33549-6172	(813) 264-5590	28.106125	-82.459335
+835	Plaza Del Paraiso	12100 SW 127th Ave	Miami	FL	33186-4663	(305) 238-1019	25.655428	-80.40107
+836	Publix at Northgate	1395 6th St NW	Winter Haven	FL	33881-2364	(863) 299-8000	28.03493	-81.7344
+837	Westport Plaza	6525 Nova Dr	Davie	FL	33317-7401	(954) 423-9599	26.08726	-80.23072
+840	Carrollwood Shopping Center	10015 N Dale Mabry Hwy	Tampa	FL	33618-4409	(813) 961-0075	28.04085	-82.503815
+843	Bonita Grande Crossing	12900 Trade Way Four	Bonita Springs	FL	34135-6983	(239) 992-2159	26.32941	-81.739685
+847	The Shoppes at Grande Oak	20311 Grande Oak Shoppes Blvd	Estero	FL	33928-7662	(239) 495-8031	26.438885	-81.76926
+848	City Place	375 S Rosemary Ave	West Palm Beach	FL	33401-5747	(561) 651-7787	26.710815	-80.05749
+849	Publix At Riverside	2033 Riverside Ave	Jacksonville	FL	32204-4442	(904) 381-8610	30.311167	-81.68203
+850	Publix at Las Olas	601 S Andrews Ave	Fort Lauderdale	FL	33301-2833	(954) 728-8330	26.114191	-80.14378
+851	Publix at The Acreage	7050 Seminole Pratt Whitney Rd	Loxahatchee	FL	33470-3474	(561) 383-6177	26.78105	-80.29234
+852	Lake Ella Plaza	1700 N Monroe St	Tallahassee	FL	32303-5535	(850) 222-1975	30.462677	-84.284775
+854	Midpoint Center	2420 Santa Barbara Blvd	Cape Coral	FL	33914-4485	(239) 574-6395	26.60682	-81.975876
+855	Prima Vista Crossing	7576 S US Highway 1	Port Saint Lucie	FL	34952-1450	(772) 336-3833	27.329048	-80.31962
+856	Heath Brook Commons	5400 SW College Rd Ste 200	Ocala	FL	34474-5757	(352) 873-1936	29.12523	-82.2081
+857	Vineyard Center	6615 Mahan Dr	Tallahassee	FL	32308-1400	(850) 878-4899	30.479982	-84.16705
+861	Hillsboro Square	150 S Federal Hwy	Deerfield Beach	FL	33441-4128	(954) 427-5537	26.315063	-80.088264
+862	Eustis Village	2840 David Walker Dr	Eustis	FL	32726-6172	(352) 357-6948	28.82403	-81.70441
+864	The Shoppes of Fiddlesticks	13650 Fiddlesticks Blvd	Fort Myers	FL	33912-0312	(239) 768-1710	26.545292	-81.80565
+865	Shoppes of Sweetwater	3883 Wekiva Springs Rd	Longwood	FL	32779-3362	(407) 788-1804	28.70647	-81.44449
+866	La Belle Plaza	1555 S Highland Ave	Clearwater	FL	33756-2374	(727) 442-5511	27.94021	-82.77383
+867	Harbor Oaks Shopping Center	619 S Fort Harrison Ave	Clearwater	FL	33756-5301	(727) 443-5700	27.959244	-82.799095
+871	Paradise Promenade	5997 Stirling Rd	Davie	FL	33314-7225	(954) 581-4393	26.047422	-80.22568
+872	Westcreek Commons	4760 W Hillsboro Blvd	Coconut Creek	FL	33073-4339	(954) 422-5485	26.3162	-80.1879
+873	Mitchell Ranch Plaza	3100 Little Rd	Trinity	FL	34655-1864	(727) 375-1179	28.203934	-82.66406
+876	Cross Creek Commons	10928 Cross Creek Blvd	Tampa	FL	33647-4034	(813) 986-1239	28.145554	-82.28352
+877	Collier Commons	2121 Collier Pkwy	Land O Lakes	FL	34639-5286	(813) 948-9819	28.188303	-82.43903
+878	Shoppes of Lithia	3461 Lithia Pinecrest Rd	Valrico	FL	33596-6302	(813) 661-4283	27.892998	-82.24128
+879	Berry Town Center	2424 Sand Mine Rd	Davenport	FL	33897-3400	(863) 420-6455	28.31123	-81.66998
+881	West Point Commons	13750 W Colonial Dr	Winter Garden	FL	34787-4204	(407) 654-7172	28.549015	-81.58938
+884	Deerwood Lake Commons	4320 Deerwood Lake Pkwy	Jacksonville	FL	32216-1177	(904) 620-0599	30.268	-81.56073
+885	Publix at Grand Boulevard	725 Grand Blvd	Sandestin	FL	32550-7873	(850) 622-2326	30.37961	-86.3112
+886	Cornerstone at Lake Hart	10615 Narcoossee Rd	Orlando	FL	32832-6904	(407) 277-1089	28.412687	-81.24092
+887	Southwood Village	3551 Blairstone Rd	Tallahassee	FL	32301-8826	(850) 219-1150	30.404005	-84.237785
+889	Miller Plaza West	15755 SW 56th St	Miami	FL	33185-3879	(305) 207-0481	25.714777	-80.44846
+890	Winthrop Town Center	11109 Winthrop Market St	Riverview	FL	33578-4252	(813) 661-3286	27.891466	-82.317764
+891	Seabreeze Plaza Shopping Center	30535 US Highway 19 N	Palm Harbor	FL	34684-4415	(727) 787-8802	28.05018	-82.73575
+893	Merritt Island	1850 N Courtenay Pkwy	Merritt Island	FL	32953-2629	(321) 986-6260	28.389187	-80.70162
+894	Publix at Palm Beach Plaza	6820 Okeechobee Blvd	West Palm Beach	FL	33411-2510	(561) 684-3015	26.705923	-80.15075
+895	Publix at Military Crossing	4849 S Military Trl	Greenacres	FL	33463-5310	(561) 304-2727	26.60598	-80.115486
+896	Shoppes of Navarre	8244 Navarre Pkwy	Navarre	FL	32566-6943	(850) 515-0999	30.404024	-86.878334
+897	Corner Lakes Plaza	16825 E Colonial Dr	Orlando	FL	32820-1910	(407) 568-0858	28.562521	-81.13092
+898	South Point	4145 9th St SW	Vero Beach	FL	32968-4804	(772) 299-6235	27.585854	-80.42896
+1003	Publix at North Miami	12855 NE 6th Ave	North Miami	FL	33161-4714	(305) 891-1024	25.893492	-80.18509
+1004	Beachway Plaza	7310 Manatee Ave W	Bradenton	FL	34209-3441	(941) 792-1213	27.498213	-82.63368
+1005	Ocean Park Pavilion	23026 Panama City Beach Pkwy	Panama City Beach	FL	32413-1107	(850) 233-4392	30.26629	-85.97293
+1006	Mirasol Walk	6251 P G A Blvd	Palm Beach Gardens	FL	33418	(561) 622-1764	26.841835	-80.13341
+1007	Publix at Coral Shores	3015 SW Pine Island Rd	Cape Coral	FL	33991-1703	(239) 282-5515	26.639467	-82.0377
+1009	Mary Brickell Village	911 SW 1st Ave	Miami	FL	33130	(305) 358-1575	25.764935	-80.19484
+1011	Crystal Beach Plaza	2886 Alternate US 19	Palm Harbor	FL	34683	(727) 781-7481	28.095097	-82.77157
+1013	Quesada Commons	19451 Cochran Blvd Unit 2000	Port Charlotte	FL	33948-2008	(941) 235-2266	27.009983	-82.13198
+1014	Old Palm City Publix Shopping Center	1395 SW Martin Hwy	Palm City	FL	34990-3373	(772) 232-4056	27.16262	-80.2713
+1015	Vista Lakes Center	6485 S Chickasaw Trl	Orlando	FL	32829-8366	(407) 277-8095	28.470453	-81.266205
+1017	Biscayne Commons	14641 Biscayne Blvd	North Miami Beach	FL	33181-1211	(305) 354-2171	25.911367	-80.155685
+1018	Addison Centre Publix	16130 Jog Rd	Delray Beach	FL	33446-2319	(561) 495-1367	26.437546	-80.1451
+1020	Southgate Shopping Center	5127 US Highway 19	New Port Richey	FL	34652-3966	(727) 848-6521	28.23407	-82.73063
+1022	Mandarin Oaks Shopping Center	11406 San Jose Blvd	Jacksonville	FL	32223-7963	(904) 262-5258	30.166521	-81.6336
+1023	Broadway Promenade	1044 N Tamiami Trl	Sarasota	FL	34236-2428	(941) 366-3270	27.345446	-82.54551
+1028	The Shoppes at Palm Valley	3777 Palm Valley Rd	Ponte Vedra	FL	32082-4115	(904) 273-6565	30.15075	-81.37547
+1029	Waterstone Plaza	3060 NE 41st Ter	Homestead	FL	33033-6619	(305) 242-0954	25.498278	-80.41458
+1030	Tradition Square	10400 SW Village Center Dr	Port Saint Lucie	FL	34987-2186	(772) 345-9900	27.268318	-80.43128
+1032	Summerfield Crossings	13154 US Highway 301 S	Riverview	FL	33578	(813) 741-0693	27.79363	-82.33311
+1034	Paradise Shoppes of Largo	10411 Ulmerton Rd	Largo	FL	33771-3530	(727) 588-1285	27.896608	-82.783554
+1035	Shops of Sebastian	1451 Sebastian Blvd Ste 200	Sebastian	FL	32958-8200	(772) 581-5710	27.765757	-80.50988
+1036	Pompano Plaza	1405 S Federal Hwy	Pompano Beach	FL	33062-7240	(954) 784-3725	26.21272	-80.107834
+1037	Normandy Crossing	7749 Normandy Blvd	Jacksonville	FL	32221-7657	(904) 781-1952	30.297005	-81.77563
+1038	Williston Plaza	5200 SW 34th St	Gainesville	FL	32608-5010	(352) 375-1094	29.604961	-82.37285
+1039	The Shops at Verandah	11851 Palm Beach Blvd	Fort Myers	FL	33905-5912	(239) 690-9565	26.69892	-81.76126
+1040	Veranda Shoppes	550 N Pine Island Rd	Plantation	FL	33324-1308	(954) 475-5285	26.12729	-80.26149
+1041	Publix at Quantum Village	1005 Gateway Blvd	Boynton Beach	FL	33426-8312	(561) 732-6148	26.551474	-80.07425
+1042	Hammock Beach Centre	5415 N Oceanshore Blvd	Palm Coast	FL	32137-3217	(386) 445-2193	29.601328	-81.19665
+1045	Narcoossee Shoppes	1951 S Narcoossee Rd	Saint Cloud	FL	34771-7211	(407) 892-0595	28.247648	-81.24235
+1046	The Groves at Royal Palms	127 S State Road 7	Royal Palm Beach	FL	33414-4338	(561) 615-1705	26.67549	-80.2056
+1048	Baldwin Park	1501 Meeting Pl	Orlando	FL	32814-6602	(407) 897-7363	28.566849	-81.327156
+1049	Countyline Plaza	500 N US Highway 1	Tequesta	FL	33469-2372	(561) 741-8147	26.967258	-80.08855
+1050	Sea Plum Town Center	123 Honeybell Way	Jupiter	FL	33458-7837	(561) 748-5100	26.911856	-80.10183
+1051	Governors Crossing II	101 N Blairstone Rd Ste 301	Tallahassee	FL	32301-2877	(850) 219-6211	30.44241	-84.24784
+1058	Indian Harbour Place	270 E Eau Gallie Blvd	Indian Harbour Beach	FL	32937-4874	(321) 773-2915	28.14063	-80.59751
+1062	Corsica Square	15771 SW 152nd St	Miami	FL	33187-5417	(305) 971-2168	25.626566	-80.44857
+1066	Publix Super Market	10500 San Jose Blvd Ste 36	Jacksonville	FL	32257-6209	(904) 288-6660	30.186964	-81.62973
+1067	Publix at Whitworth Farms	12425 Hagen Ranch Rd	Boynton Beach	FL	33437-4107	(561) 292-4489	26.491682	-80.166016
+1068	Paraiso Parc	15729 Pines Blvd	Pembroke Pines	FL	33027-1206	(954) 431-2094	26.009493	-80.355705
+1070	Maitland Place	242 N Orlando Ave	Maitland	FL	32751-5506	(407) 599-0202	28.628893	-81.36221
+1072	Publix at Hialeah	155 E 2nd Ave	Hialeah	FL	33010-4924	(305) 863-8133	25.823465	-80.27668
+1076	Haines City Mall	617 US Highway 17 92 W	Haines City	FL	33844-5047	(863) 419-0331	28.1053	-81.63844
+1079	Weston Commons	4567 Weston Rd	Weston	FL	33331-3141	(954) 217-1195	26.065035	-80.364586
+1080	Southern Trace Plaza	3475 Wedgewood Ln	The Villages	FL	32162-7183	(352) 751-6280	28.929573	-82.01419
+1084	Plantation Plaza	2750 Race Track Rd	Saint Johns	FL	32259-3227	(904) 230-3970	30.112822	-81.5901
+1088	North Bay Commerce Center	8975 Race Track Rd	Tampa	FL	33635-9724	(813) 855-7913	28.035818	-82.64651
+1090	Airpark Plaza	5715 NW 7th St	Miami	FL	33126-3105	(305) 266-1733	25.779978	-80.289185
+1092	Publix at Avalon	3400 Avalon Park East Blvd	Orlando	FL	32828-7362	(407) 277-1043	28.514315	-81.15432
+1093	Kanner Crossing	6550 S Kanner Hwy	Stuart	FL	34997-6396	(772) 221-8135	27.125608	-80.25388
+1094	Publix at Sunrise Boulevard	1415 E Sunrise Blvd	Fort Lauderdale	FL	33304-2324	(954) 888-8915	26.138489	-80.12924
+1097	The Harbor Shops	1940 Cordova Rd	Fort Lauderdale	FL	33316-2156	(954) 847-2844	26.097176	-80.13019
+1098	Publix Cornerstone Plaza	5645 N Atlantic Ave	Cocoa Beach	FL	32931-3919	(321) 783-1014	28.369673	-80.607506
+1099	John's Creek Center	2845 County Road 210 W	Saint Johns	FL	32259-2016	(904) 230-3939	30.057175	-81.531395
+1101	Landstar Plaza	13850 Landstar Blvd	Orlando	FL	32824-5526	(407) 856-6040	28.36263	-81.367256
+1103	Publix at Auburndale	606 Havendale Blvd	Auburndale	FL	33823-4687	(863) 551-9766	28.051983	-81.77497
+1104	Polo Grounds Mall	926 S Military Trl	West Palm Beach	FL	33415-3910	(561) 616-2563	26.664383	-80.110565
+1105	The Shoppes of Bartram Park	13820 Old Saint Augustine Rd	Jacksonville	FL	32258-2448	(904) 262-5415	30.14044	-81.549576
+1106	Cornerstone at Summerport	13450 Summerport Village Pkwy	Windermere	FL	34786-7366	(407) 905-0199	28.476513	-81.58375
+1107	Town Square At Wellington	11950 Forest Hill Blvd	Wellington	FL	33414-6248	(561) 422-9640	26.651712	-80.235435
+1108	The Shoppes at Quail Roost	20201 SW 127th Ave	Miami	FL	33177-5119	(305) 234-6038	25.579674	-80.39547
+1109	Inverrary Falls	5855 W Oakland Park Blvd Ste 203	Lauderhill	FL	33313-1321	(954) 735-1328	26.166143	-80.230156
+1111	Publix Market Square	2755 SW 91st St	Gainesville	FL	32608-2749	(352) 331-1037	29.629295	-82.43626
+1113	Paradise Shoppes of Apollo Beach	6434 N US Highway 41	Apollo Beach	FL	33572-1804	(813) 649-1280	27.771437	-82.39223
+1114	Publix at Coral Ridge	11600 W Sample Rd	Coral Springs	FL	33065-2650	(954) 509-5288	26.271795	-80.280975
+1115	The Village Shopping Center	950 Blanding Blvd	Orange Park	FL	32065-5910	(904) 276-6029	30.139004	-81.77476
+1117	Northwood Plaza	2514 N McMullen Booth Rd	Clearwater	FL	33761-4150	(727) 723-0281	28.013018	-82.71125
+1121	Coral Landings II	6270 W Sample Rd	Coral Springs	FL	33067-3176	(954) 344-5560	26.27239	-80.20982
+1122	Rio Pinar Plaza	409 S Chickasaw Trl	Orlando	FL	32825-7803	(407) 277-0635	28.537685	-81.27392
+1123	Deltona Commons	605 Courtland Blvd	Deltona	FL	32738-8913	(407) 321-5172	28.879894	-81.17705
+1124	The Riverland Center	3500 W Davie Blvd	Fort Lauderdale	FL	33312-3438	(954) 791-2180	26.104137	-80.19334
+1125	St John's Town Center North	4413 Town Center Pkwy Ste 100	Jacksonville	FL	32246-8570	(904) 564-3632	30.264217	-81.52643
+1127	Lake Mary Collection	4195 W Lake Mary Blvd	Lake Mary	FL	32746-2410	(407) 328-3055	28.754217	-81.34966
+1128	The Shoppes at Veranda Falls	788 SE Becker Rd	Port Saint Lucie	FL	34984-6621	(772) 336-3182	27.209667	-80.32642
+1129	Publix at Miami Lakes	15000 Miami Lakes Dr E	Miami Lakes	FL	33014-2700	(305) 818-8830	25.910576	-80.30644
+1131	The Paramount on Lake Eola	400 E Central Blvd	Orlando	FL	32801-1923	(407) 872-7201	28.542028	-81.37261
+1132	Brooksville Square	19390 Cortez Blvd	Brooksville	FL	34601-3041	(352) 796-2926	28.540548	-82.408554
+1135	Publix at FishHawk Ranch	5642 FishHawk Crossing Blvd	Lithia	FL	33547-5900	(813) 655-5646	27.853321	-82.205025
+1136	Oasis Plaza	2950 NE 8th St	Homestead	FL	33033-5694	(305) 242-2679	25.475246	-80.43414
+1137	Parkland Commons	8095 N University Dr	Parkland	FL	33067-2602	(954) 575-8225	26.329653	-80.2525
+1138	Publix at Palm Coast Town Center	800 Belle Terre Pkwy	Palm Coast	FL	32164-2314	(386) 437-2426	29.4878	-81.2198
+1140	Middle Beach Commons	408 Beach Blvd Ste 100	Jacksonville Beach	FL	32250-5482	(904) 249-1072	30.287563	-81.39318
+1142	Arbor Square at Connerton	7830 Land O Lakes Blvd	Land O Lakes	FL	34638-5701	(813) 996-3391	28.271763	-82.479065
+1144	Lantana Plaza Shopping Center	5970 S Jog Rd	Lake Worth	FL	33467-6590	(561) 649-7409	26.590673	-80.145065
+1147	Shoppes at North Cape	2481 Del Prado Blvd N	Cape Coral	FL	33909-4002	(239) 573-1706	26.697742	-81.93996
+1149	Publix on Treasure Island	111 104th Ave	Treasure Island	FL	33706-4804	(727) 363-1042	27.766045	-82.76746
+1150	Treasure Coast Plaza	415 21st St	Vero Beach	FL	32960-5455	(772) 562-0391	27.638433	-80.38296
+1151	Coral Way Shopping Center	8680 SW 24th St	Miami	FL	33155-2338	(305) 559-8030	25.74597	-80.33496
+1152	The Shops at Silver Leaf	11245 US Highway 301 N	Parrish	FL	34219-8675	(941) 776-8326	27.556688	-82.44694
+1153	Lakewood Walk	11205 E State Road 70	Bradenton	FL	34202-9404	(941) 727-4180	27.434523	-82.430374
+1155	Colony Plaza	327 Colony Blvd	The Villages	FL	32162-6084	(352) 391-1802	28.867035	-81.95522
+1156	First Street Village	2160 McGregor Blvd	Fort Myers	FL	33901-3417	(239) 332-2403	26.637903	-81.876785
+1158	Stoneybrook West Village	15502 Stoneybrook West Pkwy Ste 100	Winter Garden	FL	34787-4767	(407) 654-6404	28.51632	-81.61871
+1159	Boca Village Square	21230 Saint Andrews Blvd	Boca Raton	FL	33433-2435	(561) 544-2422	26.362007	-80.13584
+1160	Gulf to Bay Plaza	525 S Belcher Rd	Clearwater	FL	33764-6321	(727) 791-0138	27.959503	-82.74451
+1167	St Charles Plaza	39883 Highway 27	Davenport	FL	33837-7802	(863) 421-9157	28.178715	-81.6378
+1168	Eagle Ridge Shoppes	7975 State Road 50	Groveland	FL	34736-9381	(352) 429-0233	28.560045	-81.82141
+1169	OakLeaf Commons	1075 Oakleaf Plantation Pkwy Ste 200	Orange Park	FL	32065-3627	(904) 291-5108	30.161467	-81.83592
+1170	Carrollwood Square	5371 Ehrlich Rd	Tampa	FL	33625-5508	(813) 265-2372	28.08426	-82.543106
+1171	Highland City Town Center	5185 US Highway 98 S	Lakeland	FL	33812	(863) 644-0386	27.969755	-81.88345
+1173	Magnolia Plaza	2419 Navy Blvd	Panama City Beach	FL	32408-5808	(850) 236-4415	30.16029	-85.75215
+1174	Fountains West	301 West Rd	Ocoee	FL	34761-5300	(407) 654-1356	28.604462	-81.5494
+1176	Publix at University Square	2875 University Blvd W	Jacksonville	FL	32217-2116	(904) 419-4807	30.261644	-81.629074
+1177	Publix at Dames Pointe	7117 Merrill Rd	Jacksonville	FL	32277-2620	(904) 744-7983	30.353603	-81.57912
+1179	Pleasant Hill Commons	3343 S Orange Blossom Trl	Kissimmee	FL	34746-6565	(407) 846-1264	28.261993	-81.43823
+1180	The Shoppes at Price Crossing	1251 S Toledo Blade Blvd	North Port	FL	34288-2410	(941) 240-5023	27.0669	-82.15889
+1181	Village Shops at Bellalago	3839 Pleasant Hill Rd	Kissimmee	FL	34746-2952	(407) 343-7575	28.181147	-81.438614
+1182	Publix Super Market At Hyde Park	2401 W Azeele St	Tampa	FL	33609-3317	(813) 250-0129	27.941456	-82.48465
+1187	Dupont Lakes Center	2783 Elkcam Blvd	Deltona	FL	32738-3427	(386) 789-1543	28.92678	-81.18775
+1189	Sea Shell Collections	852 Gulf Breeze Pkwy	Gulf Breeze	FL	32561-4723	(850) 932-0113	30.359896	-87.16409
+1191	Lake Cay Commons	9930 Universal Blvd	Orlando	FL	32819-8702	(407) 996-8400	28.427317	-81.44473
+1192	Lake City Commons	255 NW Commons Loop	Lake City	FL	32055-7700	(386) 719-5446	30.181498	-82.66433
+1193	Shoppes of Sugarmill Woods	9525 S Suncoast Blvd	Homosassa	FL	34446-5034	(352) 382-1149	28.723255	-82.55118
+1194	Osceola Village	3040 Dyer Blvd	Kissimmee	FL	34741-7839	(407) 933-0172	28.339186	-81.432335
+1195	Ovation	7800 Lake Wilson Rd	Davenport	FL	33896-9605	(863) 420-3152	28.257795	-81.59176
+1196	Summertree Plaza	32765 Eiland Blvd	Zephyrhills	FL	33545-5268	(813) 779-2368	28.22202	-82.24851
+1198	The Shoppes at Glen Lakes	9595 Commercial Way	Weeki Wachee	FL	34613-3930	(352) 596-5081	28.570307	-82.559944
+1199	Shoppes at the Royale	1600 66th St N	Saint Petersburg	FL	33710-5535	(727) 344-1216	27.786215	-82.72964
+1201	Canopy Oak Center	8075 SW Highway 200 Unit 111	Ocala	FL	34481-7823	(352) 291-0292	29.084232	-82.2546
+1204	Southeast Plaza Shopping Center	884 Cypress Gardens Blvd	Winter Haven	FL	33880-4726	(863) 291-0312	28.002724	-81.71615
+1208	Brooks Village	12975 Collier Blvd Ste 200	Naples	FL	34116-4004	(239) 304-3394	26.210697	-81.68891
+1209	Fifth & Alton	1100 6th St	Miami Beach	FL	33139-6312	(305) 535-2212	25.775114	-80.140205
+1210	Hibernia Pavilion	865 Hibernia Rd Ste 200	Fleming Island	FL	32003-8707	(904) 529-1250	30.070023	-81.70607
+1212	Publix at Walden Woods	2202 James L Redman Pkwy	Plant City	FL	33563-7107	(813) 752-2672	27.990913	-82.119896
+1214	Atlantic Plaza	1024 Highway A1A Ste 120	Satellite Beach	FL	32937-2300	(321) 773-0836	28.185698	-80.594505
+1215	Jacaranda Commons Shopping Center	345 Jacaranda Blvd	Venice	FL	34292-2450	(941) 485-1037	27.09744	-82.38611
+1216	Crosscreek Village	3372 Canoe Creek Rd	Saint Cloud	FL	34772-6536	(407) 957-8888	28.196495	-81.29495
+1219	The Shoppes at Sunlake Centre	18901 State Road 54	Lutz	FL	33558-5268	(813) 948-1275	28.195148	-82.50294
+1221	Canyon Town Center	8780 Boynton Beach Blvd	Boynton Beach	FL	33472-4423	(561) 369-4800	26.52551	-80.18531
+1223	Shoppes at East San Marco	2039 Hendricks Ave Ste 325	Jacksonville	FL	32207	(904) 380-4445	30.304731	-81.65243
+1225	Santa Rosa Commons	4739 Highway 90	Pace	FL	32571-1403	(850) 994-4816	30.600899	-87.12437
+1229	Publix At Valencia Center	1220 E Palm Dr	Homestead	FL	33035	(786) 572-6695	25.447067	-80.459885
+1230	Altos Plaza	121 SW 22nd Ave	Miami	FL	33135	(305) 541-3265	25.770233	-80.230515
+1231	Vilano Beach Town Center	55 Ava Way	Saint Augustine	FL	32084-2904	(904) 827-1448	29.91764	-81.29284
+1236	127th Street Shopping Center	12800 Biscayne Blvd	North Miami	FL	33181	(305) 893-6781	25.894192	-80.16372
+1237	Cornerstone at Stuart	1501 NW Federal Hwy	Stuart	FL	34994-1039	(772) 692-5025	27.223518	-80.26242
+1239	Shoppes at Murabella	84 Tuscan Way	Saint Augustine	FL	32092-1831	(904) 940-2889	29.961046	-81.49117
+1241	Breakfast Point Marketplace	11240 Panama City Beach Pkwy	Panama City Beach	FL	32407-2449	(850) 236-4515	30.197012	-85.80987
+1243	Nocatee Town Center	120 Marketside Ave	Ponte Vedra	FL	32081-0574	(904) 825-0263	30.11053	-81.419556
+1245	Zephyr Commons	7838 Gall Blvd	Zephyrhills	FL	33541-4302	(813) 783-6871	28.27146	-82.186066
+1246	Shoppes at Woolbright	10935 S Jog Rd	Boynton Beach	FL	33437-3921	(561) 731-2900	26.514565	-80.14974
+1247	Promenade at Silver Palm	23300 SW 112th Ave	Homestead	FL	33032-7173	(305) 257-4090	25.550364	-80.37356
+1252	La Piazza Publix Center	4975 Avila Ave	Ave Maria	FL	34142-9562	(239) 304-3269	26.336277	-81.43462
+1257	Beach Village	414 Beach Village Dr	Flagler Beach	FL	32136-3063	(386) 517-2776	29.478777	-81.14773
+1258	Publix at South Walton	2038 US Highway 98 W	Santa Rosa Beach	FL	32459-5322	(850) 267-0582	30.37518	-86.21309
+1259	Dunlawton Square	3821 S Nova Rd	Port Orange	FL	32127-4950	(386) 788-2220	29.126894	-81.00224
+1260	Publix at Southshore Village	5052 N Highway 41	Apollo Beach	FL	33572	(813) 641-2377	27.737736	-82.43049
+1262	Alico Commons	16980 Alico Mission Way Ste 403	Fort Myers	FL	33908-4851	(239) 489-0134	26.492395	-81.849266
+1264	Publix At Hialeah	3251 E 2nd Ave	Hialeah	FL	33013-3285	(305) 888-1033	25.851871	-80.2776
+1267	Publix at Bee Ridge	8300 Bee Ridge Rd	Sarasota	FL	34241-6312	(941) 371-4276	27.297028	-82.40163
+1269	Loch Leven Landing	18955 US Highway 441	Mount Dora	FL	32757-6735	(352) 383-0368	28.826212	-81.64231
+1270	Southgate Shopping Center	2515 S Florida Ave	Lakeland	FL	33803-3858	(863) 683-9860	28.014845	-81.958496
+1271	Hays Road Town Center	14851 State Road 52	Hudson	FL	34669-4061	(727) 856-0293	28.33098	-82.57079
+1273	Eureka Promenade	18280 SW 147th Ave	Miami	FL	33187-1813	(305) 256-3102	25.59707	-80.43128
+1274	The Delray Marketplace	9239 W Atlantic Ave	Delray Beach	FL	33446-9002	(561) 498-1285	26.455217	-80.1914
+1275	Stoneybrook Hills Village	6551 N Orange Blossom Trl Ste 155	Mount Dora	FL	32757-7009	(352) 383-0740	28.779757	-81.62263
+1277	Valrico Commons	1971 E State Road 60	Valrico	FL	33594-3603	(813) 657-4041	27.936398	-82.253845
+1278	Shoppes at Mission Trace	955 State Road 16	Saint Augustine	FL	32084-1857	(904) 819-6518	29.914627	-81.36228
+1280	Shops at Village Walk	7950 Dani Dr Ste 200	Fort Myers	FL	33966-8012	(239) 274-1226	26.604103	-81.808556
+1282	Shoppes at Avalon	13455 County Line Rd	Spring Hill	FL	34609-6600	(352) 797-8027	28.43555	-82.49196
+1283	Publix at Arlington River	5858 Atlantic Blvd	Jacksonville	FL	32207-2223	(904) 721-3410	30.312279	-81.60175
+1284	Darwin Square	3253 SW Port St Lucie Blvd	Port Saint Lucie	FL	34953-3489	(772) 621-8473	27.247597	-80.37588
+1285	Casselberry Commons	1455 State Road 436 Ste 221	Casselberry	FL	32707-6514	(407) 673-0162	28.627314	-81.319435
+1287	Cocoplum Village Shops	17179 Tamiami Trl	North Port	FL	34287-7291	(941) 426-2167	27.037916	-82.214806
+1288	Publix at Plaza De Leon	106 Ponce De Leon Blvd	Coral Gables	FL	33135-1034	(305) 442-6018	25.771267	-80.25498
+1289	Park View Commons	3035 SE Maricamp Rd	Ocala	FL	34471-6201	(352) 351-2355	29.165539	-82.09425
+1290	Ormond Beach Mall	1258 Ocean Shore Blvd	Ormond Beach	FL	32176-3620	(386) 441-9839	29.32362	-81.05697
+1295	Shoppes at Aloma Walk	2871 Clayton Crossing Way Ste 1001	Oviedo	FL	32765-3426	(407) 673-0829	28.6206	-81.26091
+1296	Shops at Perdido Key	13390 Perdido Key Dr	Pensacola	FL	32507-4631	(850) 492-5090	30.318136	-87.426544
+1297	Publix at Galleria	2501 E Sunrise Blvd	Fort Lauderdale	FL	33304-3203	(954) 390-0225	26.138844	-80.11215
+1300	Beckett Lake Plaza	1921 N Belcher Rd	Clearwater	FL	33763-4548	(727) 712-3450	27.990492	-82.74283
+1301	Pine Lake Plaza	10018 Griffin Rd	Cooper City	FL	33328-3301	(954) 434-5728	26.062914	-80.28147
+1302	University Crossing	13401 Summerlin Rd	Fort Myers	FL	33919-6592	(239) 481-2242	26.547688	-81.884415
+1303	Publix Super Market	610 Eglin Pkwy NE	Fort Walton Beach	FL	32547-2832	(850) 862-6789	30.44163	-86.60049
+1304	Colonial Towne Park Center	870 Village Oak Ln	Lake Mary	FL	32746-4766	(407) 804-1950	28.78777	-81.35721
+1305	Parkwood Square	9005 US Highway 301 N	Parrish	FL	34219-8673	(941) 776-8084	27.543465	-82.47303
+1306	Village Square (Village Commons)	3521 Thomasville Rd	Tallahassee	FL	32309-7134	(850) 893-0137	30.508526	-84.24629
+1309	Belleair Bluffs	2770 W Bay Dr	Belleair Bluffs	FL	33770-2618	(727) 586-0213	27.915674	-82.81611
+1311	Publix Super Market	2201 N University Dr	Coral Springs	FL	33071-6185	(954) 757-2296	26.258541	-80.24799
+1312	Butler Plaza West	3930 SW Archer Rd	Gainesville	FL	32608-2342	(352) 379-7271	29.621908	-82.38213
+1316	Publix Super Market	5055 N 9th Ave	Pensacola	FL	32504-8719	(850) 484-9646	30.47274	-87.21467
+1317	University Town Center	9251 University Pkwy	Pensacola	FL	32514-5531	(850) 473-5000	30.5296	-87.22263
+1318	Bellview Plaza	5998 Mobile Hwy	Pensacola	FL	32526-1873	(850) 941-8101	30.45982	-87.29859
+1320	Publix Super Market	7880 113th St	Seminole	FL	33772-4616	(727) 393-9680	27.843695	-82.79628
+1321	Seville Square	3030 54th Ave S	Saint Petersburg	FL	33712-4614	(727) 864-2030	27.718088	-82.67389
+1324	Publix Super Market	8701 W Hillsborough Ave	Tampa	FL	33615-3704	(813) 886-7693	27.997812	-82.58386
+1325	Bonita Bay Plaza	26841 S Tamiami Trl	Bonita Springs	FL	34134-7817	(239) 992-0105	26.348349	-81.804955
+1326	Bradenton Commons	4651 Cortez Rd W	Bradenton	FL	34210-3146	(941) 792-7195	27.461313	-82.60713
+1327	Cape Coral Landings	127 Cape Coral Pkwy W	Cape Coral	FL	33914-8353	(239) 540-0137	26.563328	-81.97599
+1328	Publix At Del Prado Crossings	1735 NE Pine Island Rd	Cape Coral	FL	33909-1731	(239) 573-0818	26.671219	-81.93781
+1330	Publix at Saxon Crossings	2100 Saxon Blvd	Deltona	FL	32725-3251	(386) 532-8584	28.90945	-81.26627
+1333	The Shoppes of Jonathan's Landing	17400 N Alternate A1A	Jupiter	FL	33477-5896	(561) 741-6060	26.93272	-80.09196
+1335	East Bay Plaza	3825 E Bay Dr	Largo	FL	33771-1936	(727) 538-8630	27.915163	-82.74728
+1337	Marketplace at Pelican Bay	8833 Tamiami Trl N	Naples	FL	34108-2565	(239) 596-0403	26.248915	-81.803
+1338	Curry Ford Square	10250 Curry Ford Rd	Orlando	FL	32825-8735	(407) 207-6107	28.508383	-81.23801
+1339	Belle Terre Crossings	4950 Belle Terre Pkwy	Palm Coast	FL	32137-8692	(386) 445-2628	29.551434	-81.23562
+1340	Riviere Plaza	35439 US 19 N	Palm Harbor	FL	34684-1737	(727) 771-0892	28.094244	-82.73826
+1341	Shoppes at Boot Ranch	500 E Lake Rd	Palm Harbor	FL	34685-2428	(727) 784-4180	28.062096	-82.70904
+1342	Publix at Palmetto	1101 8th Ave W	Palmetto	FL	34221-3809	(941) 721-8548	27.522911	-82.57361
+1343	Publix at Nine Mile	2180 W Nine Mile Rd	Pensacola	FL	32534-9472	(850) 473-5020	30.536034	-87.31229
+1344	Park Boulevard Plaza	4701 Park Blvd N	Pinellas Park	FL	33781-3533	(727) 546-4870	27.84039	-82.69852
+1345	Publix at Plantation	1181 S University Dr	Plantation	FL	33324-3322	(954) 577-0542	26.106615	-80.25151
+1347	Fairmont Plaza	3610 US Highway 27 N	Sebring	FL	33870-1691	(863) 385-2025	27.516287	-81.49361
+1348	Publix at South Pasadena	1075 Pasadena Ave S	South Pasadena	FL	33707-2037	(727) 341-1790	27.76006	-82.73719
+1350	Ocean Breeze Plaza	1780 NE Jensen Beach Blvd	Jensen Beach	FL	34957-7292	(772) 225-3704	27.241358	-80.22759
+1351	The Shoppes at Freeport	16400 US Highway 331 S	Freeport	FL	32439	(850) 835-2296	30.48779	-86.124435
+1352	Publix at Eagle Landing	6700 Bayshore Rd	North Fort Myers	FL	33917-3305	(239) 567-1827	26.700052	-81.84759
+1353	Windover Square	2261 W New Haven Ave	West Melbourne	FL	32904-3805	(321) 676-0115	28.077534	-80.66001
+1357	Golden Eagle Village	2430 US Highway 27	Clermont	FL	34714	(352) 243-5279	28.38222	-81.686646
+1358	St John's Plaza	3275 Garden St	Titusville	FL	32796-3004	(321) 264-9263	28.617323	-80.84305
+1359	Publix At Riviera Beach	228 E Blue Heron Blvd	Riviera Beach	FL	33404-4545	(561) 841-3058	26.78381	-80.050446
+1361	Garden Shops at Boca	7060 W Palmetto Park Rd	Boca Raton	FL	33433-3411	(561) 338-0648	26.347437	-80.157364
+1365	The Shops at Foxwood	2765 NW 49th Ave Ste 301	Ocala	FL	34482-6215	(352) 622-1318	29.215708	-82.19958
+1366	Publix on County Line	5140 County Line Rd	Lakeland	FL	33811	(863) 644-1376	27.971067	-82.05546
+1367	Seminole Shoppes	630 Atlantic Blvd	Neptune Beach	FL	32266-4000	(904) 241-0944	30.322735	-81.40426
+1368	Frenchman's Crossing	4101 Hood Rd	Palm Beach Gardens	FL	33410-2171	(561) 622-1047	26.865417	-80.09721
+1371	Pavilion Crossing	3863 US Highway 301 S	Riverview	FL	33578-3572	(813) 626-7104	27.913134	-82.35003
+1372	Publix at Bay Street	2031 Bay St	Sarasota	FL	34237-7914	(941) 366-4089	27.327978	-82.52967
+1373	City Plaza at Tampa Palms	16041 Tampa Palms Blvd W	Tampa	FL	33647-2001	(813) 972-2784	28.10025	-82.398964
+1374	Harbor Point	5230 US Highway 1	Vero Beach	FL	32967-7608	(772) 778-3513	27.688126	-80.40985
+1376	Millhopper Shopping Center	4115 NW 16th Blvd	Gainesville	FL	32605-3505	(352) 336-1488	29.671976	-82.38728
+1378	Rivergate Plaza	1125 SE Port St Lucie Blvd	Port Saint Lucie	FL	34952-5332	(772) 335-8441	27.273026	-80.31626
+1381	Aloma Shopping Center	2295 Aloma Ave	Winter Park	FL	32792-3303	(407) 671-3403	28.602589	-81.322075
+1382	Publix at North Shore	6876 Collins Ave	Miami Beach	FL	33141-3244	(305) 864-7405	25.85317	-80.12081
+1384	Publix at Lake Worth	214 N Dixie Hwy	Lake Worth	FL	33460-3362	(561) 493-5042	26.618591	-80.05691
+1385	Sarasota Village Plaza	3690 Bee Ridge Rd	Sarasota	FL	34233-1001	(941) 925-0269	27.297417	-82.4962
+1386	Hialeah Plaza	1290 W 68th St	Hialeah	FL	33014-4524	(305) 820-8885	25.88372	-80.30949
+1387	University Plaza	4000 N Goldenrod Rd	Winter Park	FL	32792-8999	(407) 671-0211	28.598625	-81.28877
+1388	Hollieanna Shopping Center	741 S Orlando Ave	Winter Park	FL	32789-4844	(407) 622-0302	28.59155	-81.36642
+1389	Market Square	11750 SW 104th St	Miami	FL	33176	(305) 274-1922	25.670507	-80.385544
+1393	Pompano Shopping Center	2511 E Atlantic Blvd	Pompano Beach	FL	33062-5217	(954) 786-7964	26.23307	-80.09845
+1394	Publix on 34th Street North	1700 34th St N	Saint Petersburg	FL	33713-3602	(727) 327-3039	27.788723	-82.68095
+1395	Publix on Palm Beach	135 Bradley Pl	Palm Beach	FL	33480-3819	(561) 655-4120	26.719736	-80.03963
+1396	Lakeside Village Center	7880 Winter Garden Vineland Rd	Windermere	FL	34786-5689	(407) 876-0605	28.446428	-81.56132
+1397	Publix at 18Biscayne Shopping Center	1776 Biscayne Blvd	Miami	FL	33132-1129	(305) 358-3433	25.79312	-80.1894
+1398	Stadium Corners at Viera	5380 Stadium Pkwy Ste 100	Rockledge	FL	32955-6001	(321) 433-0936	28.267984	-80.73891
+1399	Golden Gate Shopping Center	255 E Van Fleet Dr	Bartow	FL	33830-3831	(863) 534-1560	27.902592	-81.84184
+1401	Mahan Village Shopping Center	3122 Mahan Dr	Tallahassee	FL	32308-2500	(850) 402-0141	30.462328	-84.22595
+1405	Sunshine Square	501 SE 18th Ave	Boynton Beach	FL	33435-6949	(561) 292-4080	26.512688	-80.06151
+1406	Villages of Amelia	463855 State Road 200	Yulee	FL	32097-3639	(904) 261-2400	30.627926	-81.54553
+1407	Shoppes at Del Prado	17960 N Tamiami Trl	North Fort Myers	FL	33903-1412	(239) 543-2203	26.724184	-81.90419
+1408	Partin Village	2338 E Irlo Bronson Memorial Hwy	Kissimmee	FL	34744-5401	(407) 846-6141	28.27948	-81.34788
+1410	Lake Gibson Shopping Center	6767 US Highway 98 N	Lakeland	FL	33809-6226	(863) 858-6861	28.12931	-81.97207
+1413	Caladesi Shopping Center	902 Curlew Rd	Dunedin	FL	34698-1901	(727) 736-9047	28.050005	-82.77859
+1414	Nokomis Village	1091 Tamiami Trl N	Nokomis	FL	34275-2163	(941) 484-2606	27.137003	-82.45919
+1421	Colonial Coast Crossing	2000 Cheney Hwy	Titusville	FL	32780-6028	(321) 267-9606	28.55918	-80.82587
+1423	Publix at Pinecrest	13401 S Dixie Hwy	Pinecrest	FL	33156-6512	(305) 251-0911	25.646105	-80.33125
+1424	Boynton Lakes Plaza	4770 N Congress Ave	Boynton Beach	FL	33426-7952	(561) 868-5530	26.571182	-80.087395
+1427	Capital Circle	2111 NE Capital Circle	Tallahassee	FL	32308-4303	(850) 523-9851	30.48003	-84.234604
+1428	Springs Plaza	2381 W State Road 434	Longwood	FL	32779-4984	(407) 865-9847	28.68828	-81.40395
+1429	Miller Road Shopping Center	9420 SW 56th St	Miami	FL	33165-6422	(305) 595-4502	25.715416	-80.34742
+1430	Lake Nona Plaza	13900 Narcoossee Rd	Orlando	FL	32832-6960	(407) 240-2102	28.364698	-81.24685
+1431	Water Tower Shoppes	29 Blake Blvd	Celebration	FL	34747-5414	(321) 939-3100	28.331158	-81.526596
+1432	Shoppes of Bay Isles	525 Bay Isles Pkwy	Longboat Key	FL	34228-3133	(941) 383-1326	27.367477	-82.62449
+1433	Plaza Venezia	2438 Laurel Rd E	North Venice	FL	34275-3204	(941) 484-8426	27.135914	-82.419716
+1434	Naples Plaza	1981 Tamiami Trl N	Naples	FL	34102-4804	(239) 262-0125	26.1706	-81.800964
+1437	Sawgrass Village	220 Front Street	Ponte Vedra Beach	FL	32082	(904) 280-5440	30.205534	-81.382744
+1438	Peachland Promenade	24051 Peachland Blvd	Port Charlotte	FL	33954-3714	(941) 235-4460	27.01599	-82.056946
+1439	The Marketplace at Dr Phillips	7524 Dr Phillips Blvd	Orlando	FL	32819-5148	(407) 226-9882	28.453548	-81.490166
+1440	Town Park	12231 E Colonial Dr	Orlando	FL	32826-4759	(407) 482-1244	28.567814	-81.19628
+1441	The Village Center	13178 N Dale Mabry Hwy	Tampa	FL	33618-2406	(813) 961-0273	28.066946	-82.50686
+1443	Homestead Shopping Plaza	1324 Homestead Rd N	Lehigh Acres	FL	33936-6016	(239) 368-2241	26.609505	-81.65058
+1444	Northgate Shopping Center	299 E International Speedway Blvd	DeLand	FL	32724-2339	(386) 734-7112	29.05645	-81.300896
+1445	Key Plaza Shopping Center	1112 Key Plaza	Key West	FL	33040-4076	(305) 295-8045	24.566025	-81.77048
+1447	Lockwood Commons	4240 53rd Ave E	Bradenton	FL	34203-8097	(941) 758-4093	27.444	-82.50774
+1448	Publix Plaza Inverness	1012 West Main Street	Inverness	FL	34450	(352) 341-2581	28.837385	-82.34337
+1449	The Center of Bonita Springs	3304 Bonita Beach Rd	Bonita Springs	FL	34134-4174	(239) 495-1600	26.332045	-81.80852
+1450	Westport Square	1660 Taylor Rd	Port Orange	FL	32128-6753	(386) 760-7332	29.10611	-81.03388
+1452	Boynton Plaza	133 N Congress Ave	Boynton Beach	FL	33426-4209	(561) 364-3707	26.526262	-80.09197
+1454	West Lake Commons	1700 Sheridan St	Hollywood	FL	33020-2275	(954) 927-5680	26.032349	-80.14024
+1455	Daytona Beach Shores	3044 S Atlantic Ave	Daytona Beach Shores	FL	32118-6102	(386) 788-7773	29.166983	-80.97905
+1456	4th Street Station	3700 4th St N	Saint Petersburg	FL	33704-1314	(727) 526-3019	27.805822	-82.64
+1457	Madeira Shopping Center	674 150th Ave	Madeira Beach	FL	33708	(727) 393-5831	27.810349	-82.79268
+1458	Kings Lake Square	4860 Davis Blvd	Naples	FL	34104-5337	(239) 732-7216	26.137093	-81.7486
+1459	Fifth Avenue Shops	1968 NE 5th Ave	Boca Raton	FL	33431-7702	(561) 750-9476	26.36859	-80.076256
+1461	The Crossing	1520 John Sims Pkwy E	Niceville	FL	32578-2138	(850) 678-3002	30.51454	-86.449455
+1465	Shoppes of Cutler Bay	20951 Old Cutler Rd	Cutler Bay	FL	33189-2469	(305) 256-8305	25.572693	-80.342575
+1467	Fountain Square	9951 W Flagler St	Miami	FL	33174-1805	(305) 207-2329	25.769888	-80.357666
+1468	Cobblestone Crossing	2771 Monument Rd Ste 19	Jacksonville	FL	32225-3547	(904) 564-2448	30.362017	-81.50123
+1469	Country Isles Plaza	1170 Weston Rd	Weston	FL	33326-1915	(954) 385-3013	26.104342	-80.3631
+1471	Indian Rocks Shopping Center	12022 Indian Rocks Rd	Largo	FL	33774-3215	(727) 595-8192	27.882065	-82.834076
+1472	Publix at Verano	9335 SW Commerce Centre Dr	Port Saint Lucie	FL	34986-8500	(772) 345-9500	27.295282	-80.42424
+1477	Grand Oaks Town Center	2575 SW 42nd St Ste 100	Ocala	FL	34471-1355	(352) 237-7186	29.147537	-82.16745
+1487	Grand Traverse Plaza	2925 Traverse Trl	The Villages	FL	32163-2017	(352) 750-1056	28.844738	-82.02777
+1488	Winter Park Village	440 N Orlando Ave	Winter Park	FL	32789-2914	(407) 644-1204	28.600893	-81.362946
+1491	Belmart Plaza	500 Belvedere Rd	West Palm Beach	FL	33405-1229	(561) 659-2116	26.689512	-80.05653
+1492	Doral Commons	7550 NW 104th Ave	Doral	FL	33178-3333	(305) 418-9751	25.842089	-80.36837
+1493	Island Walk at Palm Coast	250 Palm Coast Pkwy NE Unit 1000	Palm Coast	FL	32137-8286	(386) 597-4776	29.557943	-81.20988
+1494	West Miami	1500 SW 57th Ave	West Miami	FL	33144-5722	(305) 265-8019	25.756598	-80.28836
+1495	Islamorada	83268 Overseas Hwy	Islamorada	FL	33036	(305) 664-4890	24.933933	-80.61768
+1496	The Shoppes of Dade City	11830 US Hwy 301	Dade City	FL	33525-6037	(352) 521-3017	28.329777	-82.18583
+1497	Village Commons	831 Village Blvd	West Palm Beach	FL	33409-1901	(561) 615-6808	26.71411	-80.102066
+1499	Sorrento Hills Village	24420 SR 44	Eustis	FL	32736	(352) 357-2024	28.850224	-81.55328
+1500	Country Club Corners	2431 S Woodland Blvd	DeLand	FL	32720-8637	(386) 740-0014	28.986385	-81.297226
+1501	Lake Fredrica Shopping Center	4042 S Semoran Blvd	Orlando	FL	32822	(407) 277-3871	28.503136	-81.31164
+1502	Boggy Creek Marketplace	2625 Simpson Rd	Kissimmee	FL	34744-4675	(407) 962-0219	28.320225	-81.337135
+1505	Alachua Market Place	16193 NW US Hwy 441	Alachua	FL	32615-6393	(386) 418-3430	29.805534	-82.52175
+1506	Britton Plaza	3838 Britton Plaza	Tampa	FL	33611-1406	(813) 835-1280	27.907	-82.5027
+1507	Lake Deaton Plaza	695 Kristine Way	The Villages	FL	32163	(352) 259-8244	28.825392	-81.96627
+1513	Shoppes at Trinity Lakes	12500 SR 54	Odessa	FL	33556	(727) 375-5249	28.189228	-82.60852
+1517	Southgate Shopping Center	2848 US 27 S Ste 107	Sebring	FL	33870-5016	(863) 314-8746	27.47352	-81.44441
+1522	Publix at East Hill	1100 E Cervantes St	Pensacola	FL	32501	(850) 434-3469	30.42409	-87.20385
+1523	Rivercrest Commons Shopping Center	11460 S US Highway 301	Riverview	FL	33578	(813) 671-9121	27.8335	-82.32679
+1526	Countryside Shops	5656 S Flamingo Rd	Cooper City	FL	33330	(954) 434-8240	26.04682	-80.31102
+1527	Neighborhood Shoppes at Orangetree	13550 Immokalee Rd	Naples	FL	34120	(239) 455-1654	26.278168	-81.597
+1528	Arcadia Crossings Shopping Center	2551 SE Hwy 70	Arcadia	FL	34266	(863) 494-0999	27.20674	-81.83378
+1530	Moultrie Square	4255 US 1 S	Saint Augustine	FL	32086-7046	(904) 797-1111	29.813576	-81.324615
+1531	700 Central	725 1st Ave S	Saint Petersburg	FL	33701	(727) 822-1053	27.770718	-82.64445
+1534	Westgate Plaza	12024 Anderson Rd	Tampa	FL	33625	(813) 264-4457	28.059721	-82.5439
+1535	Tavares Crossroads	2042 State Rd 19	Tavares	FL	32778	(352) 742-2439	28.78431	-81.75088
+1536	Publix at Sunny Isles Beach	18320 Collins Avenue	Sunny Isles Beach	FL	33160	(305) 935-1556	25.946365	-80.122086
+1537	Tiger Point Pavilion	1430 Tiger Park Ln	Gulf Breeze	FL	32563	(850) 932-5194	30.388468	-87.06163
+1538	Loxahatchee Groves Commons	15625 Southern Blvd	Loxahatchee Groves	FL	33470	(561) 795-5201	26.684631	-80.2923
+1541	Bay Pointe Plaza	5295 34th St S	Saint Petersburg	FL	33711-4517	(727) 864-0079	27.720505	-82.68048
+1547	South Highlands Shopping Center	586 US 27 N	Lake Placid	FL	33852	(863) 699-2081	27.302874	-81.36015
+1549	Publix at Channel Club	1105 E Twiggs St	Tampa	FL	33602	(813) 221-1641	27.9521	-82.4487
+1553	Publix at Braden River	14605 SR 70	Bradenton	FL	34202	(941) 751-1325	27.433582	-82.393845
+1554	Hollywood Circle	1740 Polk St	Hollywood	FL	33020	(954) 927-7879	26.012728	-80.14148
+1557	Burnt Store Marketplace	3941 Tamiami Trl Unit 3145	Punta Gorda	FL	33950	(941) 575-0793	26.890347	-82.02621
+1558	Aventura Shopping Center	2952 Aventura Blvd	Aventura	FL	33180	(305) 792-1429	25.959604	-80.14112
+1559	Shoppes At Sterling Creek	443 W CR 419 Ste 1001	Oviedo	FL	32766	(407) 366-4727	28.646114	-81.139206
+1560	Publix At University Village Market	203 NW 13th St	Gainesville	FL	32601	(352) 375-2775	29.653429	-82.33885
+1561	River Landing	1420 NW North River Dr Ste 110	Miami	FL	33125	(305) 324-3300	25.785385	-80.21987
+1562	Island Village Shopping Center	200 Island Way	Clearwater	FL	33767	(727) 298-8618	27.97886	-82.817276
+1563	Banana River Square	2067 N Atlantic Ave	Cocoa Beach	FL	32931	(321) 783-3214	28.344755	-80.61042
+1564	Sky Walk	13121 Paul J Doherty Pkwy	Fort Myers	FL	33913	(239) 561-2224	26.555706	-81.74779
+1567	Hamlin Cove	5400 Hamlin Groves Trail	Winter Garden	FL	34787	(407) 654-6157	28.472591	-81.6297
+1570	Village Square	1657 N Hiatus Rd	Pembroke Pines	FL	33026	(954) 442-7391	26.0215	-80.2983
+1571	Publix at Downtown Doral	8455 NW 53rd Terrace	Doral	FL	33166	(305) 594-5574	25.822042	-80.33492
+1572	Five Points Shopping Center	5580 Woodbine Rd	Pace	FL	32571	(850) 994-6552	30.639984	-87.18014
+1573	Publix at Gaines Street Station	625 W Gaines St	Tallahassee	FL	32304	(850) 577-1915	30.435043	-84.29187
+1576	Delray Square	4771 W Atlantic Ave	Delray Beach	FL	33445	(561) 865-3480	26.459099	-80.11938
+1578	Terrace Ridge Plaza	11502 N 53rd St	Temple Terrace	FL	33617	(813) 914-7252	28.05338	-82.39702
+1579	Walsingham Commons	13031 Walsingham Rd	Largo	FL	33774	(727) 517-0847	27.881678	-82.819
+1581	Spanish Plaines Shopping Center	1566 Bella Cruz Dr	The Villages	FL	32159	(352) 751-4346	28.952354	-81.960915
+1585	Publix at Hobe Sound Center	8605 SE Federal Hwy	Hobe Sound	FL	33455	(772) 545-2076	27.103056	-80.156586
+1597	Tower Oaks Terrace	12101 Little Rd	Hudson	FL	34667	(727) 819-2013	28.332607	-82.66814
+1598	Pines City Center	10450 Pines Blvd	Pembroke Pines	FL	33026	(954) 437-2457	26.006662	-80.28617
+1600	University Corner	7325 University Pkwy	Lakewood Ranch	FL	34202	(941) 355-8803	27.38821	-82.396126
+1601	Plaza del Mar	262 S Ocean Blvd	Manalapan	FL	33462	(561) 585-6790	26.582903	-80.04053
+1602	Publix at Northcrest	1355 N Ferdon Blvd	Crestview	FL	32536	(850) 682-0820	30.79372	-86.555664
+1606	Davie Shopping Center	4701 S University Dr	Davie	FL	33328	(954) 430-6630	26.062487	-80.25356
+1607	Sunrise City Plaza	3221 Vineland Rd	Kissimmee	FL	34746	(407) 239-1852	28.346165	-81.48331
+1610	Williamsburg Downs Shopping Center	5350 Central Florida Pkwy	Orlando	FL	32821	(407) 465-1139	28.406961	-81.4485
+1611	Starkey Ranch Town Square	13589 SR 54	Odessa	FL	33556	(813) 926-1182	28.196646	-82.590576
+1614	3 Miami Central	601 NW 2nd Ave	Miami	FL	33136	(305) 374-6806	25.780117	-80.19736
+1616	Rainbow Square Shopping Center	11352 N Williams St Ste 400	Dunnellon	FL	34432	(352) 522-1988	29.059185	-82.45643
+1617	The Shoppes at Palencia Commons	7462 US Hwy 1 N	Saint Augustine	FL	32095	(904) 826-3537	30.012016	-81.38967
+1618	Alton Town Center	5410 Donald Ross Rd	Palm Beach Gardens	FL	33418	(561) 626-1950	26.880978	-80.11801
+1625	Lake Nona Creekside	14185 Lake Nona Blvd	Orlando	FL	32824	(407) 816-8064	28.364979	-81.312225
+1628	Disston Plaza	3501 49th St N	Saint Petersburg	FL	33710	(727) 520-8101	27.804094	-82.69887
+1630	Publix at USF	4425 E Fletcher Ave	Tampa	FL	33613	(813) 631-1269	28.068398	-82.41199
+1639	Shops at Casey Key	1350 S. Tamiami Trail	Osprey	FL	34229	(941) 918-2647	27.177092	-82.48212
+1644	Beneva Village Shoppes	3428 Clark Rd	Sarasota	FL	34231	(941) 923-3910	27.2685	-82.50114
+1649	New Smyrna Beach Regional Shopping Center	1930 State Rd 44	New Smyrna Beach	FL	32168	(386) 427-5327	29.01205	-80.94555
+1651	Grove Park Shopping Center	1617 US Hwy 98 S	Lakeland	FL	33801	(863) 413-0626	28.02331	-81.92622
+1653	Publix at Westshore	4900 W Kennedy Blvd	Tampa	FL	33609	(813) 281-0769	27.944344	-82.5267
+1655	Shops of Marco	175 S Barfield Dr	Marco Island	FL	34145	(239) 394-1086	25.931786	-81.6994
+1656	Oak Valley Shopping Center	5678 Capital Cir NW	Tallahassee	FL	32303	(850) 562-0088	30.530853	-84.36336
+1657	Briar Bay Shopping Center	13005 SW 89th Pl	Miami	FL	33176-5812	(305) 964-4921	25.648874	-80.3395
+1659	The Shoppes at Lake Miriam Crossing	4747 S Florida Ave Ste 110	Lakeland	FL	33813	(863) 413-0730	27.979053	-81.959625
+1661	Palm Springs Center	503 E Altamonte Dr	Altamonte Springs	FL	32701	(321) 207-7128	28.665464	-81.37315
+1662	Publix at Dixie Crossing	950 E Commercial Blvd	Oakland Park	FL	33334	(954) 776-5435	26.187916	-80.13497
+1663	Largo Mall	10500 Ulmerton Rd #800	Largo	FL	33771	(727) 518-0098	27.893646	-82.78087
+1664	Latitude Landings	2630 LPGA Blvd	Daytona Beach	FL	32124	(386) 274-3188	29.21595	-81.11851
+1666	Gateway Commons	9520 Buffalo Rd	Palmetto	FL	34221	(941) 722-0693	27.599089	-82.4999
+1667	Shoppes at RiverTown	205 Rivertown Shops Dr	Saint Johns	FL	32259	(904) 230-1347	30.05431	-81.613556
+1668	Longwood Hills Market	675 Longwood Hills Rd Unit 1001	Longwood	FL	32750	(321) 207-3311	28.713745	-81.35752
+1669	Town & Country Shopping Center	501 N Beneva Rd Ste 161	Sarasota	FL	34232	(941) 330-9771	27.339073	-82.49887
+1670	Publix at Alafia Commons	5655 Circa Fishhawk Blvd	Lithia	FL	33547	(813) 654-0531	27.852741	-82.25659
+1674	Lakeside Centre	8210 Glades Rd	Boca Raton	FL	33434	(561) 852-8172	26.366997	-80.17508
+1681	Bloomingdale Square	949 E Bloomingdale Ave	Brandon	FL	33511	(813) 654-2598	27.891047	-82.27015
+1682	Taylor Creek Commons	1851 N US Hwy 1	Fort Pierce	FL	34946	(772) 595-5321	27.468903	-80.33512
+1683	West Villages Marketplace	12165 Mercado Dr	Venice	FL	34293	(941) 492-6110	27.047121	-82.321945
+1684	Bartram Market	155 Bartram Market Dr Ste 100	Saint Johns	FL	32259	(904) 260-6565	30.10165	-81.52275
+1686	Loughman Crossing	6075 Hwy 17-92 N	Davenport	FL	33896	(863) 424-1805	28.239668	-81.55917
+1688	Publix at Indialantic	700 N Miramar Ave	Indialantic	FL	32903	(321) 953-6709	28.096394	-80.56909
+1693	Publix at Hollywood Beach	3100 S Ocean Dr	Hollywood	FL	33019	(954) 266-5005	25.994081	-80.119064
+1695	South Dade Plaza	18485 S Dixie Hwy	Cutler Bay	FL	33157	(305) 235-9684	25.59701	-80.35116
+1696	The Main Las Olas	255 SE 3rd Ave	Fort Lauderdale	FL	33301	(954) 713-6265	26.120016	-80.14095
+1698	Publix at Kelly Park Crossing	3080 W Kelly Park Rd	Apopka	FL	32712	(407) 464-0804	28.75544	-81.56128
+1699	Monarch Town Center	12681 Miramar Pkwy	Miramar	FL	33027	(954) 602-5242	25.980515	-80.31538
+1701	Nocatee Town Center	250 Pine Lake Dr	Ponte Vedra	FL	32081	(904) 826-3356	30.110088	-81.41571
+1702	The Preserve Marketplace Shopping Center	2175 Sembler Dr	Odessa	FL	33556	(813) 926-3660	28.188673	-82.55116
+1705	Trailwinds Village	5810 Seven Mile Dr	Wildwood	FL	34785	(352) 330-0542	28.868296	-82.00686
+1707	Plantation Square	5375 N Socrum Loop Rd	Lakeland	FL	33809	(863) 816-0246	28.1119	-81.94508
+1708	Polo Club Shops	5050 Champion Blvd	Boca Raton	FL	33496	(561) 981-5390	26.410221	-80.12396
+1709	Live Oak Crossing	2215 Ohio Ave N	Live Oak	FL	32064	(386) 339-6378	30.320305	-82.97114
+1711	Belmont Shopping Center	14323 S US Hwy 301	Wimauma	FL	33598	(813) 634-2117	27.769045	-82.3366
+1712	The Trails Shopping Center	220 N Nova Rd	Ormond Beach	FL	32174	(386) 672-5724	29.282705	-81.08381
+1715	Jefferson Plaza	930 N Miami Beach Blvd	North Miami Beach	FL	33162	(305) 947-5485	25.926674	-80.18365
+1719	Riverside Square	8160 Wiles Rd	Coral Springs	FL	33067	(954) 688-5340	26.285458	-80.235634
+1721	Water Street Tampa	555 Channelside Dr	Tampa	FL	33602	(813) 221-4121	27.94335	-82.44975
+1722	Gandy Commons	4315 W Gandy Blvd	Tampa	FL	33611	(813) 831-6890	27.894909	-82.516624
+1723	White Eagle	13150 E SR 64	Bradenton	FL	34212-7205	(941) 744-0640	27.483269	-82.41049
+1729	Parkway Village of St John	170 Village Commons Dr	Saint Augustine	FL	32092-4545	(904) 940-3357	29.964464	-81.48823
+1730	Shoppes at Fiddler's Creek	15050 Sandpiper Ln	Naples	FL	34114	(239) 732-5978	26.033243	-81.6539
+1734	Kathleen Square	7340 Kathleen Rd	Lakeland	FL	33810	(863) 816-0379	28.13636	-82.02434
+1735	Riverdale Shopping Center	14561 Palm Beach Blvd Ste 150	Fort Myers	FL	33905	(239) 690-0554	26.709253	-81.720436
+1737	Shoppes at St Lucie West	1537 NW St Lucie West Blvd	Port Saint Lucie	FL	34986	(772) 878-7393	27.317656	-80.39178
+1738	Champions Crossing	1200 Champions Dr	Davenport	FL	33897	(863) 422-0070	28.272999	-81.66028
+1741	Magnolia Plaza	2135 Everglades Ln	The Villages	FL	32163	(352) 461-5096	28.800951	-82.006584
+1742	The Market at Mirada	30841 Mirada Blvd	San Antonio	FL	33576	(352) 588-1170	28.32755	-82.29576
+1746	Nine Mile Crossing	8684 Beulah Rd	Pensacola	FL	32526	(850) 944-8833	30.53413	-87.37893
+1747	Belleview Regional Shopping Center	10301 S US Hwy 441	Belleview	FL	34420	(352) 347-0186	29.071306	-82.07129
+1748	West Bird Center	11495 Bird Rd	Miami	FL	33165	(305) 553-5392	25.734505	-80.38088
+1749	Shoppes at Village of Golf	11200 S Military Trl	Golf	FL	33436	(561) 903-3141	26.510826	-80.122055
+1750	Pearl Britain Plaza	2655 NE 35th St	Ocala	FL	34479	(352) 620-1451	29.22414	-82.10091
+1751	Clermont Town Center	1720 E Highway 50	Clermont	FL	34711-2778	(352) 241-6177	28.548962	-81.72492
+1752	Naples Towne Centre	3815 Tamiami Trl E	Naples	FL	34112	(239) 732-2102	26.119617	-81.75713
+1753	Neptune Beach Plaza	580 Atlantic Blvd	Neptune Beach	FL	32266-4024	(904) 242-5197	30.323061	-81.40263
+1754	Plaza Ecco	3171 S Orange Ave	Orlando	FL	32806	(407) 888-2366	28.508064	-81.37462
+1755	Publix at Halifax	101 E Granada Blvd	Ormond Beach	FL	32176	(386) 672-8643	29.290634	-81.04505
+1759	Hills Crossing	1685 N Hancock Rd	Minneola	FL	34715	(352) 241-9002	28.591763	-81.72167
+1760	Watersound Town Center	11291 US Hwy 98 E	Inlet Beach	FL	32461	(850) 213-7031	30.298754	-86.02331
+1762	Shoppes of Lake Village	10601 US 441 Ste D	Leesburg	FL	34788	(352) 323-1420	28.82382	-81.78104
+1763	Crescent B Commons	42051 Cypress Pkwy	Babcock Ranch	FL	33982	(239) 567-0903	26.775904	-81.758896
+1764	Calusa Cay	5100 Pine Island Rd NW	Bokeelia	FL	33922	(239) 558-6088	26.61462	-82.11188
+1766	Shoppes at Beachwalk	835 CR 210 W	Saint Johns	FL	32259	(904) 824-3334	30.079607	-81.47687
+1769	Venice Village Shoppes	4173 S Tamiami Trl	Venice	FL	34293	(941) 492-9761	27.05092	-82.394
+1770	Riviera Plaza	1542 S Dixie Hwy	Coral Gables	FL	33146	(305) 929-7067	25.708307	-80.28377
+1771	Northpoint Village Shopping Center	12541 Yellow Bluff Rd	Jacksonville	FL	32226	(904) 757-1304	30.46269	-81.57709
+1774	Wedgewood Commons	3540 SE Federal Hwy	Stuart	FL	34997	(772) 463-5950	27.162868	-80.228424
+1776	Plantation Promenade	10065 Cleary Blvd	Plantation	FL	33324-1063	(954) 424-3084	26.134876	-80.28377
+1781	The Landings	4840 S Tamiami Trl	Sarasota	FL	34231-4352	(941) 923-1129	27.284208	-82.53264
+1782	Neapolitan Way Shopping Center	4601 9th St N	Naples	FL	34103-3004	(239) 397-6860	26.20337	-81.80273
+1783	Cove Shopping Center	5893 SE Federal Hwy	Stuart	FL	34997	(772) 403-6329	27.1332	-80.20393
+1784	Westgate Shopping Center	3315 W University Ave	Gainesville	FL	32607-2539	(352) 372-4276	29.650911	-82.37113
+1787	Publix at Westlake Plaza	16841 Persimmon Blvd W Unit 1000	Westlake	FL	33470-7076	(561) 273-1070	26.7538	-80.30871
+1788	Publix at Lake Juliana	775 Hwy 559	Auburndale	FL	33823	(863) 984-0510	28.145605	-81.8005
+1789	Suncrest Village	10115 University Blvd	Orlando	FL	32817	(407) 681-0649	28.599024	-81.24283
+1792	Crossings at Wildlight	76010 William Burgess Blvd	Yulee	FL	32097	(904) 875-6184	30.621447	-81.63951
+1793	Oak Grove Shoppes	1005 N State Rd 434 Ste 1020	Altamonte Springs	FL	32714	(407) 551-1423	28.684322	-81.41676
+1795	16000 Pines Market	16024 Pines Blvd #101	Pembroke Pines	FL	33027-1168	(954) 432-1075	26.00556	-80.36025
+1797	The Shoppes at Palmer Ranch	8405 Honore Ave Unit 1	Sarasota	FL	34238	(941) 924-0031	27.22312	-82.45913
+1798	Crawfordville Commons	2343 Crawfordville Hwy	Crawfordville	FL	32327	(850) 926-4072	30.20537	-84.36623
+1800	Avenir Town Center	12535 Northlake Blvd	Palm Beach Gardens	FL	33412	(561) 530-5848	26.813974	-80.237212
+1803	The Crossings Shopping Village	13001 SW 112th St	Miami	FL	33186-4601	(786) 822-3966	25.664944	-80.406654
+1804	The Shoppes of Highland	3685 W 85th Path	Hialeah	FL	33018	(786) 804-6444	25.900614	-80.35788
+1805	Rockledge Square	1880 US Hwy 1 S	Rockledge	FL	32955-2822	(321) 631-3480	28.328411	-80.71852
+1807	Merganser Commons at Dogwood Estates	5854 Dogwood Dr	Milton	FL	32570	(850) 626-2412	30.646805	-87.054634
+1808	Gandy Shopping Center	3617 W Gandy Blvd	Tampa	FL	33611	(813) 832-1779	27.895077	-82.503204
+1810	Town Center at O-Town West	11055 Daryl Carter Pkwy	Orlando	FL	32836	(407) 605-4044	28.405327	-81.500984
+1813	Tradewinds Plaza	101499 Overseas Hwy	Key Largo	FL	33037-4553	(305) 434-9446	25.11259	-80.42111
+1818	Publix at Lauderdale Beach	2985 N Ocean Blvd	Fort Lauderdale	FL	33308-7527	(954) 331-2882	26.16525	-80.10118
+1820	Cherrywood Market	9570 SW 62nd Avenue Rd	Ocala	FL	34476	(352) 351-2815	29.08349	-82.21984
+1821	Livingston Marketplace	2801 E County Line Rd	Lutz	FL	33559-3477	(813) 949-2812	28.169443	-82.425934
+1826	The Shoppes At Verdana Village	19050 Corkscrew Rd	Estero	FL	33928	(239) 675-4029	26.448814	-81.640205
+1828	Lake Washington Crossing	3200 Lake Washington Rd	Melbourne	FL	32934-7620	(321) 426-2208	28.147564	-80.674355
+1829	Treaty Oaks Marketplace Shopping Center	250 Plaza Blvd	Saint Augustine	FL	32086-9304	(904) 808-9923	29.84054	-81.36166
+1832	Addison Center At Viera	7655 Stadium Pkwy	Melbourne	FL	32940	(321) 426-2915	28.222	-80.732
+1834	Ramblewood Square	1285 N University Dr	Coral Springs	FL	33071-8314	(754) 240-6239	26.245985	-80.25155
+1835	Wynnehaven Plaza	10040 Navarre Pkwy	Navarre	FL	32566-3013	(850) 936-4023	30.41071	-86.8
+1836	The Shops at Bannerman Village	8462 Bannerman Blvd	Tallahassee	FL	32312-9118	(448) 206-6622	30.584866	-84.25012
+1837	Shoppes at Beville Road	1500 Beville Rd Ste 300	Daytona Beach	FL	32114-5644	(386) 281-4623	29.171131	-81.041794
+1840	Aberdeen Square	4966 Le Chalet Blvd	Boynton Beach	FL	33436-1406	(561) 413-6665	26.554125	-80.122185
+1841	Deerwood Village Shopping Center	9964 Old Baymeadows Rd	Jacksonville	FL	32256-8103	(904) 380-8551	30.219428	-81.553065
+1842	eTown Exchange	11025 eTown Pkwy Unit 100	Jacksonville	FL	32256-5892	(904) 944-8971	30.168285	-81.50398
+1843	Publix at Waterleigh Village	10650 Avalon Rd	Winter Garden	FL	34787	(407) 550-9012	28.411785	-81.6364
+1844	Churchill Square	303 SE 17th St Unit 201	Ocala	FL	34471-4470	(352) 820-7005	29.173367	-82.132576
+1845	Groves at College Park	2335 N Orange Blossom Trl	Orlando	FL	32804	(689) 206-8880	28.572237	-81.40554
+1848	Market Walk at North River Ranch	11635 Moccasin Wallow Rd	Parrish	FL	34219	(941) 981-6157	27.592087	-82.438126
+1849	Celebration Pointe	1725 Future Way	Kissimmee	FL	34747-4491	(321) 939-1258	28.301636	-81.5666
+1850	Cornerstone at Narcoossee	2895 N Narcoossee Rd	Saint Cloud	FL	34771	(407) 556-0115	28.3338	-81.22739
+1851	Crossroads at Royal Palm Beach	1180 Royal Palm Beach Blvd	Royal Palm Beach	FL	33411-1671	(561) 851-5962	26.707743	-80.22696
+1852	Shoppes at Storey Park	11286 Dowden Rd	Orlando	FL	32832	(407) 241-0260	28.427351	-81.22467
+1853	Publix at San Carlos	16950 San Carlos Blvd	Fort Myers	FL	33908-1224	(239) 895-0720	26.495426	-81.944756
+1854	Oakbridge Centre	3636 Harden Blvd	Lakeland	FL	33803-5938	(863) 400-7873	27.998001	-81.97206
+1859	Plaza At Normandy	11341 Normandy Blvd Ste 201	Jacksonville	FL	32221	(904) 929-6000	30.269337	-81.85058
+1861	Clearwater Plaza	1295 S Missouri Ave	Clearwater	FL	33756-4174	(727) 241-6723	27.951107	-82.786044
+1862	Wellington Green Square	10640 Forest Hill Blvd	Wellington	FL	33414-3165	(561) 530-5026	26.64998	-80.21573
+1864	King's Crossing	4181 E SR 46	Sanford	FL	32771	(407) 430-4035	28.78551	-81.20961
+1871	Hernando West Plaza	1400 Pinehurst Dr	Spring Hill	FL	34606-4553	(352) 610-5005	28.455603	-82.6271
+1875	Panama City Centre	4601 Lindsey Crossing	Panama City	FL	32404-9325	(850) 772-6111	30.231796	-85.58698
+1876	The Shops At Big Bend	7064 Waterset Blvd	Apollo Beach	FL	33572	(813) 893-6961	27.790802	-82.37358
+1877	Innovation Springs	32265 Overpass Rd	Wesley Chapel	FL	33545-4987	(813) 953-4409	28.270386	-82.286514
+1879	Blue Angel Plaza	9500 W Hwy 98	Pensacola	FL	32506	(850) 823-5870	30.405329	-87.3454
+1882	Publix At Fruitville Farms	1940 Lakewood Ranch Blvd	Sarasota	FL	34240	(941) 271-6984	27.33646	-82.43592
+1884	Publix at West River	1700 N Blvd	Tampa	FL	33607	(813) 462-4243	27.957457	-82.46946
+1889	Alafaya Square	81 Alafaya Woods Blvd	Oviedo	FL	32765-6235	(407) 603-4222	28.650515	-81.20515
+1894	Courtyard Shops At Wellington	13880 Wellington Trce	Wellington	FL	33414-8553	(561) 530-6664	26.660475	-80.26555
+1895	Palm Lakes Plaza	7230 W Atlantic Blvd	Margate	FL	33063-4236	(954) 590-4056	26.233984	-80.22259
+1896	Harbour Place	13170 Atlantic Blvd Ste 29	Jacksonville	FL	32225-6149	(904) 380-4404	30.318617	-81.46129
+1897	Bayshore Gardens Shopping Center	6030 14th St W	Bradenton	FL	34207-4104	(941) 527-4706	27.434263	-82.57726
+1898	Shoppes at Cypress Bay	9179 Babcock St SE	Palm Bay	FL	32909	(321) 327-6140	27.898705	-80.6201
+1899	Heritage Square	150 Saint Johns Heritage Pkwy NW Suite 101	Palm Bay	FL	32907	(321) 327-6277	27.999528	-80.738799
+2005	Publix at Bal Harbour Square	1750 N Federal Hwy	Fort Lauderdale	FL	33305-2543	(954) 847-8601	26.149801	-80.119354
+2007	Shopper's Haven Shopping Center	3435 N Federal Hwy	Pompano Beach	FL	33064-6605	(954) 590-4068	26.273426	-80.09945
+2008	The Greens	19595 S State Rd 7	Boca Raton	FL	33498-4701	(561) 226-9830	26.38592	-80.20497
+2012	Market at Newberry Farms	24100 W Newberry Rd Ste 10	Newberry	FL	32669-3782	(352) 660-6061	29.653524	-82.59676
+2013	Daniels Crossing	6900 Daniels Pkwy Ste 19	Fort Myers	FL	33912-1586	(239) 286-6069	26.54494	-81.84216
+2014	Elevation Pointe	2875 State Rd 16	Saint Augustine	FL	32092	(904) 815-6214	29.925523	-81.422584
+2018	The Shoppes at Orange Blossom	1715 Oil Well Rd	Naples	FL	34120	(239) 397-6689	26.294865	-81.57268
+2021	Promenade Shopping Plaza	9900 Alternate A1A	Palm Beach Gardens	FL	33410-4903	(728) 210-7250	26.822596	-80.08298
+2022	Metro West Village	2435 S Hiawassee Rd	Orlando	FL	32835-6346	(407) 867-3722	28.514923	-81.483533
+2023	Destin Publix at Main Street	771 Harbor Blvd Unit 100	Destin	FL	32541-2620	(850) 389-6014	30.39248	-86.48549
+2034	Sweetbay Town Center	3213 W Hwy 390	Panama City	FL	32405-2734	(850) 772-6596	30.206188	-85.67379
+2035	Mariana Acres	1075 Brookstone Rd	Winter Haven	FL	33881	(863) 269-4834	28.051891	-81.769099
+2037	West Broward Shopping Center	3901 W Broward Blvd	Plantation	FL	33312	(954) 331-1457	26.122398	-80.201002
+2041	Shops at The Grove	4112 E Johnson Ave	Haines City	FL	33844-9233	(863) 256-1194	28.115377	-81.58875
+2043	Lake Miriam Square	4730 S Florida Ave	Lakeland	FL	33813-2181	(863) 400-7441	27.978389	-81.955941
+2088	The Shoppes at Citrus Creek	42660 Hwy 27	Davenport	FL	33837	(863) 256-1445	28.213317	-81.642235
+2091	Merchants Crossing	1500 Placida Rd, Ste C	Englewood	FL	34223-4951	(941) 681-9219	26.936868	-82.338771
+2092	Riverland Town Center	12407 SW Community Blvd	Port Saint Lucie	FL	34987	(772) 446-8514	27.237438	-80.43371
+2094	Publix	6605 38th Ave N	Saint Petersburg	FL	33710	(727) 291-6995	27.807552	-82.729736
+2095	Publix at Seven Hills	160 Mariner Blvd	Spring Hill	FL	34609-5689	(352) 610-5042	28.435624	-82.546981
+2096	Anastasia Plaza	1033 A1A Beach Blvd	Saint Augustine Beach	FL	32080-6731	(904) 815-6242	29.829506	-81.27202
+2099	SeaFlower Village Center	7535 Cortez Rd W	Bradenton	FL	34210	(941) 253-1003	27.461049	-82.637794
+2103	Marketplace at Nocatee	75 Irondale Rd Ste 100	Jacksonville	FL	32081	(904) 815-6238	30.108999	-81.447112
+2107	The Shoppes at Country Club	4267 Dundee Rd	Winter Haven	FL	33884	(863) 269-4836	28.024414	-81.663199
+2108	Northchase Center	16642 State Rd 64 E	Bradenton	FL	34212	(941) 277-8276	27.47457	-82.370801
+2112	Island Walk Shopping Center	1421 Sadler Rd	Fernandina Beach	FL	32034-4788	(904) 557-9420	30.641756	-81.453818
+2113	Silverleaf Market	1975 Silverleaf Pkwy Ste 101	Saint Augustine	FL	32092-2059	(904) 815-6986	30.002409	-81.504472
+2117	Publix at Thompson Nursery	8710 W Lake Ruby Dr	Winter Haven	FL	33884	(863) 269-4831	27.960765	-81.668243
+2121	The Shoppes at East Shore	2411 Ocoee Apopka Rd	Apopka	FL	32703	(407) 553-4229	28.639344	-81.541302
+2141	Wolf Creek Commons	3050 19th Ave Ne	Ruskin	FL	33570	(813) 922-7678	27.736638	-82.392404
+3210	Publix Pharmacy at H Lee Moffitt Cancer Center	12902 Magnolia Dr Ste 1170	Tampa	FL	33612-9416	(813) 745-8484	28.06428	-82.42091
+3211	Publix Pharmacy at Lakeland Regional Medical Center	1324 Lakeland Hills Blvd Ste 203	Lakeland	FL	33805-4543	(863) 284-1834	28.061209	-81.95339
+3212	Publix Compounding Pharmacy	2424 Orlando Central Parkway STE 200	Orlando	FL	32809-8513	(877) 253-8949	28.45529	-81.40588
+3213	Publix Specialty Pharmacy	1950 Sand Lake Rd Bldg #5	Orlando	FL	32809	(855) 797-8254	28.448639	-81.40652
+3214	Publix Pharmacy at H Lee Moffitt Mckinley Campus	10920 McKinley Dr Ste 11.1114	Tampa	FL	33612-6471	(813) 978-1694	28.048311	-82.41737
+3215	Publix Pharmacy at Nicklaus Children's Hospital	3100 SW 62nd Ave	Miami	FL	33155-3009	(305) 669-7155	25.74146	-80.29509
+3217	Nemours Children's Specialty Care Pharmacy	807 Children's Way	Jacksonville	FL	32207	(904) 697-3601	30.313217	-81.66294
+3219	Publix Pharmacy at Morton Plant Hospital	300 Pinellas St	Clearwater	FL	33756	(727) 462-3311	27.951563	-82.80355
+3221	Publix Pharmacy at St Joseph's Hospital	3003 W Dr Martin Luther King Jr Blvd	Tampa	FL	33607	(813) 357-0630	27.98189	-82.491516`;
 const DEFAULT_COORDS = ``;
 // ===EDITION-END===
 
@@ -1249,7 +2123,7 @@ function renderRoute(groups){
     else if(i>0||start){ known=false; leg="Distance unknown (no map position)"; }
     prev=pt||prev;
     const s0=S.stores[s.num];
-    const li=document.createElement("li"); li.className="stop";
+    const li=document.createElement("li"); li.className="stop"; li.dataset.i=i; li.dataset.n=s.num;
     li.innerHTML=`<span class="num">${i+1}</span>
       <div><div class="t">${shieldHTML(groupOf(s.num),"sm")} ${esc(s.num)} ${s0?"· "+esc(s0.city):""}</div>
       <div class="leg">${s.calls.length} call${s.calls.length>1?"s":""}${s.extra&&s.extra.length?` + ${s.extra.length} more open`:""}, top priority ${esc(s.calls[0].prioLabel)}${s.tier?` <span class="tier t${s.tier}">${tierLabel(s.tier)}</span>`:""}</div>
@@ -1263,13 +2137,11 @@ function renderRoute(groups){
     if(start.pt&&last){ const d=miles(last,start.pt); total+=d; leg=`≈ ${d.toFixed(0)} mi · ${fmtTime(d/45*60)}`; }
     list.insertAdjacentHTML("beforeend",`<li class="stop home"><span class="num">⌂</span><div><div class="t">Back to start</div><div class="leg">${leg}</div></div><span></span></li>`);
   }
-  list.querySelectorAll("[data-up],[data-down]").forEach(b=>b.onclick=()=>{
-    const i=+(b.dataset.up??b.dataset.down), j=b.dataset.up!==undefined?i-1:i+1;
-    if(j<0||j>=S.lastOrder.length) return;
-    const o=S.lastOrder.slice(); [o[i],o[j]]=[o[j],o[i]]; S.manual=o; store.set("manual",o); render();
-  });
+  wireStops(list);
+  const desk=isDesk();
+  list.classList.toggle("dnd",desk); $("dndHint").style.display=desk&&seq.length>1?"":"none"; $("mapBtn").style.display=desk&&seq.length?"":"none";
   const calls=seq.reduce((n,s)=>n+s.calls.length,0);
-  S.routeTotals={stops:seq.length, calls, miles:known?total:null, start};
+  S.routeTotals={stops:seq.length, calls, miles:known?total:null, start, round};
   $("totals").innerHTML = seq.length
     ? `<div><b>${seq.length}</b><span>stops</span></div><div><b>${calls}</b><span>calls</span></div><div><b>${known?"≈ "+total.toFixed(0):"?"}</b><span>miles</span></div><div><b>${known?fmtTime(total/45*60):"?"}</b><span>driving</span></div>`
     : `<span class="hint">No stops selected. Check "In route" on a store to add it.</span>`;
@@ -1287,7 +2159,80 @@ function renderRoute(groups){
       links.appendChild(a);
     });
   }
+  if($("mapDlg").classList.contains("show")) syncMap(false);
 }
+// ---------- desktop: drag to reorder, route map ----------
+function isDesk(){ return !(/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints>1)) && !!(window.matchMedia && matchMedia("(pointer:fine)").matches); }
+function setOrder(o){
+  const m=$("modeSel").value; if(m!=="manual"){ store.set("modeBeforeManual",m); $("modeSel").value="manual"; store.set("mode","manual"); }
+  S.manual=o; store.set("manual",o); render();
+}
+function wireStops(list){
+  list.querySelectorAll("[data-up],[data-down]").forEach(b=>b.onclick=()=>{
+    const i=+(b.dataset.up??b.dataset.down), j=b.dataset.up!==undefined?i-1:i+1;
+    if(j<0||j>=S.lastOrder.length) return;
+    const o=S.lastOrder.slice(); [o[i],o[j]]=[o[j],o[i]]; setOrder(o);
+  });
+  if(!isDesk()) return;
+  const items=[...list.querySelectorAll("li.stop[data-i]")];
+  const clear=()=>items.forEach(x=>x.classList.remove("over","over-end"));
+  items.forEach(li=>{
+    li.draggable=true;
+    li.ondragstart=e=>{ S.dragFrom=+li.dataset.i; li.classList.add("dragging"); e.dataTransfer.effectAllowed="move"; try{ e.dataTransfer.setData("text/plain",li.dataset.n); }catch(_){} };
+    li.ondragend=()=>{ li.classList.remove("dragging"); clear(); };
+    li.ondragover=e=>{ if(S.dragFrom==null) return; e.preventDefault(); e.dataTransfer.dropEffect="move"; clear();
+      const r=li.getBoundingClientRect(), after=e.clientY>r.top+r.height/2; li.classList.add(after?"over-end":"over"); li.dataset.after=after?"1":""; };
+    li.ondragleave=()=>li.classList.remove("over","over-end");
+    li.ondrop=e=>{ e.preventDefault(); const from=S.dragFrom; S.dragFrom=null; clear(); if(from==null) return;
+      let to=+li.dataset.i+(li.dataset.after?1:0); const o=S.lastOrder.slice(); const [n]=o.splice(from,1); if(to>from) to--;
+      if(to===from) return; o.splice(to,0,n); setOrder(o); };
+  });
+}
+let MAP=null, MAPL=null;
+function loadLeaflet(){
+  if(window.L&&L.map) return Promise.resolve();
+  return new Promise((ok,bad)=>{
+    const c=document.createElement("link"); c.rel="stylesheet"; c.href=SITE_URL+"vendor/leaflet/leaflet.css"; document.head.appendChild(c);
+    const s=document.createElement("script"); s.src=SITE_URL+"vendor/leaflet/leaflet.js"; s.onload=ok; s.onerror=bad; document.head.appendChild(s);
+    setTimeout(bad,15000);
+  });
+}
+async function openMap(){
+  $("mapDlg").classList.add("show"); track("open-map"); syncMap(false);
+  try{ await loadLeaflet(); }catch(e){ if(!MAP) $("mapView").innerHTML=`<p class="hint" style="padding:20px">The map couldn't load. Check your internet connection and try again. You can still drag stops in the list.</p>`; return; }
+  if(!MAP){
+    $("mapView").innerHTML="";
+    MAP=L.map("mapView",{zoomControl:true});
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",{subdomains:"abcd",maxZoom:19,
+      attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>'}).addTo(MAP);
+    MAPL=L.layerGroup().addTo(MAP);
+  }
+  setTimeout(()=>{ MAP.invalidateSize(); drawMap(true); },30);
+}
+function syncMap(fit){
+  const t=S.routeTotals||{}, ml=$("mapStops");
+  ml.innerHTML=$("stops").innerHTML; wireStops(ml);
+  $("mapSum").textContent = t.stops ? `${t.stops} stop${t.stops>1?"s":""} · ${t.calls} call${t.calls>1?"s":""}`+(t.miles!=null?` · ≈ ${t.miles.toFixed(0)} mi · ${fmtTime(t.miles/45*60)} driving`:"")+($("modeSel").value==="manual"?" · your order":"") : "No stops in your route";
+  $("mapOpt").disabled = $("modeSel").value!=="manual";
+  $("mapGo").disabled = !S.mapLinks || !S.mapLinks.length;
+  drawMap(fit);
+}
+function drawMap(fit){
+  if(!MAP) return; MAPL.clearLayers();
+  const t=S.routeTotals||{}, st=t.start, pts=[], icon=(h,c)=>L.divIcon({className:"mk"+(c?" "+c:""),html:h,iconSize:[28,28],iconAnchor:[14,14]});
+  if(st&&st.pt){ pts.push(st.pt); L.marker(st.pt,{icon:icon("⌂","home"),keyboard:false}).bindTooltip(esc(st.label)).addTo(MAPL); }
+  S.lastOrder.forEach((n,i)=>{ const p=S.coords[n]; if(!p) return; pts.push(p); const s0=S.stores[n]||{};
+    L.marker(p,{icon:icon(String(i+1)),title:`Stop ${i+1}: store ${n}`}).bindTooltip(`${i+1}. Store ${esc(n)}${s0.city?" · "+esc(s0.city):""}`)
+      .on("click",()=>{ const li=$("mapStops").querySelector(`li[data-i="${i}"]`); if(li){ li.scrollIntoView({block:"center",behavior:"smooth"}); li.classList.add("flash"); setTimeout(()=>li.classList.remove("flash"),1200); } }).addTo(MAPL); });
+  if(t.round&&st&&st.pt&&pts.length>1) pts.push(st.pt);
+  if(pts.length>1) L.polyline(pts,{color:"#1F6B4F",weight:3,opacity:.85,dashArray:"7 6"}).addTo(MAPL);
+  if(fit&&pts.length) MAP.fitBounds(L.latLngBounds(pts).pad(0.12),{maxZoom:13});
+}
+$("mapBtn").onclick=openMap;
+$("mapClose").onclick=()=>$("mapDlg").classList.remove("show");
+$("mapOpt").onclick=()=>{ const m=store.get("modeBeforeManual","optimize"); $("modeSel").value=m==="manual"?"optimize":m; store.set("mode",$("modeSel").value); render(); syncMap(true); };
+$("mapGo").onclick=()=>{ (S.mapLinks||[]).forEach(u=>window.open(u,"_blank","noopener")); };
+document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&$("mapDlg").classList.contains("show")) $("mapDlg").classList.remove("show"); });
 
 // ---------- main render ----------
 function render(){
