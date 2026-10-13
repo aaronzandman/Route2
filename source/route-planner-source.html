@@ -323,6 +323,23 @@ details.help kbd{font:12px ui-monospace,Consolas,monospace;border:1px solid var(
 @media (max-width:860px){ #mapDlg .box{grid-template-columns:1fr;grid-template-rows:auto 38% minmax(0,1fr) auto} }
 .mk{background:var(--road);color:#fff;border:2px solid #fff;border-radius:50%;display:grid!important;place-items:center;font:700 14px/1 var(--sign);box-shadow:0 1px 4px rgba(0,0,0,.45)}
 .mk.home{background:#222}
+#grpDlg .box{max-width:1180px;width:100%;height:calc(100vh - 32px);display:grid;grid-template-columns:360px 1fr;grid-template-rows:auto minmax(0,1fr) auto;gap:10px 14px;padding:14px}
+#grpDlg .maphead{grid-column:1/-1;display:flex;gap:8px;align-items:center}
+#grpDlg .maphead h3{margin:0}
+#grpList{overflow:auto;display:flex;flex-direction:column;gap:8px;padding-right:4px}
+.gcard{border:1px solid var(--line);border-left:6px solid var(--gc);border-radius:8px;padding:8px 10px;cursor:pointer;background:var(--panel)}
+.gcard:hover,.gcard.sel{background:var(--soft)}
+.gcard .gh{display:flex;align-items:center;gap:8px;font-weight:700}
+.gcard .ga{font-size:13px;color:var(--muted);margin:2px 0 4px}
+.gcard .gs{font-size:13px;line-height:1.5}
+.gcard .gs span{display:inline-block;margin-right:8px;white-space:nowrap}
+#grpMap{border-radius:8px;border:1px solid var(--line);min-height:0;background:var(--soft)}
+.gwrap{background:none;border:0}
+.glabel,.gdot{width:100%;height:100%;box-sizing:border-box}
+.glabel{background:var(--gc);color:#fff;border:2px solid #fff;border-radius:6px;font:700 15px/1 var(--sign);display:grid!important;place-items:center;box-shadow:0 1px 4px rgba(0,0,0,.4)}
+.gdot{background:var(--gc);border:2px solid #fff;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,.4)}
+#grpDlg .mapfoot{grid-column:1/-1;font-size:12px;color:var(--muted)}
+@media (max-width:860px){ #grpDlg .box{grid-template-columns:1fr;grid-template-rows:auto 40% minmax(0,1fr) auto} }
 .mv button{padding:0 7px;line-height:1.3;font-size:13px}
 .totals{display:flex;gap:18px;margin-top:10px;padding:10px;background:var(--soft);border-radius:8px}
 .totals b{font:700 22px/1 var(--sign);display:block}
@@ -552,6 +569,14 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
     <div class="mapfoot">Drag stops in the list to change the order; the map and miles update right away. Click a number on the map to find that stop in the list. Lines are straight between stops, so real driving is a little longer. Only map pictures are loaded from the map service, never your calls. Map © OpenStreetMap contributors © CARTO.</div>
   </div>
 </div>
+<div class="bmk" id="grpDlg" role="dialog" aria-modal="true" aria-labelledby="grpTitle">
+  <div class="box">
+    <div class="maphead"><h3 id="grpTitle">Virginia route groups</h3><span class="hint" id="grpSum"></span><span style="flex:1"></span><button class="primary" id="grpClose" type="button">Close</button></div>
+    <div id="grpList"></div>
+    <div id="grpMap"></div>
+    <div class="mapfoot">Tap a group to zoom to it; tap a dot for the store. Groups follow your store list (Settings) and any changes you've made there. Map © OpenStreetMap contributors © CARTO.</div>
+  </div>
+</div>
 <div class="bmk" id="pasteDlg" role="dialog" aria-modal="true" aria-labelledby="pasteTitle">
   <div class="box">
     <h3 id="pasteTitle">Paste transfer</h3>
@@ -738,12 +763,13 @@ const ERRLOG=[];
   window.addEventListener("unhandledrejection",e=>add("Promise: "+((e.reason&&e.reason.message)||e.reason)));
 })();
 // ---------- version ----------
-const APP_VERSION = "4.12";
+const APP_VERSION = "4.13";
 const FEEDBACK_TO = "@@FEEDBACK_TO@@";
 const GC_CODE = "@@GC_CODE@@";   // GoatCounter site code for anonymous usage counts (blank = nothing is sent)
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["4.13", "Virginia: ☰ Menu → 🗺 Route groups shows each group (A–F) with its area and store numbers, on a map that shades each area."],
   ["4.12", "Computer only: 🗺 Show route on map opens a map of your stops in order, next to the stop list. Drag a stop up or down (on the map screen or in the route panel) to change the order; the map, miles and Google Maps links update right away. Re-optimize puts the planner's order back."],
   ["4.11", "Send to phone moved out of the menu: when it's turned on, it has its own button at the top, next to ☰ Menu. History now keeps every call you load from SAP (IW49), not just the ones you mark Done. To bring in your past dispatch texts on a computer, export them from Companion (Settings → Export all calls for desktop) and choose History → Import Companion file."],
   ["4.10", "How to get your calls from SAP now always starts collapsed; tap it to open."],
@@ -1389,7 +1415,67 @@ $("mapBtn").onclick=openMap;
 $("mapClose").onclick=()=>$("mapDlg").classList.remove("show");
 $("mapOpt").onclick=()=>{ const m=store.get("modeBeforeManual","optimize"); $("modeSel").value=m==="manual"?"optimize":m; store.set("mode",$("modeSel").value); render(); syncMap(true); };
 $("mapGo").onclick=()=>{ (S.mapLinks||[]).forEach(u=>window.open(u,"_blank","noopener")); };
-document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&$("mapDlg").classList.contains("show")) $("mapDlg").classList.remove("show"); });
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") ["mapDlg","grpDlg"].forEach(id=>$(id).classList.remove("show")); });
+// ---------- Virginia: route groups pop-up ----------
+const GRP_COLORS={A:"#2E6FD8",B:"#1F8A5B",C:"#D9822B",D:"#8E44AD",E:"#C0392B",F:"#138A9E"};
+const GRP_AREAS={A:"North on I-95: Fredericksburg and Stafford", B:"West and north of Richmond: Glen Allen and Henrico", C:"Richmond and Mechanicsville",
+  D:"South of the James: Midlothian, Chesterfield and Colonial Heights", E:"Hampton Roads: Williamsburg to Virginia Beach, Chesapeake and Suffolk", F:"Outer Banks, NC: Kill Devil Hills"};
+let GMAP=null, GLAY=null, GBOUNDS={};
+function vaGroups(){
+  const g={}; Object.keys(S.stores).forEach(n=>{ const k=groupOf(n); (g[k]=g[k]||[]).push(n); });
+  Object.values(g).forEach(a=>a.sort((x,y)=>x.localeCompare(y,undefined,{numeric:true})));
+  return g;
+}
+function hull(pts){   // convex hull, [lat,lng] points
+  const p=pts.slice().sort((a,b)=>a[1]-b[1]||a[0]-b[0]); if(p.length<3) return p;
+  const cr=(o,a,b)=>(a[1]-o[1])*(b[0]-o[0])-(a[0]-o[0])*(b[1]-o[1]), lo=[], up=[];
+  p.forEach(q=>{ while(lo.length>=2&&cr(lo[lo.length-2],lo[lo.length-1],q)<=0) lo.pop(); lo.push(q); });
+  p.slice().reverse().forEach(q=>{ while(up.length>=2&&cr(up[up.length-2],up[up.length-1],q)<=0) up.pop(); up.push(q); });
+  return lo.slice(0,-1).concat(up.slice(0,-1));
+}
+async function openGroups(focus){
+  const g=vaGroups(), keys=Object.keys(g).sort(), col=k=>GRP_COLORS[k]||"#666";
+  $("grpSum").textContent=`${keys.length} groups · ${Object.keys(S.stores).length} stores`;
+  $("grpList").innerHTML=keys.map(k=>{
+    const cities={}; g[k].forEach(n=>{ const c=(S.stores[n]||{}).city||""; cities[c]=(cities[c]||0)+1; });
+    const area=GRP_AREAS[k]||Object.keys(cities).sort((a,b)=>cities[b]-cities[a]).slice(0,4).join(", ");
+    return `<div class="gcard" data-g="${esc(k)}" style="--gc:${col(k)}" tabindex="0" role="button" aria-label="Group ${esc(k)}">
+      <div class="gh">${shieldHTML(k,"sm")} Group ${esc(k)} <span class="hint" style="font-weight:400">· ${g[k].length} store${g[k].length>1?"s":""}</span></div>
+      <div class="ga">${esc(area)}</div>
+      <div class="gs">${g[k].map(n=>`<span><b>${esc(n)}</b> ${esc((S.stores[n]||{}).city||"")}</span>`).join("")}</div></div>`; }).join("");
+  $("grpList").querySelectorAll(".gcard").forEach(c=>c.onclick=c.onkeydown=e=>{ if(e.type==="keydown"&&e.key!=="Enter") return; zoomGroup(c.dataset.g); });
+  $("grpDlg").classList.add("show"); track("open-groups");
+  try{ await loadLeaflet(); }catch(e){ if(!GMAP) $("grpMap").innerHTML=`<p class="hint" style="padding:20px">The map couldn't load. Check your internet connection. The groups and store numbers are listed here.</p>`; return; }
+  if(!GMAP){
+    $("grpMap").innerHTML="";
+    GMAP=L.map("grpMap");
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",{subdomains:"abcd",maxZoom:19,
+      attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>'}).addTo(GMAP);
+    GLAY=L.layerGroup().addTo(GMAP);
+  }
+  GLAY.clearLayers(); GBOUNDS={}; const all=[];
+  keys.forEach(k=>{
+    const c=col(k), pts=g[k].map(n=>S.coords[n]).filter(Boolean); if(!pts.length) return; all.push(...pts);
+    GBOUNDS[k]=L.latLngBounds(pts);
+    pts.forEach(p=>L.circle(p,{radius:6000,color:c,weight:0,fillColor:c,fillOpacity:.16,interactive:false}).addTo(GLAY));
+    const h=hull(pts); if(h.length>=3) L.polygon(h,{color:c,weight:2,fillColor:c,fillOpacity:.18,interactive:false}).addTo(GLAY);
+    else if(h.length===2) L.polyline(h,{color:c,weight:10,opacity:.25,interactive:false}).addTo(GLAY);
+    g[k].forEach(n=>{ const p=S.coords[n]; if(!p) return; const s0=S.stores[n]||{};
+      L.marker(p,{icon:L.divIcon({className:"gwrap",html:`<div class="gdot" style="--gc:${c}"></div>`,iconSize:[12,12],iconAnchor:[6,6]}),title:`Store ${n}`}).bindTooltip(`Group ${esc(k)} · Store ${esc(n)}${s0.city?" · "+esc(s0.city):""}`).addTo(GLAY); });
+    const ctr=GBOUNDS[k].getCenter();
+    L.marker(ctr,{icon:L.divIcon({className:"gwrap",html:`<div class="glabel" style="--gc:${c}">${esc(k)}</div>`,iconSize:[26,26],iconAnchor:[13,-8]}),keyboard:false,interactive:false}).addTo(GLAY);
+  });
+  setTimeout(()=>{ GMAP.invalidateSize(); if(focus&&GBOUNDS[focus]) zoomGroup(focus); else if(all.length) GMAP.fitBounds(L.latLngBounds(all).pad(0.08)); },30);
+}
+function zoomGroup(k){
+  $("grpList").querySelectorAll(".gcard").forEach(c=>c.classList.toggle("sel",c.dataset.g===k));
+  if(GMAP&&GBOUNDS[k]) GMAP.fitBounds(GBOUNDS[k].pad(0.35),{maxZoom:12});
+}
+$("grpClose").onclick=()=>$("grpDlg").classList.remove("show");
+if(EDITION.id==="local"){   // the Virginia edition
+  $("setBtn").insertAdjacentHTML("beforebegin",`<button class="hbtn" id="grpBtn" type="button">🗺 Route groups</button>`);
+  $("grpBtn").onclick=()=>{ const m=$("menu"); if(m){ m.hidden=true; $("menuBtn").setAttribute("aria-expanded","false"); } openGroups(); };
+}
 
 // ---------- main render ----------
 function render(){
