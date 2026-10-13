@@ -737,6 +737,7 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
         <label><input type="checkbox" id="optCalls" checked> Call details</label>
         <label><input type="checkbox" id="optLinks"> Order links</label>
         <label><input type="checkbox" id="optMaps" checked> Map link for each stop</label>
+        <label><input type="checkbox" id="optDrive" checked> Total driving time</label>
       </div>
       <div class="row">
         <button id="shareBtn" hidden>Share…</button>
@@ -763,12 +764,13 @@ const ERRLOG=[];
   window.addEventListener("unhandledrejection",e=>add("Promise: "+((e.reason&&e.reason.message)||e.reason)));
 })();
 // ---------- version ----------
-const APP_VERSION = "4.17";
+const APP_VERSION = "4.18";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const GC_CODE = "";   // GoatCounter site code for anonymous usage counts (blank = nothing is sent)
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["4.18", "Copy route for team can include the total driving time (new Total driving time box under the Copy button, on by default)."],
   ["4.17", "Virginia: group areas on the maps are bolder, so each group is easier to pick out."],
   ["4.16", "Virginia: the route map shades each route group (A–F) in its own color under your stops. Turn it off with Show groups at the top of the map."],
   ["4.15", "Maps now use OpenStreetMap's own map pictures: no API key or sign-up needed."],
@@ -1676,12 +1678,13 @@ $("modeSel").onchange=e=>{
 $("roundTrip").checked=store.get("round",false);
 $("roundTrip").onchange=e=>{ store.set("round",e.target.checked); render(); };
 function buildShareText(){
-  const withCalls=$("optCalls").checked, withLinks=$("optLinks").checked, withMaps=$("optMaps").checked;
+  const withCalls=$("optCalls").checked, withLinks=$("optLinks").checked, withMaps=$("optMaps").checked, withDrive=$("optDrive").checked;
   const t=S.routeTotals||{stops:0,calls:0};
   if(!t.stops) return "";
   const vis=visibleCalls();
   const day=new Date().toLocaleDateString(undefined,{weekday:"short",month:"numeric",day:"numeric"});
   let out=`Route ${day}: ${t.stops} stop${t.stops>1?"s":""}, ${t.calls} call${t.calls>1?"s":""}`+(t.miles!=null?`, ≈ ${t.miles.toFixed(0)} mi`:"");
+  if(withDrive) out+= t.miles!=null ? `\nTotal driving time: ≈ ${fmtTime(t.miles/45*60)}${t.round&&t.start?" (including the drive back)":""}` : `\nTotal driving time: unknown (a stop has no map position)`;
   if(t.start) out+=`\nStarting from ${t.start.num?"store "+t.start.num:t.start.label.replace("Start: ","")}`;
   S.lastOrder.forEach((n,i)=>{
     const s=S.stores[n];
@@ -1714,7 +1717,7 @@ $("previewBtn").onclick=()=>{
   const p=$("sharePreview");
   if(p.classList.contains("open")){ p.classList.remove("open"); $("previewBtn").textContent="Preview"; } else openPreview();
 };
-["optCalls","optLinks","optMaps"].forEach(id=>{
+["optCalls","optLinks","optMaps","optDrive"].forEach(id=>{
   $(id).checked=store.get(id,$(id).checked);
   $(id).onchange=e=>{ store.set(id,e.target.checked); if($("sharePreview").classList.contains("open")) openPreview(); };
 });
