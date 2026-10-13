@@ -774,12 +774,13 @@ const ERRLOG=[];
   window.addEventListener("unhandledrejection",e=>add("Promise: "+((e.reason&&e.reason.message)||e.reason)));
 })();
 // ---------- version ----------
-const APP_VERSION = "4.20";
+const APP_VERSION = "4.21";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const GC_CODE = "";   // GoatCounter site code for anonymous usage counts (blank = nothing is sent)
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["4.21", "Call age now comes from SAP itself: the due date and severity give the day the call was put in (Sev 1 same day by midnight, Sev 2 next day by 5 PM, Sev 3 72 hours, Sev 4 120 hours). Hover a badge to see the date."],
   ["4.20", "Call age colors: 0–3 days green, 4–5 yellow, 6 orange, 7–8 red, 9+ days 🔥 fire."],
   ["4.19", "Call age badge on every call: 📅 days since the call was put in, colored by age. Exact when the dispatch text is known (from Companion), otherwise ≈ estimated. Turn it off in Settings if you don't want it."],
   ["4.18", "Copy route for team can include the total driving time (new Total driving time box under the Copy button, on by default)."],
@@ -1927,26 +1928,50 @@ function setupSettings(){
 // first time the call showed up in an import.
 let AGE_IDX=null, AGE_N=-1;
 function ageIndex(){
-  const n=Object.keys(S.history).length; if(AGE_IDX&&AGE_N===n) return AGE_IDX;
-  AGE_N=n; AGE_IDX=Object.values(S.history).filter(h=>h.src==="sms"&&/^\d{6,12}$/.test(h.o)).map(h=>[+h.o,Date.parse(h.at)]).filter(x=>!isNaN(x[1])).sort((a,b)=>a[0]-b[0]);
+  const n=Object.keys(S.history).length+"/"+S.calls.length; if(AGE_IDX&&AGE_N===n) return AGE_IDX;
+  AGE_N=n;
+  // reference points: dispatch-text times, plus calls whose exact creation time follows from SAP (Sev 3 and 4)
+  const pts=Object.values(S.history).filter(h=>h.src==="sms"&&/^\d{6,12}$/.test(h.o)).map(h=>[+h.o,Date.parse(h.at)]);
+  S.calls.forEach(c=>{ const v=sevCreated(c); if(v&&v.exact&&/^\d{6,12}$/.test(c.order)) pts.push([+c.order,v.t]); });
+  AGE_IDX=pts.filter(x=>!isNaN(x[1])).sort((a,b)=>a[0]-b[0]);
   return AGE_IDX;
 }
 function orderDate(o){
-  const a=ageIndex(); if(a.length<2||o<a[0][0]||o>a[a.length-1][0]) return null;
+  const a=ageIndex(); if(!a.length) return null;
+  // just past the newest/oldest dated order: use that order's date (orders a few thousand apart are days apart at most)
+  if(o>a[a.length-1][0]) return o-a[a.length-1][0]<=3000?a[a.length-1][1]:null;
+  if(o<a[0][0]) return a[0][0]-o<=3000?a[0][1]:null;
   let lo=0, hi=a.length-1; while(hi-lo>1){ const m=(lo+hi)>>1; if(a[m][0]<=o) lo=m; else hi=m; }
   const [o1,t1]=a[lo], [o2,t2]=a[hi]; if(o2===o1) return t1;
   if(t2-t1>30*864e5) return null;   // known orders too far apart to guess between
   return t1+(t2-t1)*(o-o1)/(o2-o1);
 }
+// Publix response times: Sev 1 = same day by midnight, Sev 2 = next day by 5 PM, Sev 3 = 72 hours, Sev 4 = 120 hours.
+// Working back from SAP's due date ("Basic fin. date") gives when the call was put in.
+function sevCreated(c){
+  if(!c.due||!(c.prio>=1&&c.prio<=4)) return null;
+  const d=c.due, mid=/^0{1,2}:00/.test(String(c.time||"").trim());   // a 00:00 deadline belongs to the day before
+  const dl=new Date(d.getTime()-(mid?60e3:0)), y=dl.getFullYear(), m=dl.getMonth(), dd=dl.getDate();
+  if(c.prio===1) return {t:new Date(y,m,dd).getTime(), rule:"Sev 1 is due the same day by midnight"};
+  if(c.prio===2){ if(!/^17:00/.test(String(c.time||"").trim())) return null;   // not the standard 5 PM deadline: date it another way
+    return {t:new Date(y,m,dd-1).getTime(), rule:"Sev 2 is due the next day by 5 PM"}; }
+  if(c.prio===3) return {t:d.getTime()-72*3600e3, exact:true, rule:"Sev 3 is due 72 hours after it's put in"};
+  return {t:d.getTime()-120*3600e3, exact:true, rule:"Sev 4 is due 120 hours after it's put in"};
+}
+const dayStart=t=>{ const d=new Date(t); return new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime(); };
 function callAge(c){
-  const h=S.history[c.order]; let t=null, est=false, how="";
-  if(h&&h.src==="sms"){ t=Date.parse(h.at); how="when the dispatch text arrived"; }
-  else { const e=orderDate(+c.order); if(e){ t=e; est=true; how="estimated from the order number (nearby orders' dispatch texts)"; }
+  const h=S.history[c.order]; let t=null, est=false, how="", exact=false;
+  const sv=sevCreated(c);
+  if(h&&h.src==="sms"){ t=Date.parse(h.at); exact=true; how="when the dispatch text arrived"; }
+  else if(sv){ t=sv.t; exact=!!sv.exact; how=`worked out from the due date (${sv.rule})`; }
+  else { const e=orderDate(+c.order); if(e){ t=e; est=true; how="estimated from the order number (dated by nearby orders)"; }
     else if(h&&h.src==="sap"){ t=Date.parse(h.at); est=true; how="the first time this call showed up in an import (it may be older)"; } }
   if(t===null||isNaN(t)) return null;
-  const days=Math.max(0,Math.floor((Date.now()-t)/864e5));
+  t=Math.min(t,Date.now());   // a deadline set further out than the standard can't mean "put in later than now"
+  const days=Math.max(0,Math.round((dayStart(Date.now())-dayStart(t))/864e5));   // calendar days since it was put in
   const cls=days<=3?"g":days<=5?"y":days===6?"o":days<=8?"r":"f";
-  return {days,est,cls,title:`Put in ${new Date(t).toLocaleDateString(undefined,{weekday:"short",month:"numeric",day:"numeric"})}${est?" (approx.)":""}: ${how}. 0–3 days green, 4–5 yellow, 6 orange, 7–8 red, 9+ fire.`};
+  const when=new Date(t).toLocaleDateString(undefined,{weekday:"short",month:"numeric",day:"numeric"})+(exact?" "+new Date(t).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"}):"");
+  return {days,est,cls,title:`Put in ${when}${est?" (approx.)":""}: ${how}. 0–3 days green, 4–5 yellow, 6 orange, 7–8 red, 9+ fire.`};
 }
 function fmtSoon(c){
   const d=pastDays(c); if(d===null||d>0) return "";

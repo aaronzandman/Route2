@@ -774,12 +774,13 @@ const ERRLOG=[];
   window.addEventListener("unhandledrejection",e=>add("Promise: "+((e.reason&&e.reason.message)||e.reason)));
 })();
 // ---------- version ----------
-const APP_VERSION = "4.20";
+const APP_VERSION = "4.21";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const GC_CODE = "";   // GoatCounter site code for anonymous usage counts (blank = nothing is sent)
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["4.21", "Call age now comes from SAP itself: the due date and severity give the day the call was put in (Sev 1 same day by midnight, Sev 2 next day by 5 PM, Sev 3 72 hours, Sev 4 120 hours). Hover a badge to see the date."],
   ["4.20", "Call age colors: 0–3 days green, 4–5 yellow, 6 orange, 7–8 red, 9+ days 🔥 fire."],
   ["4.19", "Call age badge on every call: 📅 days since the call was put in, colored by age. Exact when the dispatch text is known (from Companion), otherwise ≈ estimated. Turn it off in Settings if you don't want it."],
   ["4.18", "Copy route for team can include the total driving time (new Total driving time box under the Copy button, on by default)."],
@@ -838,87 +839,26 @@ const CHANGELOG = [
   ["1.0", "Import calls, group by store, filters, route ordering, Google Maps directions."]
 ];
 // ===EDITION-START===
-const EDITION = {id:"local", name:"Service Route Planner – Virginia", key:"rp.", resetLabel:"Restore defaults"};
-const DEFAULT_GROUPS = `P1566	B
-P1587	B
-P1588	C
-P1589	B
-P1590	B
-P1591	B
-P1592	D
-P1593	C
-P1594	D
-P1595	B
-P1596	C
-P1615	F
-P1626	C
-P1632	A
-P1635	E
-P1636	D
-P1643	D
-P1679	D
-P1694	D
-P1720	A
-P1883	E
-P1885	A
-P2025	E
-P2030	E
-P2032	E`;
-
-const DEFAULT_STORES = `Store number	Division	Shopping center	Address	City	State	Zip code	County	Phone	Square footage	Ad day	Open date
-1566	Charlotte	Nuckols Place	5400 Wyndham Forest Dr	Glen Allen	VA	23059	Henrico	804-527-5334	54191	Wednesday	7/15/2017
-1587	Charlotte	Short Pump Crossing Shopping Center	3460 Pump Rd	Henrico	VA	23233-1111	Henrico	804-364-6314	63331	Wednesday
-1588	Charlotte	Carytown Exchange	3535 Ellwood Ave	Richmond	VA	23221	Richmond (Independent City)	804-253-6372	45600	Wednesday	12/9/2020
-1589	Charlotte	The Shoppes At Crossridge	10250 Staples Mill Rd	Glen Allen	VA	23060-3064	Henrico	804-755-2360	51487	Wednesday	7/29/2017
-1590	Charlotte	John Rolfe Commons	2250 John Rolfe Pkwy	Henrico	VA	23233-6913	Henrico	804-360-4920	56680	Wednesday	8/19/2017
-1591	Charlotte	Virginia Center Marketplace	10150 Brook Rd	Glen Allen	VA	23059-6514	Henrico	804-262-8190	63300	Wednesday
-1592	Charlotte	Harbour Pointe Shopping Center	13700 Hull Street Rd	Midlothian	VA	23112-2000	Chesterfield	804-739-1160	63557	Wednesday	11/4/2017
-1593	Charlotte	The Village Shopping Center	7035 Three Chopt Rd	Richmond	VA	23226	Henrico	804-288-1070	47395	Wednesday	8/28/2019
-1594	Charlotte	Colonial Square Shopping Center	3007 Boulevard	Colonial Heights	VA	23834-2445	Colonial Heights (Independent City)	804-520-4520	63100	Wednesday	11/1/2017
-1595	Charlotte	Westpark Shopping Center	9645 W Broad St	Glen Allen	VA	23060	Henrico	804-965-6303	49300	Wednesday	5/29/2019
-1596	Charlotte	White Oak Village	4591 S Laburnum Ave	Richmond	VA	23231-2421	Henrico	804-226-1915	61069	Wednesday	8/5/2017
-1626	Charlotte	Brandy Creek Commons	6603 Mechanicsville Tpke	Mechanicsville	VA	23111	Hanover	804-569-3902	50160	Wednesday	1/5/2019
-1632	Charlotte	Publix At Cosner's Corner	9601 Patriot Hwy	Fredericksburg	VA	22407	Spotsylvania	540-898-6801	49098	Wednesday	7/25/2018
-1635	Charlotte	Monticello Marketplace	4660 Monticello Ave	Williamsburg	VA	23188	James City	757-564-5902	62901	Wednesday
-1636	Charlotte	The Shops At Stratford Hills	7045 Forest Hill Ave	Richmond	VA	23225	Richmond (Independent City)	804-323-4110	54400	Wednesday	7/25/2018
-1643	Charlotte	Cosby Village	7200 Cosby Village Rd	Chesterfield	VA	23832	Chesterfield	804-639-6525	50280	Wednesday
-1679	Charlotte	Huguenot Village	2015 Huguenot Rd	North Chesterfield	VA	23235	Chesterfield	804-330-3704	49533	Wednesday	8/26/2020
-1694	Charlotte	Charter Colony Shopping Center	200 Charter Colony Pkwy	Midlothian	VA	23114	Chesterfield	804-378-3222	48387	Wednesday	6/10/2020
-1720	Charlotte	Embrey Mill Town Center	1640 Publix Way	Stafford	VA	22554	Stafford	540-288-9280	48387	Wednesday
-1883	Charlotte	Publix At Planters Station	3189 Godwin Blvd	Suffolk	VA	23434-8694	Suffolk (Independent City)	757-942-6032	46791	Wednesday
-1885	Charlotte	Chancellor Crossing	5940 Plank Rd	Fredericksburg	VA	22407-6232	Spotsylvania	540-736-6013	48387	Wednesday
-2025	Charlotte	Bartlett Station	22449 Spadea Way	Carrollton	VA	23314	Isle Of Wight	757-542-6041	48387	Wednesday	1/15/2025
-2030	Charlotte	Hickman Place	2200 General Booth Blvd	Virginia Beach	VA	23454	Virginia Beach (Independent City)	757-716-6015	49235	Wednesday
-2032	Charlotte	Dominion Station	1620 Cedar Rd STE 100	Chesapeake	VA	23322-7197	Chesapeake (Independent City)	757-550-6044	48387	Wednesday	4/23/2025
-1615	Charlotte	Publix At First Flight Square	1530 N Croatan Hwy	Kill Devil Hills	NC	27948	Dare	252-255-5006	45600	Wednesday	2/28/2018`;
-
-// Map positions from the company store list, used for mileage estimates and ordering.
-const DEFAULT_COORDS = `1566	37.68397	-77.586555
-1587	37.648952	-77.615845
-1588	37.5569	-77.48806
-1589	37.656944	-77.525856
-1590	37.62254	-77.62402
-1591	37.675133	-77.4631
-1592	37.410347	-77.65613
-1593	37.590977	-77.53272
-1594	37.268887	-77.41047
-1595	37.640015	-77.56325
-1596	37.525627	-77.35183
-1626	37.6109	-77.33578
-1632	38.219112	-77.50658
-1635	37.27248	-76.758385
-1636	37.534405	-77.52457
-1643	37.40154	-77.70873
-1679	37.519875	-77.612816
-1694	37.50507	-77.65897
-1720	38.426	-77.43402
-1883	36.786213	-76.59072
-1885	38.291405	-77.57935
-2025	36.94319	-76.53447
-2030	36.76458	-76.01289
-2032	36.728184	-76.299904
-1615	36.027336	-75.671135`;
-
+const EDITION = {id:"state-KY", name:"Service Route Planner \u2013 Kentucky", key:"rp-KY.", resetLabel:"Restore Kentucky store list", groupBy:"city"};
+const DEFAULT_GROUPS = ``;
+const DEFAULT_STORES = `Store #	Shopping Center	Address	City	State	Zip	Phone	Latitude	Longitude
+1846	Terra Crossing	2500 Terra Crossing Blvd	Louisville	KY	40245-5374	(502) 885-7662	38.27257	-85.49839
+1847	Publix at Marshall Commons	10005 Ballardsville Rd	Louisville	KY	40241-1202	(502) 302-7925	38.31706	-85.560394
+1887	The Fountains At Palomar	3855 Fountainblue Ln	Lexington	KY	40513	(859) 469-7337	38.003456	-84.57397
+2050	Publix at Flat Rock	150 Flat Rock Rd	Louisville	KY	40245	(502) 912-5403	38.236137	-85.445526
+2051	Citation Point	1952 Stockton Way	Lexington	KY	40511-2412	(859) 286-8293	38.095634	-84.51252
+2052	Triple Crown Shopping Center	430 Richwood Rd	Walton	KY	41094	(859) 379-1137	38.913414	-84.636505
+2053	Gateway Commons	3370 Hayden Rd	Owensboro	KY	42303	(270) 215-3915	37.767458	-87.062537
+2055	Farmview Commons	8740 US Hwy 42	Florence	KY	41042	(859) 938-1052	38.967207	-84.673345
+2057	Cold Spring Pointe	5401 Alexandria Pike	Cold Spring	KY	41076	(859) 908-6007	39.001796	-84.4217
+2058	Publix at Independence	5135 Jenkins Dr	Independence	KY	41051	(859) 898-5036	38.928628	-84.544058
+2059	The Shops at Pear Orchard	1311 Pear Orchard Rd Suite 100	Elizabethtown	KY	42701	(270) 740-5249	37.735684	-85.86062
+3646	Terra Crossing	2502 Terra Crossing Blvd	Louisville	KY	40245-5374	(502) 302-6531	38.27257	-85.49839
+3647	Publix at Marshall Commons	10015 Ballardsville Rd	Louisville	KY	40241-1202	(502) 313-7027		
+3651	Citation Point	1976 Stockton Way	Lexington	KY	40511-2412	(859) 286-8931	38.095634	-84.51252
+3652	Triple Crown Shopping Center	420 Richwood Rd	Walton	KY	41094	(859) 379-1139	38.913414	-84.636505
+3687	The Fountains At Palomar	3825 Fountainblue Ln	Lexington	KY	40513	(859) 469-7339	38.003456	-84.57397`;
+const DEFAULT_COORDS = ``;
 // ===EDITION-END===
 
 const COLS = ["Order Type","MaintActivType","Basic fin. date","Earliest finish","Priority","Customer","Personnel No.","Activity","Serial Number","Order","Description","Oper.WorkCenter","User status","Material","Location"];
@@ -1907,26 +1847,50 @@ function setupSettings(){
 // first time the call showed up in an import.
 let AGE_IDX=null, AGE_N=-1;
 function ageIndex(){
-  const n=Object.keys(S.history).length; if(AGE_IDX&&AGE_N===n) return AGE_IDX;
-  AGE_N=n; AGE_IDX=Object.values(S.history).filter(h=>h.src==="sms"&&/^\d{6,12}$/.test(h.o)).map(h=>[+h.o,Date.parse(h.at)]).filter(x=>!isNaN(x[1])).sort((a,b)=>a[0]-b[0]);
+  const n=Object.keys(S.history).length+"/"+S.calls.length; if(AGE_IDX&&AGE_N===n) return AGE_IDX;
+  AGE_N=n;
+  // reference points: dispatch-text times, plus calls whose exact creation time follows from SAP (Sev 3 and 4)
+  const pts=Object.values(S.history).filter(h=>h.src==="sms"&&/^\d{6,12}$/.test(h.o)).map(h=>[+h.o,Date.parse(h.at)]);
+  S.calls.forEach(c=>{ const v=sevCreated(c); if(v&&v.exact&&/^\d{6,12}$/.test(c.order)) pts.push([+c.order,v.t]); });
+  AGE_IDX=pts.filter(x=>!isNaN(x[1])).sort((a,b)=>a[0]-b[0]);
   return AGE_IDX;
 }
 function orderDate(o){
-  const a=ageIndex(); if(a.length<2||o<a[0][0]||o>a[a.length-1][0]) return null;
+  const a=ageIndex(); if(!a.length) return null;
+  // just past the newest/oldest dated order: use that order's date (orders a few thousand apart are days apart at most)
+  if(o>a[a.length-1][0]) return o-a[a.length-1][0]<=3000?a[a.length-1][1]:null;
+  if(o<a[0][0]) return a[0][0]-o<=3000?a[0][1]:null;
   let lo=0, hi=a.length-1; while(hi-lo>1){ const m=(lo+hi)>>1; if(a[m][0]<=o) lo=m; else hi=m; }
   const [o1,t1]=a[lo], [o2,t2]=a[hi]; if(o2===o1) return t1;
   if(t2-t1>30*864e5) return null;   // known orders too far apart to guess between
   return t1+(t2-t1)*(o-o1)/(o2-o1);
 }
+// Publix response times: Sev 1 = same day by midnight, Sev 2 = next day by 5 PM, Sev 3 = 72 hours, Sev 4 = 120 hours.
+// Working back from SAP's due date ("Basic fin. date") gives when the call was put in.
+function sevCreated(c){
+  if(!c.due||!(c.prio>=1&&c.prio<=4)) return null;
+  const d=c.due, mid=/^0{1,2}:00/.test(String(c.time||"").trim());   // a 00:00 deadline belongs to the day before
+  const dl=new Date(d.getTime()-(mid?60e3:0)), y=dl.getFullYear(), m=dl.getMonth(), dd=dl.getDate();
+  if(c.prio===1) return {t:new Date(y,m,dd).getTime(), rule:"Sev 1 is due the same day by midnight"};
+  if(c.prio===2){ if(!/^17:00/.test(String(c.time||"").trim())) return null;   // not the standard 5 PM deadline: date it another way
+    return {t:new Date(y,m,dd-1).getTime(), rule:"Sev 2 is due the next day by 5 PM"}; }
+  if(c.prio===3) return {t:d.getTime()-72*3600e3, exact:true, rule:"Sev 3 is due 72 hours after it's put in"};
+  return {t:d.getTime()-120*3600e3, exact:true, rule:"Sev 4 is due 120 hours after it's put in"};
+}
+const dayStart=t=>{ const d=new Date(t); return new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime(); };
 function callAge(c){
-  const h=S.history[c.order]; let t=null, est=false, how="";
-  if(h&&h.src==="sms"){ t=Date.parse(h.at); how="when the dispatch text arrived"; }
-  else { const e=orderDate(+c.order); if(e){ t=e; est=true; how="estimated from the order number (nearby orders' dispatch texts)"; }
+  const h=S.history[c.order]; let t=null, est=false, how="", exact=false;
+  const sv=sevCreated(c);
+  if(h&&h.src==="sms"){ t=Date.parse(h.at); exact=true; how="when the dispatch text arrived"; }
+  else if(sv){ t=sv.t; exact=!!sv.exact; how=`worked out from the due date (${sv.rule})`; }
+  else { const e=orderDate(+c.order); if(e){ t=e; est=true; how="estimated from the order number (dated by nearby orders)"; }
     else if(h&&h.src==="sap"){ t=Date.parse(h.at); est=true; how="the first time this call showed up in an import (it may be older)"; } }
   if(t===null||isNaN(t)) return null;
-  const days=Math.max(0,Math.floor((Date.now()-t)/864e5));
+  t=Math.min(t,Date.now());   // a deadline set further out than the standard can't mean "put in later than now"
+  const days=Math.max(0,Math.round((dayStart(Date.now())-dayStart(t))/864e5));   // calendar days since it was put in
   const cls=days<=3?"g":days<=5?"y":days===6?"o":days<=8?"r":"f";
-  return {days,est,cls,title:`Put in ${new Date(t).toLocaleDateString(undefined,{weekday:"short",month:"numeric",day:"numeric"})}${est?" (approx.)":""}: ${how}. 0–3 days green, 4–5 yellow, 6 orange, 7–8 red, 9+ fire.`};
+  const when=new Date(t).toLocaleDateString(undefined,{weekday:"short",month:"numeric",day:"numeric"})+(exact?" "+new Date(t).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"}):"");
+  return {days,est,cls,title:`Put in ${when}${est?" (approx.)":""}: ${how}. 0–3 days green, 4–5 yellow, 6 orange, 7–8 red, 9+ fire.`};
 }
 function fmtSoon(c){
   const d=pastDays(c); if(d===null||d>0) return "";
