@@ -77,7 +77,21 @@ legend{font-weight:600;font-size:14px;margin-bottom:6px}
 .calls{table-layout:fixed}
 .calls td:nth-child(2){width:118px}.calls td:nth-child(4){width:150px}.calls td:nth-child(5){width:64px}
 .calls td:nth-child(3){overflow-wrap:anywhere;overflow:hidden}
-@media (max-width:600px){.calls td:nth-child(2){width:86px}.calls td:nth-child(4){width:96px}.calls td:nth-child(5){display:none}.calls .pri{min-width:0;font-size:11px;padding:2px 5px}.calls .sn{display:block}.calls td.due{white-space:normal}.calls td.due .tier{white-space:normal;display:inline-block;line-height:1.25;text-align:center}}
+/* Phone: each call is two lines: the description across the full width, then priority · past due · status underneath. */
+@media (max-width:600px){
+  .calls,.calls tbody{display:block}
+  .calls tr{display:grid;grid-template-columns:34px auto auto 1fr;align-items:center;column-gap:6px;border-bottom:1px solid var(--line)}
+  .calls tr:last-child{border-bottom:0}
+  .calls tr td{border-bottom:0;background:transparent!important;box-shadow:none!important;padding:4px 6px}
+  .calls tr.overdue{background:var(--over)} .calls tr.done{background:var(--soft)}
+  .calls tr.t1{background:var(--t1bg);box-shadow:inset 4px 0 var(--t1)} .calls tr.t2{background:var(--t2bg);box-shadow:inset 4px 0 var(--t2)} .calls tr.t3{background:var(--t3bg);box-shadow:inset 4px 0 var(--t3)}
+  .calls tr.subhead{display:block} .calls tr.subhead td{display:block}
+  .calls td.chk{grid-row:1/3;grid-column:1;width:auto}
+  .calls tr>td:nth-child(3){grid-column:2/5;grid-row:1;width:auto;padding-bottom:0}
+  .calls tr>td:nth-child(2){grid-column:2;grid-row:2;width:auto;padding-top:2px}
+  .calls tr>td:nth-child(4){grid-column:3;grid-row:2;width:auto;text-align:left;padding-top:2px}
+  .calls tr>td:nth-child(5){display:block!important;grid-column:4;grid-row:2;width:auto;justify-self:end;padding-top:2px}
+}
 .store-head .info{flex:1;min-width:0}
 .store-name{font:700 18px/1.15 var(--sign)}
 .store-name small{font:500 14px var(--body);color:var(--muted);margin-left:6px}
@@ -135,6 +149,8 @@ details.ropts[open]{padding-bottom:10px}
 /* settings dialog extras */
 #setDlg .box{max-width:620px}
 .setmore fieldset{margin:14px 0 0;border-top:1px solid var(--line);padding-top:10px}
+.setsec{margin:22px 0 4px;font:700 13px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--road);padding-bottom:4px;border-bottom:2px solid var(--road)}
+.setsec+fieldset{border-top:0!important;padding-top:4px!important}
 .setmore details.settings{margin:12px 0 0;padding:0}
 .setmore details.settings summary{font-size:16px}
 .modebar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;width:100%}
@@ -219,11 +235,11 @@ details.ropts[open]{padding-bottom:10px}
 .tag.age.g{background:#DDF3E4;color:#14532D;border-color:#9AD3AE}
 .tag.age.y{background:#FFF4BF;color:#5C4400;border-color:#E9CF55}
 .tag.age.o{background:#FFE0C2;color:#7A3500;border-color:#F0A060}
-.tag.age.r{background:#B3261E;color:#fff}
+.tag.age.r{background:#FBD5D1;color:#8A1C14;border-color:#E9978F}
 .tag.age.f{background:linear-gradient(90deg,#7A0A00,#D23A00 55%,#FF8A00);color:#fff;box-shadow:0 0 0 1px #FFB000 inset,0 0 8px rgba(255,90,0,.55);animation:agefire 1.6s ease-in-out infinite alternate}
 @keyframes agefire{from{box-shadow:0 0 0 1px #FFB000 inset,0 0 4px rgba(255,90,0,.35)}to{box-shadow:0 0 0 1px #FFD000 inset,0 0 11px rgba(255,110,0,.8)}}
 @media (prefers-reduced-motion:reduce){.tag.age.f{animation:none}}
-@media (prefers-color-scheme:dark){.tag.age.g{background:#173B25;color:#BDF0CC;border-color:#2F6B45}.tag.age.y{background:#3D3410;color:#FFE98A;border-color:#7A6A1F}.tag.age.o{background:#4A2A10;color:#FFC690;border-color:#8A4F1F}}
+@media (prefers-color-scheme:dark){.tag.age.r{background:#4A1A17;color:#FFB4AB;border-color:#8C3B33}.tag.age.g{background:#173B25;color:#BDF0CC;border-color:#2F6B45}.tag.age.y{background:#3D3410;color:#FFE98A;border-color:#7A6A1F}.tag.age.o{background:#4A2A10;color:#FFC690;border-color:#8A4F1F}}
 .chg{margin-top:10px;border:1.5px solid #1E4E8C;border-radius:8px;padding:10px;font-size:14px;background:var(--soft)}
 .chg ul{margin:6px 0;padding-left:18px;max-height:160px;overflow:auto}
 .chg li{margin:3px 0}
@@ -458,9 +474,16 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
 <div class="bmk" id="setDlg" role="dialog" aria-modal="true" aria-labelledby="setTitle">
   <div class="box" style="max-height:92vh;overflow:auto">
     <h3 id="setTitle">Settings</h3>
+    <h4 class="setsec" style="margin-top:4px">Features</h4>
     <p class="hint" style="margin:0 0 4px">Extra features start turned off to keep the screen simple. Turn on the ones you use; it's saved on this device.</p>
     <div id="setList"></div>
     <div class="setmore">
+    <fieldset>
+      <legend>Order links</legend>
+      <label class="incl"><input type="checkbox" id="edgeLinks"> Open order links in Microsoft Edge</label>
+      <div class="hint">Turn this off if tapping an order number does nothing on this device.</div>
+    </fieldset>
+    <h4 class="setsec">Your data &amp; privacy</h4>
     <fieldset id="statsSet">
       <legend>Your stats</legend>
       <div class="hint">Worked out on this device from your own data, across every planner version you use here. Not sent anywhere.</div>
@@ -491,18 +514,6 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
       <details id="sentWrap"><summary>Sent from this device</summary><div id="sentLog" class="hint"></div></details>
     </fieldset>
     <fieldset>
-      <legend>Order links</legend>
-      <label class="incl"><input type="checkbox" id="edgeLinks"> Open order links in Microsoft Edge</label>
-      <div class="hint">Turn this off if tapping an order number does nothing on this device.</div>
-    </fieldset>
-    <fieldset id="updSet">
-      <legend>Updates</legend>
-      <label class="incl"><input type="checkbox" id="autoUpd"> Check for new versions automatically</label>
-      <div class="hint">Only asks GitHub which version is newest. Your calls never leave this device.</div>
-      <div class="row"><button id="updNow">Check now</button></div>
-      <div class="msg" id="updMsg"></div>
-    </fieldset>
-    <fieldset>
       <legend>Backup</legend>
       <div class="hint">Everything saves automatically. A backup file lets you move your data to another browser or computer.</div>
       <div class="row">
@@ -511,6 +522,14 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
         <input type="file" id="backupFile" accept=".json,application/json" hidden>
       </div>
       <div class="msg" id="backupMsg"></div>
+    </fieldset>
+    <h4 class="setsec">About &amp; store data</h4>
+    <fieldset id="updSet">
+      <legend>Updates</legend>
+      <label class="incl"><input type="checkbox" id="autoUpd"> Check for new versions automatically</label>
+      <div class="hint">Only asks GitHub which version is newest. Your calls never leave this device.</div>
+      <div class="row"><button id="updNow">Check now</button></div>
+      <div class="msg" id="updMsg"></div>
     </fieldset>
 <details class="settings" id="aboutBox">
   <summary>Version history</summary>
@@ -776,12 +795,13 @@ const ERRLOG=[];
   window.addEventListener("unhandledrejection",e=>add("Promise: "+((e.reason&&e.reason.message)||e.reason)));
 })();
 // ---------- version ----------
-const APP_VERSION = "4.24";
+const APP_VERSION = "4.25";
 const FEEDBACK_TO = "@@FEEDBACK_TO@@";
 const GC_CODE = "@@GC_CODE@@";   // GoatCounter site code for anonymous usage counts (blank = nothing is sent)
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["4.25", "Cleaner look: on phones each call shows its description across the full width with priority, past due and status underneath; 7–8 day old calls use a lighter red so solid red always means past due; the route list drops the extra past-due band; Settings is split into Features, Your data & privacy, and About & store data."],
   ["4.24", "The route list shows how many days old each stop's oldest call is, with the same colors."],
   ["4.23", "Route options → Stop order: \"Strictly oldest due first\" (nearly the same as Most past due first) is replaced by Oldest call start date first, which visits stores in the order their calls were put in. The list sort is renamed Call start date."],
   ["4.22", "Sort the store list by days old: oldest first or newest first (Sort menu above the stores)."],
@@ -1349,7 +1369,7 @@ function renderRoute(groups){
     const li=document.createElement("li"); li.className="stop"; li.dataset.i=i; li.dataset.n=s.num;
     li.innerHTML=`<span class="num">${i+1}</span>
       <div><div class="t">${shieldHTML(groupOf(s.num),"sm")} ${esc(s.num)} ${s0?"· "+esc(s0.city):""}</div>
-      <div class="leg">${s.calls.length} call${s.calls.length>1?"s":""}${s.extra&&s.extra.length?` + ${s.extra.length} more open`:""}, top priority ${esc(s.calls[0].prioLabel)}${s.tier?` <span class="tier t${s.tier}">${tierLabel(s.tier)}</span>`:""}${stopAge(s)}</div>
+      <div class="leg">${s.calls.length} call${s.calls.length>1?"s":""}${s.extra&&s.extra.length?` + ${s.extra.length} more open`:""}, top priority ${esc(s.calls[0].prioLabel)}${stopAge(s)}</div>
       ${leg?`<div class="leg">${leg}</div>`:""}</div>
       <div class="mv">${mode==="manual"?`<button aria-label="Move up" data-up="${i}">▲</button><button aria-label="Move down" data-down="${i}">▼</button>`:""}</div>`;
     list.appendChild(li);
