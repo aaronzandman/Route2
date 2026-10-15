@@ -581,16 +581,6 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
   <div class="dv-nav"><button id="dvPrev">◀ Prev</button><div class="dv-dots" id="dvDots"></div><button class="primary" id="dvNext">Next ▶</button></div>
 </div>
 <button class="dvfab" id="dvFab" type="button">▶ Day view</button>
-<div class="bmk hist" id="histDlg" role="dialog" aria-modal="true" aria-labelledby="histTitle">
-  <div class="box">
-    <div class="mhead"><button id="histPrev" aria-label="Previous month">◀</button><b id="histTitle"></b><button id="histNext" aria-label="Next month">▶</button></div>
-    <div class="hmonth" id="histSum" style="text-align:center"></div>
-    <div class="hcal" id="histCal"></div>
-    <div class="hlist" id="histList"></div>
-    <div class="row" style="justify-content:space-between"><span class="msg" id="histMsg"></span><span><button id="histFile" title="The file Companion emails you from Settings → Export all calls for desktop">Import Companion file</button> <button class="primary" id="histClose">Close</button></span></div>
-    <input type="file" id="histFileIn" accept=".txt,text/plain" hidden>
-  </div>
-</div>
 <div class="bmk" id="mapDlg" role="dialog" aria-modal="true" aria-labelledby="mapTitle">
   <div class="box">
     <div class="maphead"><h3 id="mapTitle">Route map</h3><span class="hint" id="mapSum"></span><span style="flex:1"></span>
@@ -720,7 +710,6 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
           <option value="new">Call start date: newest first</option>
         </select>
         <button id="copyList">📋 Copy list</button>
-        <button id="histBtn">🗓 History</button>
       </div>
     </div>
     <div id="storeList"></div>
@@ -797,12 +786,13 @@ const ERRLOG=[];
   window.addEventListener("unhandledrejection",e=>add("Promise: "+((e.reason&&e.reason.message)||e.reason)));
 })();
 // ---------- version ----------
-const APP_VERSION = "4.26";
+const APP_VERSION = "4.27";
 const FEEDBACK_TO = "@@FEEDBACK_TO@@";
 const GC_CODE = "@@GC_CODE@@";   // GoatCounter site code for anonymous usage counts (blank = nothing is sent)
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["4.27", "Focused on active calls: the History calendar is removed, and a call's age now comes straight from its due date (exact for Sev 3 and 4), so no past-call log is needed. Importing from SAP replaces your whole call list, so completed calls drop off on their own."],
   ["4.26", "Fix: on very narrow phones the call badges no longer push the page sideways."],
   ["4.25", "Cleaner look: on phones each call shows its description across the full width with priority, past due and status underneath; 7–8 day old calls use a lighter red so solid red always means past due; the route list drops the extra past-due band; Settings is split into Features, Your data & privacy, and About & store data."],
   ["4.24", "The route list shows how many days old each stop's oldest call is, with the same colors."],
@@ -967,7 +957,6 @@ const S = {
   excluded:new Set(store.get("excluded", [])),
   listSort: store.get("listSort","group"),
   fDates: new Set(store.get("fDates",[])),
-  history: store.get("history",{}),
   handed: store.get("handed",{}),
   newOrders: new Set(store.get("newOrders",[])),
   gone: store.get("goneCalls",[]),
@@ -1266,8 +1255,8 @@ function renderStores(groups){
   });
   host.querySelectorAll("input[data-done]").forEach(cb=>cb.onchange=()=>{
     const o=cb.dataset.done;
-    if(cb.checked){ S.done[o]=new Date().toISOString(); const c=S.calls.find(x=>x.order===o); if(c) recordHistory(c,S.done[o]); }
-    else { delete S.done[o]; delete S.history[o]; store.set("history",S.history); }
+    if(cb.checked){ S.done[o]=new Date().toISOString() }
+    else { delete S.done[o]; }
     store.set("done",S.done); render();
   });
 }
@@ -1690,7 +1679,6 @@ $("loadBtn").onclick=()=>{
     (errors.length?` Skipped line${errors.length>1?"s":""} ${errors.join(", ")}: fewer than 11 tab-separated columns.`:"") +
     (unknown.length?` Stores not in your store list: ${unknown.join(", ")}.`:"") +
     (warnings.length?" "+warnings.join(" ")+" See How to get your calls from SAP.":"");
-  backfillHistory(); logImported(calls);
   if(S.addingTexts!==undefined){
     const a=S.addingTexts, sk=S.skippedTexts; delete S.addingTexts; delete S.skippedTexts;
     S.newOrders=new Set([...S.newOrders,...calls.filter(c=>c.wc===""&&c.status==="SMS"&&!prevCalls.some(p=>p.order===c.order)).map(c=>c.order)]); store.set("newOrders",[...S.newOrders]);
@@ -1828,7 +1816,7 @@ $("clearDone").onclick=()=>{
   S.done={}; store.set("done",S.done); render();
 };
 $("exportBtn").onclick=()=>{
-  const keys=["callsText","done","history","showDone","excluded","manual","mode","round","start","startAddr","startCoords","groups","stores","coords"];
+  const keys=["callsText","done","showDone","excluded","manual","mode","round","start","startAddr","startCoords","groups","stores","coords"];
   const data={app:"service-route-planner",edition:EDITION.id,version:APP_VERSION,savedAt:new Date().toISOString()};
   keys.forEach(k=>{ const v=store.get(k,undefined); if(v!==undefined) data[k]=v; });
   data.callsText=$("callsInput").value; data.done=S.done; data.uid=getUid();
@@ -1946,29 +1934,6 @@ function setupSettings(){
 
 // ---------- due soon / repeats ----------
 // ---------- call age: days since the call was put in ----------
-// SAP's IW49 export has no "created" date, so use the best we know: the dispatch text's time (exact), else an
-// estimate from the order number (orders count up over time; dated by nearby orders whose texts we have), else the
-// first time the call showed up in an import.
-let AGE_IDX=null, AGE_N=-1;
-function ageIndex(){
-  const n=Object.keys(S.history).length+"/"+S.calls.length; if(AGE_IDX&&AGE_N===n) return AGE_IDX;
-  AGE_N=n;
-  // reference points: dispatch-text times, plus calls whose exact creation time follows from SAP (Sev 3 and 4)
-  const pts=Object.values(S.history).filter(h=>h.src==="sms"&&/^\d{6,12}$/.test(h.o)).map(h=>[+h.o,Date.parse(h.at)]);
-  S.calls.forEach(c=>{ const v=sevCreated(c); if(v&&v.exact&&/^\d{6,12}$/.test(c.order)) pts.push([+c.order,v.t]); });
-  AGE_IDX=pts.filter(x=>!isNaN(x[1])).sort((a,b)=>a[0]-b[0]);
-  return AGE_IDX;
-}
-function orderDate(o){
-  const a=ageIndex(); if(!a.length) return null;
-  // just past the newest/oldest dated order: use that order's date (orders a few thousand apart are days apart at most)
-  if(o>a[a.length-1][0]) return o-a[a.length-1][0]<=3000?a[a.length-1][1]:null;
-  if(o<a[0][0]) return a[0][0]-o<=3000?a[0][1]:null;
-  let lo=0, hi=a.length-1; while(hi-lo>1){ const m=(lo+hi)>>1; if(a[m][0]<=o) lo=m; else hi=m; }
-  const [o1,t1]=a[lo], [o2,t2]=a[hi]; if(o2===o1) return t1;
-  if(t2-t1>30*864e5) return null;   // known orders too far apart to guess between
-  return t1+(t2-t1)*(o-o1)/(o2-o1);
-}
 // Publix response times: Sev 1 = same day by midnight, Sev 2 = next day by 5 PM, Sev 3 = 72 hours, Sev 4 = 120 hours.
 // Working back from SAP's due date ("Basic fin. date") gives when the call was put in.
 function sevCreated(c){
@@ -1983,18 +1948,14 @@ function sevCreated(c){
 }
 const dayStart=t=>{ const d=new Date(t); return new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime(); };
 function callAge(c){
-  const h=S.history[c.order]; let t=null, est=false, how="", exact=false;
-  const sv=sevCreated(c);
-  if(h&&h.src==="sms"){ t=Date.parse(h.at); exact=true; how="when the dispatch text arrived"; }
-  else if(sv){ t=sv.t; exact=!!sv.exact; how=`worked out from the due date (${sv.rule})`; }
-  else { const e=orderDate(+c.order); if(e){ t=e; est=true; how="estimated from the order number (dated by nearby orders)"; }
-    else if(h&&h.src==="sap"){ t=Date.parse(h.at); est=true; how="the first time this call showed up in an import (it may be older)"; } }
-  if(t===null||isNaN(t)) return null;
-  t=Math.min(t,Date.now());   // a deadline set further out than the standard can't mean "put in later than now"
-  const days=Math.max(0,Math.round((dayStart(Date.now())-dayStart(t))/864e5));   // calendar days since it was put in
+  const sv=sevCreated(c); if(!sv) return null;
+  let t=sv.t; if(t===null||isNaN(t)) return null;
+  const exact=!!sv.exact, how=`worked out from the due date (${sv.rule})`;
+  t=Math.min(t,Date.now());
+  const days=Math.max(0,Math.round((dayStart(Date.now())-dayStart(t))/864e5));
   const cls=days<=3?"g":days<=5?"y":days===6?"o":days<=8?"r":"f";
   const when=new Date(t).toLocaleDateString(undefined,{weekday:"short",month:"numeric",day:"numeric"})+(exact?" "+new Date(t).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"}):"");
-  return {days,est,cls,t,title:`Put in ${when}${est?" (approx.)":""}: ${how}. 0–3 days green, 4–5 yellow, 6 orange, 7–8 red, 9+ fire.`};
+  return {days,est:false,cls,t,title:`Put in ${when}: ${how}. 0–3 days green, 4–5 yellow, 6 orange, 7–8 red, 9+ fire.`};
 }
 function fmtSoon(c){
   const d=pastDays(c); if(d===null||d>0) return "";
@@ -2005,16 +1966,13 @@ function fmtSoon(c){
 }
 const DAY30=30*864e5;
 function repeatCount(c){
-  if(!c.serial) return 0; const cut=Date.now()-DAY30, sn=c.serial.trim();
-  const past=Object.values(S.history).filter(x=>x.sn&&x.sn.trim()===sn&&x.o!==c.order&&Date.parse(x.at)>=cut).length;
-  const open=S.calls.filter(x=>x.serial&&x.serial.trim()===sn&&x.order!==c.order).length;
-  return past+open;
+  if(!c.serial) return 0; const sn=c.serial.trim();
+  return S.calls.filter(x=>x.serial&&x.serial.trim()===sn&&x.order!==c.order).length;
 }
 function storeRepeat(n){
-  if(!F("repeats")) return ""; const cut=Date.now()-DAY30;
-  const orders=new Set(Object.values(S.history).filter(x=>x.s===n&&Date.parse(x.at)>=cut).map(x=>x.o));
-  S.calls.filter(c=>c.store===n).forEach(c=>orders.add(c.order));
-  return orders.size>=5 ? `<span class="tag rep">🏪 ${orders.size} calls here in 30 days</span> ` : "";
+  if(!F("repeats")) return "";
+  const k=new Set(S.calls.filter(c=>c.store===n).map(c=>c.order));
+  return k.size>=5 ? `<span class="tag rep">🏪 ${k.size} open calls here</span> ` : "";
 }
 function callTags(c){
   let t="";
@@ -2043,7 +2001,7 @@ function renderChanges(){
       <div class="row"><button class="primary" id="goneDone">Mark these done</button><button id="chgDismiss">Dismiss</button></div>`
      :`<div class="row"><button id="chgDismiss">Dismiss</button></div>`);
   const gd=$("goneDone"); if(gd) gd.onclick=()=>{ const at=new Date().toISOString();
-    S.gone.forEach(g=>{ S.done[g.order]=at; recordHistory({order:g.order,store:g.store,desc:g.desc,prioLabel:g.prioLabel,due:g.due?new Date(g.due):null,serial:g.serial},at); });
+    S.gone.forEach(g=>{ S.done[g.order]=at; });
     store.set("done",S.done); toast(`Marked ${S.gone.length} call${S.gone.length>1?"s":""} done.`); S.gone=[]; store.set("goneCalls",[]); render(); };
   $("chgDismiss").onclick=()=>{ S.newOrders=new Set(); store.set("newOrders",[]); S.gone=[]; store.set("goneCalls",[]); render(); };
 }
@@ -2065,7 +2023,7 @@ function replanHere(){
 // ---------- end-of-day summary ----------
 function buildEOD(){
   const today=dateKey(new Date()), dayTxt=new Date().toLocaleDateString(undefined,{weekday:"long",month:"numeric",day:"numeric"});
-  const done=Object.values(S.history).filter(x=>dateKey(new Date(x.at))===today).sort((a,b)=>a.at.localeCompare(b.at));
+  const done=Object.entries(S.done).filter(([o,at])=>dateKey(new Date(at))===today).map(([o,at])=>{ const c=S.calls.find(x=>x.order===o)||{}, st=S.stores[c.store]||{}; return {o, s:c.store||"?", city:st.city||"", d:c.desc||"(completed)", at}; }).sort((a,b)=>a.at.localeCompare(b.at));
   const open=S.calls.filter(c=>!isDone(c)&&!S.handed[c.order]);
   const tiers=[0,0,0,0]; open.forEach(c=>tiers[tierOf(c)]++);
   const handed=S.calls.filter(c=>S.handed[c.order]&&dateKey(new Date(S.handed[c.order]))===today);
@@ -2187,7 +2145,7 @@ function renderDayView(){
 function wireDayCards(root){
   (root||$("dvTrack")).querySelectorAll("input[data-dv]").forEach(cb=>cb.onchange=()=>{
     const o=cb.dataset.dv;
-    if(cb.checked){ S.done[o]=new Date().toISOString(); const c=S.calls.find(x=>x.order===o); if(c) recordHistory(c,S.done[o]); }
+    if(cb.checked){ S.done[o]=new Date().toISOString() }
     else delete S.done[o];
     store.set("done",S.done);
     const card=cb.closest(".dv-card"), i=+card.dataset.i, n=DV.stops[i];
@@ -2213,81 +2171,6 @@ $("dvPrev").onclick=()=>dvGo(DV.idx-1,true); $("dvNext").onclick=()=>dvGo(DV.idx
 document.addEventListener("keydown",e=>{ if(!$("dayView").classList.contains("show")) return; if(e.key==="Escape") closeDayView(); if(e.key==="ArrowRight") dvGo(DV.idx+1,true); if(e.key==="ArrowLeft") dvGo(DV.idx-1,true); });
 window.addEventListener("resize",()=>{ if($("dayView").classList.contains("show")) dvGo(DV.idx,false); });
 
-function recordHistory(c, at){
-  const s=S.stores[c.store]||{}, prev=S.history[c.order];
-  S.history[c.order]={rcv:prev&&prev.src?(prev.rcv||prev.at):(prev&&prev.rcv)||"", o:c.order, s:c.store, city:s.city||"", d:c.desc, p:c.prioLabel, due:c.due?c.due.toISOString():"", at:at||new Date().toISOString(), sn:c.serial||""};
-  // keep about 13 months
-  const cut=Date.now()-400*864e5; Object.keys(S.history).forEach(k=>{ if(Date.parse(S.history[k].at)<cut) delete S.history[k]; });
-  store.set("history",S.history);
-}
-// Past calls from Companion: [order, store, severity, received (seconds), description]
-function importPastCalls(rows){
-  const cut=Date.now()-400*864e5; let added=0, old=0;
-  rows.forEach(r=>{ const [o,s,sev,t,desc]=r, at=new Date((+t||0)*1000);
-    if(!o||!/^\d{6,12}$/.test(String(o))||isNaN(at)) return;
-    if(at.getTime()<cut){ old++; return; }
-    const h=S.history[o];
-    if(h){ if(h.src==="sap" && at.getTime()<Date.parse(h.at)){ h.at=at.toISOString(); h.src="sms"; added++; } return; }   // same call, the text came first
-    const st=S.stores[String(s)]||{};
-    S.history[o]={o:String(o), s:String(s), city:st.city||"", d:String(desc||"").slice(0,200), p:"Sev "+(sev||"?"), due:"", at:at.toISOString(), sn:"", src:"sms"}; added++; });
-  store.set("history",S.history);
-  $("savedNote").textContent=`Added ${added} past call${added===1?"":"s"} to History`+(old?` (${old} older than 400 days skipped)`:"")+".";
-  render();
-  if(added){ openHistory(); const newest=new Date(Math.max(...rows.map(r=>+r[3]||0))*1000); histMonth=new Date(newest.getFullYear(),newest.getMonth(),1); renderHistory(); }
-}
-// Every call loaded from SAP (IW49) or a dispatch text goes into History the first time it's seen,
-// so History continues where Companion's past dispatch texts leave off. Marking it Done updates the entry.
-function logImported(calls){
-  const now=new Date().toISOString(); let n=0;
-  calls.forEach(c=>{ if(!c.order||S.history[c.order]) return; const s=S.stores[c.store]||{};
-    S.history[c.order]={o:c.order, s:c.store, city:s.city||"", d:c.desc, p:c.prioLabel, due:c.due?c.due.toISOString():"", at:now, sn:c.serial||"", src:c.status==="SMS"?"sms":"sap"}; n++; });
-  if(n) store.set("history",S.history);
-  return n;
-}
-function backfillHistory(){ let n=0; S.calls.forEach(c=>{ if(S.done[c.order] && !S.history[c.order]){ recordHistory(c,S.done[c.order]); n++; } }); return n; }
-let histMonth=null, histSel=null;
-function openHistory(){ const d=new Date(); histMonth=new Date(d.getFullYear(),d.getMonth(),1); histSel=null; renderHistory(); $("histDlg").classList.add("show"); }
-function histDayText(k,items){
-  const d=new Date(k+"T12:00:00");
-  return `${d.toLocaleDateString(undefined,{weekday:"short",month:"numeric",day:"numeric"})}: ${items.length} call${items.length>1?"s":""}\n`+
-    items.map(x=>`• ${new Date(x.at).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})} Store ${x.s}${x.city?" – "+x.city:""}: ${x.d} (#${x.o})`).join("\n");
-}
-function renderHistory(){
-  const y=histMonth.getFullYear(), m=histMonth.getMonth();
-  $("histTitle").textContent=histMonth.toLocaleDateString(undefined,{month:"long",year:"numeric"});
-  const byDay={};
-  Object.values(S.history).forEach(x=>{ const t=new Date(x.at); if(t.getFullYear()===y&&t.getMonth()===m){ const k=dateKey(t); (byDay[k]=byDay[k]||[]).push(x); } });
-  Object.values(byDay).forEach(a=>a.sort((p,q)=>q.at.localeCompare(p.at)));
-  const total=Object.values(byDay).reduce((n,a)=>n+a.length,0), days=Object.keys(byDay).length;
-  const nDone=Object.values(byDay).reduce((n,a)=>n+a.filter(x=>!x.src).length,0);
-  $("histSum").textContent= total ? `${total} call${total>1?"s":""} on ${days} day${days>1?"s":""} · ${nDone} marked done` : "No calls this month";
-  const first=new Date(y,m,1).getDay(), dim=new Date(y,m+1,0).getDate(), today=dateKey(new Date());
-  let cal=["Su","Mo","Tu","We","Th","Fr","Sa"].map(d=>`<span class="dw">${d}</span>`).join("")+"<span></span>".repeat(first);
-  for(let d=1; d<=dim; d++){ const k=dateKey(new Date(y,m,d)), n=(byDay[k]||[]).length;
-    cal+=`<button data-k="${k}" class="${n?"":"none"}${k===today?" today":""}${k===histSel?" sel":""}" ${n?"":"disabled"} aria-label="${n} calls on ${k}">${d}${n?`<span class="n">${n}</span>`:""}</button>`; }
-  $("histCal").innerHTML=cal;
-  $("histCal").querySelectorAll("button[data-k]").forEach(b=>b.onclick=()=>{ histSel=b.dataset.k; renderHistory(); const el=document.getElementById("hd-"+histSel); if(el) el.scrollIntoView({block:"start",behavior:"smooth"}); });
-  const keys=Object.keys(byDay).sort().reverse();
-  $("histList").innerHTML = keys.length ? keys.map(k=>{
-    const d=new Date(k+"T12:00:00"), items=byDay[k];
-    return `<div class="hday" id="hd-${k}"><span>${d.toLocaleDateString(undefined,{weekday:"long",month:"short",day:"numeric"})} · ${items.length}</span><button data-copy="${k}">Copy day</button></div>`+
-      items.map(x=>`<div class="hitem"><span class="t">${new Date(x.at).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}</span><div><b>${esc(x.d)}</b><div class="m">${x.src==="sms"?'<span class="smstag">From dispatch text</span> ':x.src==="sap"?'<span class="smstag">From SAP</span> ':'<span class="smstag">Done ✓</span> '}Store ${esc(x.s)}${x.city?" · "+esc(x.city):""} · ${esc(x.p||"")} · Order <a class="ord" href="${ORDER_HREF(x.o)}"${orderTarget()}>${esc(x.o)}</a></div></div></div>`).join("");
-  }).join("") : `<p class="hint" style="padding:12px">Calls you load from SAP or mark Done appear here, grouped by day. Past dispatch texts from Companion: use Import Companion file below.</p>`;
-  $("histList").querySelectorAll("[data-copy]").forEach(b=>b.onclick=()=>{ const k=b.dataset.copy, t=histDayText(k,byDay[k]), done=()=>$("histMsg").textContent="Day copied.";
-    if(navigator.clipboard) navigator.clipboard.writeText(t).then(done,()=>fallbackCopy(t,done)); else fallbackCopy(t,done); });
-  const now=new Date(); $("histNext").disabled = y>now.getFullYear() || (y===now.getFullYear() && m>=now.getMonth());
-}
-$("histBtn").onclick=openHistory;
-$("histPrev").onclick=()=>{ histMonth=new Date(histMonth.getFullYear(),histMonth.getMonth()-1,1); histSel=null; renderHistory(); };
-$("histNext").onclick=()=>{ histMonth=new Date(histMonth.getFullYear(),histMonth.getMonth()+1,1); histSel=null; renderHistory(); };
-$("histClose").onclick=()=>$("histDlg").classList.remove("show");
-$("histFile").onclick=()=>{ $("histFileIn").value=""; $("histFileIn").click(); };
-$("histFileIn").onchange=async()=>{ const f=$("histFileIn").files[0]; if(!f) return;
-  try{ const {d,packed}=await readTransfer(await f.text());
-    if(!Array.isArray(d.h)){ $("histMsg").textContent="That file isn't a Companion calls export."; return; }
-    $("histDlg").classList.remove("show"); track("import-companion-file"); offerSync(d,packed,true);
-  }catch(e){ $("histMsg").textContent="Couldn't read that file. Choose the Companion-calls file from Companion's email."; } };
-$("histDlg").onclick=e=>{ if(e.target.id==="histDlg") $("histDlg").classList.remove("show"); };
 
 // ---------- usage counts (anonymous) and Your stats ----------
 // Shared by every version on this device (state, Virginia, company-wide), so a person is counted once.
@@ -2330,7 +2213,6 @@ function renderUsage(){
   $("sentLog").innerHTML = log.length ? log.map(x=>`${esc(new Date(x.t).toLocaleString())} – <b>${esc(x.e.startsWith("users/")?"daily user count, ID "+x.e.slice(6):x.e.split("/").pop())}</b> (${esc(x.e.startsWith("users/")?"":x.e.split("/")[1]+" ")}v${esc(x.v)}, screen ${screen.width}×${screen.height})${x.s?"":IS_MOBILE?" – not sent: offline or counting not set up yet":" – not sent: computers never send usage data"}`).join("<br>") : "Nothing yet.";
   // Completed calls from every version used on this device (each keeps its own list).
   const all={}; try{ for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(/^(rp|rpc|rp-[A-Z]{2})\.history$/.test(k)) Object.assign(all,JSON.parse(localStorage.getItem(k)||"{}")); } }catch(e){}
-  Object.assign(all,S.history||{});
   const h=Object.values(all), cnt=(arr)=>{ const m={}; arr.forEach(k=>m[k]=(m[k]||0)+1); return Object.entries(m).sort((a,b)=>b[1]-a[1]); };
   const byStore=cnt(h.map(x=>x.s)), byDay=cnt(h.map(x=>new Date(x.at).toDateString())), cities=new Set(h.map(x=>x.city).filter(Boolean));
   const month=h.filter(x=>{ const d=new Date(x.at), n=new Date(); return d.getMonth()===n.getMonth()&&d.getFullYear()===n.getFullYear(); }).length;
@@ -2546,15 +2428,6 @@ function applyNewCall(d){
 function offerSync(d, packed, fromPaste){
   if(d.u && (d.v===2 || d.src==="companion")) adoptUid(d.u);   // only your own transfers carry your ID
   if(d.a && d.src==="companion" && (d.rt==="reroute"||d.rt==="keep")){ applyNewCall(d); return; }
-  if(Array.isArray(d.h)){   // past calls from Companion's dispatch texts → History only
-    const n=d.h.length, have=d.h.filter(r=>S.history[String(r[0])]).length;
-    $("recvText").innerHTML=`Add <b>${n} past call${n===1?"":"s"}</b> from Companion to your <b>History</b>?`+(have?` (${have} ${have===1?"is":"are"} already there.)`:"")+` They show on the History calendar by the day the dispatch text arrived. Your current list doesn't change.`;
-    $("recvCopy").style.display="none"; $("recvHint").textContent=""; $("recvYes").textContent="Add to History";
-    $("recvDlg").classList.add("show");
-    $("recvNo").onclick=()=>$("recvDlg").classList.remove("show");
-    $("recvYes").onclick=()=>{ $("recvDlg").classList.remove("show"); importPastCalls(d.h); };
-    return;
-  }
   const count=d.c?d.c.split("\n").length:0;
   if(d.a){
     $("recvText").innerHTML=`Add <b>${count} ${d.src==="companion"?"call":"handed-off call"}${count>1?"s":""}</b>${d.src==="companion"?" from Companion":""} to your list? Your current calls stay.`;
@@ -2675,7 +2548,7 @@ function showBookmarkHelp(){
 // but never while you're typing or have a window open (then a button lets you do it). Calls and settings are kept.
 function liveUpdates(){
   let lastCheck=0;
-  const busy=()=>document.querySelector(".bmk.show,#histDlg.show,#dayView.show")||!$("tour").hidden||/^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement||{}).tagName||"");
+  const busy=()=>document.querySelector(".bmk.show,#dayView.show")||!$("tour").hidden||/^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement||{}).tagName||"");
   const go=v=>{ try{ sessionStorage.setItem("updTried",v); }catch(e){} location.replace(location.pathname+"?v="+encodeURIComponent(v)); };
   const check=async()=>{
     lastCheck=Date.now();
