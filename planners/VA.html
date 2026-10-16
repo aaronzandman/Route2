@@ -786,12 +786,13 @@ const ERRLOG=[];
   window.addEventListener("unhandledrejection",e=>add("Promise: "+((e.reason&&e.reason.message)||e.reason)));
 })();
 // ---------- version ----------
-const APP_VERSION = "4.27";
+const APP_VERSION = "4.28";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const GC_CODE = "";   // GoatCounter site code for anonymous usage counts (blank = nothing is sent)
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["4.28", "Importing your calls from SAP in Companion now sends them straight here and replaces your whole list — no extra tap, and completed calls drop off."],
   ["4.27", "Focused on active calls: the History calendar is removed, and a call's age now comes straight from its due date (exact for Sev 3 and 4), so no past-call log is needed. Importing from SAP replaces your whole call list, so completed calls drop off on their own."],
   ["4.26", "Fix: on very narrow phones the call badges no longer push the page sideways."],
   ["4.25", "Cleaner look: on phones each call shows its description across the full width with priority, past due and status underneath; 7–8 day old calls use a lighter red so solid red always means past due; the route list drops the extra past-due band; Settings is split into Features, Your data & privacy, and About & store data."],
@@ -2427,6 +2428,11 @@ function applyNewCall(d){
 }
 function offerSync(d, packed, fromPaste){
   if(d.u && (d.v===2 || d.src==="companion")) adoptUid(d.u);   // only your own transfers carry your ID
+  if(d.ov && d.src==="companion"){   // SAP import from Companion: replace the whole list, no prompt
+    const n=d.c?d.c.split("\n").filter(Boolean).length:0;
+    $("callsInput").value=d.c||""; $("loadBtn").click();
+    render(); $("savedNote").textContent="Replaced from Companion (SAP)."; toast(`${n} call${n===1?"":"s"} from SAP — your list was replaced.`); return;
+  }
   if(d.a && d.src==="companion" && (d.rt==="reroute"||d.rt==="keep")){ applyNewCall(d); return; }
   const count=d.c?d.c.split("\n").length:0;
   if(d.a){
