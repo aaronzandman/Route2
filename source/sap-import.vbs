@@ -19,6 +19,8 @@
 
 Option Explicit
 
+Const MACRO_VERSION = "1.0"
+
 ' Set to False if you'd rather open your IW49N list yourself before running this.
 Const RUN_IW49N = True
 Const ORDER_TYPE = "ZSM4"                               ' predefined order type for the IW49N selection
@@ -78,7 +80,7 @@ If RUN_IW49N Then
   Dim wc : wc = InputBox( _
     "Operation Work Center range to pull (Order Type " & ORDER_TYPE & ")." & vbCrLf & vbCrLf & _
     "Examples:   20E-20F   (a range)      20E   (one center)" & vbCrLf & _
-    "Leave blank for all work centers.", "Route Planner – Work Center", savedWC)
+    "Leave blank for all work centers.", "Route Planner – Work Center  (v" & MACRO_VERSION & ")", savedWC)
 
   ' Offer to save it as the new default when it changed (ignore a blank, e.g. if you pressed Cancel).
   If wc <> "" And wc <> savedWC Then
@@ -182,7 +184,7 @@ SetClipboard rowsText
 
 MsgBox "Copied " & nLines & " call(s)." & vbCrLf & vbCrLf & _
        "Now open the Route Planner, click the 'Paste service call rows' box, press Ctrl+V, " & _
-       "and select Load calls. Your whole list is replaced.", vbInformation, "Copy calls to Route Planner"
+       "and select Load calls. Your whole list is replaced.", vbInformation, "Copy calls to Route Planner  v" & MACRO_VERSION
 WScript.Quit
 
 ' ============================================================================

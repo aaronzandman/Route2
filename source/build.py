@@ -61,7 +61,9 @@ open("version.json","w").write(json.dumps({"version":VER,"editions":[("ALL" if e
 B={"version":VER,"template":template,"editions":[{k:e[k] for k in("code","title","file","stores","note","block","size")} for e in E]}
 # SAP desktop import macro + guide, offered as downloads on the landing page.
 try:
-    B["sap"]={"vbsName":"Import_to_RoutePlanner.vbs","vbs":open('source/sap-import.vbs',encoding='utf-8').read(),
+    _vbs=open('source/sap-import.vbs',encoding='utf-8').read()
+    _mv=re.search(r'Const MACRO_VERSION = "([0-9.]+)"',_vbs)
+    B["sap"]={"vbsName":"Import_to_RoutePlanner.vbs","vbs":_vbs,"version":(_mv.group(1) if _mv else ""),
               "guideName":"Route Planner SAP import - setup.txt","guide":open('source/sap-import-setup.txt',encoding='utf-8').read()}
 except FileNotFoundError:
     pass
