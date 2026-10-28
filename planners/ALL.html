@@ -786,12 +786,13 @@ const ERRLOG=[];
   window.addEventListener("unhandledrejection",e=>add("Promise: "+((e.reason&&e.reason.message)||e.reason)));
 })();
 // ---------- version ----------
-const APP_VERSION = "4.28";
+const APP_VERSION = "4.29";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const GC_CODE = "";   // GoatCounter site code for anonymous usage counts (blank = nothing is sent)
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["4.29", "Desktop SAP import: a SAP GUI macro can push your IW49N list straight into the online planner and replace your whole list, no copy-paste. (Opens the planner with the calls already loaded.)"],
   ["4.28", "Importing your calls from SAP in Companion now sends them straight here and replaces your whole list — no extra tap, and completed calls drop off."],
   ["4.27", "Focused on active calls: the History calendar is removed, and a call's age now comes straight from its due date (exact for Sev 3 and 4), so no past-call log is needed. Importing from SAP replaces your whole call list, so completed calls drop off on their own."],
   ["4.26", "Fix: on very narrow phones the call badges no longer push the page sideways."],
@@ -3907,6 +3908,22 @@ async function receiveSync(){
   store.set("syncParts",null);
   offerSync(d,packed,false);
 }
+// Direct SAP desktop import: a macro (SAP GUI Scripting) opens this planner with #sap=<base64url rows> and the whole
+// call list is replaced from it — the same rows the "Paste from SAP" box accepts. No deflate, so a macro can build it.
+function receiveSap(){
+  const m=/^#sap=(.+)$/i.exec(location.hash);
+  if(!m) return false;
+  history.replaceState(null,"",location.pathname+location.search);   // keep the data out of the address bar and history
+  let text;
+  try{ text=new TextDecoder().decode(b64u.dec(decodeURIComponent(m[1].trim()))); }
+  catch(e){ try{ text=new TextDecoder().decode(b64u.dec(m[1].trim())); }catch(e2){ toast("That SAP import link wasn't readable."); return true; } }
+  const n=text.split(/\r?\n/).filter(s=>s.trim()).length;
+  if(!n){ toast("No calls in that SAP import."); return true; }
+  $("callsInput").value=text; $("loadBtn").click(); render();
+  $("savedNote").textContent="Replaced from SAP (desktop import).";
+  toast(`${n} call${n===1?"":"s"} from SAP — your list was replaced.`);
+  return true;
+}
 let installPrompt=null;
 window.addEventListener("beforeinstallprompt",e=>{ e.preventDefault(); installPrompt=e; });
 window.addEventListener("appinstalled",()=>{ installPrompt=null; const b=$("instBtn"); if(b) b.style.display="none"; $("savedNote").textContent="Installed. Open Route Planner from your home screen or apps."; });
@@ -4040,13 +4057,14 @@ setupMode();
 setupFeedback();
 setupPaste(); setupSettings(); setupHandoff();
 // A transfer link can also arrive while the planner is already open (e.g. sent from Companion): handle it then too.
-window.addEventListener("hashchange",()=>{ if(IS_ONLINE && /^#sync=/.test(location.hash)) receiveSync(); });
+window.addEventListener("hashchange",()=>{ if(/^#sap=/.test(location.hash)) receiveSap(); else if(IS_ONLINE && /^#sync=/.test(location.hash)) receiveSync(); });
 $("replanBtn").onclick=replanHere; $("dvReplan").onclick=replanHere;
 $("eodBtn").onclick=openEOD; $("eodClose").onclick=()=>$("eodDlg").classList.remove("show");
 $("eodCopy").onclick=()=>copyText($("eodText").value,"Summary copied.");
 $("eodMail").onclick=()=>outlookCompose(`End of day – ${new Date().toLocaleDateString()}`,$("eodText").value);
 $("eodDlg").onclick=e=>{ if(e.target.id==="eodDlg") $("eodDlg").classList.remove("show"); };
-if(IS_ONLINE) receiveSync();
+window.__sapImport = receiveSap();
+if(IS_ONLINE && !window.__sapImport) receiveSync();
 $("colList").innerHTML=COLS.map((n,i)=>`<span>${i+1}</span><span>${esc(n)}</span>`).join("");
 $("verTag").textContent="v"+APP_VERSION;
 $("appName").textContent=EDITION.name;
@@ -4128,7 +4146,7 @@ $("tourSkip").onclick=endTour;
 document.addEventListener("keydown",e=>{ if($("tour").hidden) return; if(e.key==="Escape") endTour(); else if(e.key==="ArrowRight") $("tourNext").click(); else if(e.key==="ArrowLeft") $("tourBack").click(); });
 dailyUsage();
 // Show automatically: after an update, or once for a first-time user. Not over a transfer being received.
-if(!/sync=/.test(location.hash)){
+if(!/sync=/.test(location.hash) && !window.__sapImport){
   if(S.wnPrev && newer(APP_VERSION,S.wnPrev)) showWhatsNew(S.wnPrev,false);
   else if(!S.wnPrev && !saved && !store.get("tourSeen",null)) showWhatsNew(null,true);
 }
