@@ -209,7 +209,7 @@ Function FindGrid(node)
     Set FindGrid = node
     Exit Function
   End If
-  Dim kids
+  Dim kids : Set kids = Nothing   ' leaf controls have no .Children; keep it a valid object ref for "Is Nothing"
   On Error Resume Next
   Set kids = node.Children
   On Error GoTo 0
