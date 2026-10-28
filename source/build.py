@@ -59,6 +59,12 @@ for e in E:
                  {"src":"../icons/icon-maskable-512.png","sizes":"512x512","type":"image/png","purpose":"maskable"}]},indent=1))
 open("version.json","w").write(json.dumps({"version":VER,"editions":[("ALL" if e["code"]=="ALL" else e["code"]) for e in E]}))
 B={"version":VER,"template":template,"editions":[{k:e[k] for k in("code","title","file","stores","note","block","size")} for e in E]}
+# SAP desktop import macro + guide, offered as downloads on the landing page.
+try:
+    B["sap"]={"vbsName":"Import_to_RoutePlanner.vbs","vbs":open('source/sap-import.vbs',encoding='utf-8').read(),
+              "guideName":"Route Planner SAP import - setup.txt","guide":open('source/sap-import-setup.txt',encoding='utf-8').read()}
+except FileNotFoundError:
+    pass
 payload=json.dumps(B,separators=(',',':')).replace('<','\\u003c')
 tag='<script type="application/json" id="bundle">'
 # Download pages get the new bundle: index.html (GitHub Pages / offline download page) and

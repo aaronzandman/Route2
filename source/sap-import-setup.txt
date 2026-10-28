@@ -1,0 +1,56 @@
+ROUTE PLANNER - SAP DESKTOP IMPORT (MACRO)
+
+This pushes your call list straight from SAP GUI (SAP Logon 800) into the
+online Route Planner - no copy and paste.
+
+WHAT IT DOES
+  1. You sign into SAP and open your call list (IW49N).
+  2. You run the macro (double-click Import_to_RoutePlanner.vbs).
+  3. Edge opens the Route Planner with your calls already loaded - the whole
+     list is replaced.
+
+The macro reads the list already on your SAP screen and opens a web link.
+Nothing is sent anywhere except the Route Planner page in your own browser.
+
+----------------------------------------------------------------------
+ONE-TIME SETUP
+
+1) TURN ON SAP GUI SCRIPTING (required)
+   - On your PC: SAP Logon -> Options (Alt+F12) -> Accessibility & Scripting
+     -> Scripting -> tick "Enable scripting". Un-tick both "Notify when a
+     script..." boxes so it doesn't prompt every time.
+   - On the server: this needs profile parameter sapgui/user_scripting = TRUE.
+     If scripting stays greyed out or you get "Scripting is disabled by the
+     server", Basis/IT has to switch it on (a quick RZ11 change).
+
+   10-SECOND TEST: press Alt+F12 in SAP. If "Script Recording and Playback"
+   opens and the red Record button works, scripting is on. If it's missing or
+   greyed, it's off.
+
+2) SAVE THE MACRO
+   Put Import_to_RoutePlanner.vbs somewhere handy - the Desktop is fine.
+
+----------------------------------------------------------------------
+USING IT EACH DAY
+  1. Sign into SAP Logon (system 800).
+  2. Run IW49N and let your call list display (your usual selection/variant).
+  3. Double-click Import_to_RoutePlanner.vbs.
+     -> Edge opens and the Route Planner loads with your calls; old list replaced.
+
+Tip: right-click the .vbs -> Send to -> Desktop (create shortcut), or pin the
+shortcut to your taskbar, for one-click use.
+
+----------------------------------------------------------------------
+IF SOMETHING DOESN'T WORK
+The macro shows a short message naming the step that failed:
+  - "SAP GUI isn't running / scripting can't reach it" -> scripting is off
+    (do step 1), or SAP isn't open.
+  - "No service-order list found" -> run IW49N and let the list display first.
+  - "Couldn't find the Order column" -> your IW49N layout names columns
+    differently. Note the column titles across the top of the list.
+
+GOOD TO KNOW
+  - It reads whatever list is on screen, so you can filter/sort in IW49N first
+    and only the rows you see get imported.
+  - It replaces the Planner's whole list each time, so completed calls drop off.
+  - Desktop only (SAP GUI). It is not for phones.
