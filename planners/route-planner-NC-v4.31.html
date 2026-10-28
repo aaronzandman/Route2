@@ -405,6 +405,7 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
       <span id="modeActions"></span>
       <button class="hbtn" id="wnBtn" type="button">✨ What's new</button>
       <button class="hbtn" id="tourBtn" type="button">🧭 Quick tour</button>
+      <button class="hbtn" id="tcBtn" type="button">🕑 SAP time check</button>
       <button class="hbtn" id="setBtn" type="button">⚙ Settings</button>
       <button class="hbtn" id="fbBtn" type="button">💬 Feedback</button>
     </div>
@@ -471,6 +472,26 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
     <label class="hint" style="display:flex;gap:6px;justify-content:center;align-items:center;margin:4px 0"><input type="checkbox" id="smallCodes"> Smaller codes (easier to scan, but more of them)</label>
     <p class="hint" style="margin:0 0 8px">Point your phone's camera at the code and tap the link. Your calls travel only inside the code, from this screen to your phone. Nothing is uploaded.</p>
     <div class="row" style="justify-content:center"><button id="sendPrev">◀ Previous</button><button class="primary" id="sendNext">Next code ▶</button><button id="sendClose">Close</button></div>
+  </div>
+</div>
+<div class="bmk" id="tcDlg" role="dialog" aria-modal="true" aria-labelledby="tcTitle">
+  <div class="box" style="max-width:720px;max-height:96vh;overflow:auto">
+    <h3 id="tcTitle">SAP time check (IW47)</h3>
+    <p class="hint" style="margin:2px 0 6px">In SAP, run your <b>IW47</b> confirmations report for the week, select the rows and copy (Ctrl+C), then paste here. Reversed/deleted entries cancel out automatically.</p>
+    <textarea id="tcInput" placeholder="Paste your IW47 export here" style="width:100%;min-height:90px;font:12px/1.3 monospace"></textarea>
+    <div class="row" style="margin:6px 0"><button class="primary" id="tcMake">Check &amp; make barcode</button><button id="tcClear">Clear</button></div>
+    <div class="msg" id="tcMsg"></div>
+    <div id="tcResult" hidden>
+      <div id="tcSummary" class="hint" style="margin:4px 0"></div>
+      <div id="tcTable" style="overflow:auto;max-height:34vh;margin:4px 0"></div>
+      <div style="text-align:center;border-top:1px solid var(--line);margin-top:8px;padding-top:8px">
+        <p class="hint" style="margin:0 0 4px">Scan this with Companion (Time check) to compare against the time you tracked.</p>
+        <canvas id="tcQR" style="width:min(340px,80vw);height:auto;image-rendering:pixelated;border-radius:6px"></canvas>
+        <p id="tcStep" style="font-weight:700;margin:6px 0 2px"></p>
+        <div class="row" style="justify-content:center"><button id="tcPrev">◀ Previous</button><button id="tcNext">Next code ▶</button></div>
+      </div>
+    </div>
+    <div class="row" style="justify-content:flex-end;margin-top:8px"><button id="tcClose">Close</button></div>
   </div>
 </div>
 <div class="bmk" id="setDlg" role="dialog" aria-modal="true" aria-labelledby="setTitle">
@@ -787,12 +808,13 @@ const ERRLOG=[];
   window.addEventListener("unhandledrejection",e=>add("Promise: "+((e.reason&&e.reason.message)||e.reason)));
 })();
 // ---------- version ----------
-const APP_VERSION = "4.30";
+const APP_VERSION = "4.31";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const GC_CODE = "";   // GoatCounter site code for anonymous usage counts (blank = nothing is sent)
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["4.31", "🕑 SAP time check (☰ Menu): paste your IW47 confirmations, see logged hours per store per day (reversed entries cancel out), and make a barcode that Companion scans to flag time you tracked but didn't log."],
   ["4.30", "📋 Paste from SAP button on Import calls: copy your active calls in SAP (Ctrl+C), then one tap reads the clipboard and loads them — no pasting into the box."],
   ["4.29", "Desktop SAP import: a SAP GUI macro can push your IW49N list straight into the online planner and replace your whole list, no copy-paste. (Opens the planner with the calls already loaded.)"],
   ["4.28", "Importing your calls from SAP in Companion now sends them straight here and replaces your whole list — no extra tap, and completed calls drop off."],
@@ -861,87 +883,76 @@ const CHANGELOG = [
   ["1.0", "Import calls, group by store, filters, route ordering, Google Maps directions."]
 ];
 // ===EDITION-START===
-const EDITION = {id:"local", name:"Service Route Planner – Virginia", key:"rp.", resetLabel:"Restore defaults"};
-const DEFAULT_GROUPS = `P1566	B
-P1587	B
-P1588	C
-P1589	B
-P1590	B
-P1591	B
-P1592	D
-P1593	C
-P1594	D
-P1595	B
-P1596	C
-P1615	F
-P1626	C
-P1632	A
-P1635	E
-P1636	D
-P1643	D
-P1679	D
-P1694	D
-P1720	A
-P1883	E
-P1885	A
-P2025	E
-P2030	E
-P2032	E`;
-
-const DEFAULT_STORES = `Store number	Division	Shopping center	Address	City	State	Zip code	County	Phone	Square footage	Ad day	Open date
-1566	Charlotte	Nuckols Place	5400 Wyndham Forest Dr	Glen Allen	VA	23059	Henrico	804-527-5334	54191	Wednesday	7/15/2017
-1587	Charlotte	Short Pump Crossing Shopping Center	3460 Pump Rd	Henrico	VA	23233-1111	Henrico	804-364-6314	63331	Wednesday
-1588	Charlotte	Carytown Exchange	3535 Ellwood Ave	Richmond	VA	23221	Richmond (Independent City)	804-253-6372	45600	Wednesday	12/9/2020
-1589	Charlotte	The Shoppes At Crossridge	10250 Staples Mill Rd	Glen Allen	VA	23060-3064	Henrico	804-755-2360	51487	Wednesday	7/29/2017
-1590	Charlotte	John Rolfe Commons	2250 John Rolfe Pkwy	Henrico	VA	23233-6913	Henrico	804-360-4920	56680	Wednesday	8/19/2017
-1591	Charlotte	Virginia Center Marketplace	10150 Brook Rd	Glen Allen	VA	23059-6514	Henrico	804-262-8190	63300	Wednesday
-1592	Charlotte	Harbour Pointe Shopping Center	13700 Hull Street Rd	Midlothian	VA	23112-2000	Chesterfield	804-739-1160	63557	Wednesday	11/4/2017
-1593	Charlotte	The Village Shopping Center	7035 Three Chopt Rd	Richmond	VA	23226	Henrico	804-288-1070	47395	Wednesday	8/28/2019
-1594	Charlotte	Colonial Square Shopping Center	3007 Boulevard	Colonial Heights	VA	23834-2445	Colonial Heights (Independent City)	804-520-4520	63100	Wednesday	11/1/2017
-1595	Charlotte	Westpark Shopping Center	9645 W Broad St	Glen Allen	VA	23060	Henrico	804-965-6303	49300	Wednesday	5/29/2019
-1596	Charlotte	White Oak Village	4591 S Laburnum Ave	Richmond	VA	23231-2421	Henrico	804-226-1915	61069	Wednesday	8/5/2017
-1626	Charlotte	Brandy Creek Commons	6603 Mechanicsville Tpke	Mechanicsville	VA	23111	Hanover	804-569-3902	50160	Wednesday	1/5/2019
-1632	Charlotte	Publix At Cosner's Corner	9601 Patriot Hwy	Fredericksburg	VA	22407	Spotsylvania	540-898-6801	49098	Wednesday	7/25/2018
-1635	Charlotte	Monticello Marketplace	4660 Monticello Ave	Williamsburg	VA	23188	James City	757-564-5902	62901	Wednesday
-1636	Charlotte	The Shops At Stratford Hills	7045 Forest Hill Ave	Richmond	VA	23225	Richmond (Independent City)	804-323-4110	54400	Wednesday	7/25/2018
-1643	Charlotte	Cosby Village	7200 Cosby Village Rd	Chesterfield	VA	23832	Chesterfield	804-639-6525	50280	Wednesday
-1679	Charlotte	Huguenot Village	2015 Huguenot Rd	North Chesterfield	VA	23235	Chesterfield	804-330-3704	49533	Wednesday	8/26/2020
-1694	Charlotte	Charter Colony Shopping Center	200 Charter Colony Pkwy	Midlothian	VA	23114	Chesterfield	804-378-3222	48387	Wednesday	6/10/2020
-1720	Charlotte	Embrey Mill Town Center	1640 Publix Way	Stafford	VA	22554	Stafford	540-288-9280	48387	Wednesday
-1883	Charlotte	Publix At Planters Station	3189 Godwin Blvd	Suffolk	VA	23434-8694	Suffolk (Independent City)	757-942-6032	46791	Wednesday
-1885	Charlotte	Chancellor Crossing	5940 Plank Rd	Fredericksburg	VA	22407-6232	Spotsylvania	540-736-6013	48387	Wednesday
-2025	Charlotte	Bartlett Station	22449 Spadea Way	Carrollton	VA	23314	Isle Of Wight	757-542-6041	48387	Wednesday	1/15/2025
-2030	Charlotte	Hickman Place	2200 General Booth Blvd	Virginia Beach	VA	23454	Virginia Beach (Independent City)	757-716-6015	49235	Wednesday
-2032	Charlotte	Dominion Station	1620 Cedar Rd STE 100	Chesapeake	VA	23322-7197	Chesapeake (Independent City)	757-550-6044	48387	Wednesday	4/23/2025
-1615	Charlotte	Publix At First Flight Square	1530 N Croatan Hwy	Kill Devil Hills	NC	27948	Dare	252-255-5006	45600	Wednesday	2/28/2018`;
-
-// Map positions from the company store list, used for mileage estimates and ordering.
-const DEFAULT_COORDS = `1566	37.68397	-77.586555
-1587	37.648952	-77.615845
-1588	37.5569	-77.48806
-1589	37.656944	-77.525856
-1590	37.62254	-77.62402
-1591	37.675133	-77.4631
-1592	37.410347	-77.65613
-1593	37.590977	-77.53272
-1594	37.268887	-77.41047
-1595	37.640015	-77.56325
-1596	37.525627	-77.35183
-1626	37.6109	-77.33578
-1632	38.219112	-77.50658
-1635	37.27248	-76.758385
-1636	37.534405	-77.52457
-1643	37.40154	-77.70873
-1679	37.519875	-77.612816
-1694	37.50507	-77.65897
-1720	38.426	-77.43402
-1883	36.786213	-76.59072
-1885	38.291405	-77.57935
-2025	36.94319	-76.53447
-2030	36.76458	-76.01289
-2032	36.728184	-76.299904
-1615	36.027336	-75.671135`;
-
+const EDITION = {id:"state-NC", name:"Service Route Planner \u2013 North Carolina", key:"rp-NC.", resetLabel:"Restore North Carolina store list", groupBy:"city"};
+const DEFAULT_GROUPS = ``;
+const DEFAULT_STORES = `Store #	Shopping Center	Address	City	State	Zip	Phone	Latitude	Longitude
+1442	Ballantyne Town Center	11222 Providence Rd W	Charlotte	NC	28277	(704) 716-2344	35.04258	-80.84965
+1453	Shops at Southline	2222 South Blvd	Charlotte	NC	28203-6581	(704) 373-2122	35.206657	-80.86254
+1466	Bradford	1020 Bradford Plaza Way	Cary	NC	27519	(919) 460-2082	35.793247	-78.8448
+1470	Mint Hill Commons	6828 Matthews Mint Hill Rd	Mint Hill	NC	28227-9324	(704) 573-0234	35.17094	-80.65955
+1473	Pinnacle Point	1830 Hendersonville Rd	Asheville	NC	28803-3207	(828) 274-6287	35.5049	-82.52241
+1474	Magnolia Plaza	8315 Magnolia Estates Dr	Cornelius	NC	28031-7837	(704) 895-7057	35.475414	-80.88894
+1475	Publix at Miller Street	34 Miller St	Winston-Salem	NC	27104-4212	(336) 724-3707	36.094845	-80.27575
+1480	Whitehall Commons	8120 S Tryon St	Charlotte	NC	28273-3325	(704) 583-2323	35.14604	-80.929794
+1481	Market Square	9815 Rose Commons Dr	Huntersville	NC	28078-3334	(704) 948-4801	35.40851	-80.864296
+1483	Steele Creek Crossing	12810 S Tryon St	Charlotte	NC	28273-6949	(704) 587-0339	35.104816	-80.98803
+1484	McKee Farms	3110 Fincher Farm Rd	Matthews	NC	28105-5462	(704) 814-6001	35.082245	-80.729935
+1490	Willow Oaks Crossing	5015 Weddington Rd	Concord	NC	28027	(704) 795-7127	35.396206	-80.66127
+1509	Prosperity Village Square	10110 Benfield Rd	Charlotte	NC	28269	(704) 992-6951	35.3748	-80.788574
+1514	The Shoppes at Heritage Village	1030 Forestville Rd	Wake Forest	NC	27587	(919) 556-6671	35.945904	-78.50794
+1516	Publix at Pine Valley	716 Bragg Dr	Wilmington	NC	28412	(910) 313-2201	34.180668	-77.89324
+1518	Cotswold	4425 Randolph Rd	Charlotte	NC	28211	(704) 367-5208	35.1778	-80.7994
+1519	Brawley Commons	631 Brawley School Rd	Mooresville	NC	28117-6204	(704) 660-6800	35.581768	-80.87465
+1520	Millpond Village	3480 Kildaire Farm Rd	Cary	NC	27518-1541	(919) 303-4024	35.70501	-78.797
+1521	Hoffman Village	1949 Hoffman Rd	Gastonia	NC	28054-6574	(704) 853-7000	35.225433	-81.132645
+1533	River Place	2004 S Glenburnie Rd	New Bern	NC	28562-5227	(252) 634-1646	35.100266	-77.10051
+1539	North Pointe Shopping Center	134 Venture Ln	Statesville	NC	28625	(704) 878-4073	35.818302	-80.87841
+1544	Publix Pointe	1441 Kelly Rd	Apex	NC	27502	(919) 303-6200	35.737526	-78.89342
+1546	Weaverville Plaza	165 Weaver Blvd	Weaverville	NC	28787	(828) 658-1020	35.705868	-82.568794
+1548	Publix at Three Creeks	1620 Blowing Rock Rd	Boone	NC	28607	(828) 263-8126	36.19921	-81.66139
+1550	Lake Hickory Crossings	36 29th Ave NE	Hickory	NC	28601-1100	(828) 322-3675	35.769314	-81.32824
+1551	Leesville Market Place	9640 Leesville Rd	Raleigh	NC	27613	(919) 848-3480	35.90569	-78.72725
+1552	Amberly Place	425 Emissary Dr	Cary	NC	27519	(919) 388-7201	35.825207	-78.90321
+1555	Harris Square	4055 Harris Square Dr	Harrisburg	NC	28075	(704) 454-7832	35.320442	-80.64581
+1556	Shoppes at Hanfield Village	5132 Old Charlotte Hwy	Monroe	NC	28110	(704) 289-6598	35.048042	-80.64222
+1569	Greenville Square	705 Greenville Blvd SE	Greenville	NC	27858	(252) 756-4682	35.588303	-77.370125
+1574	Peace Haven Village	3150 Gammon Ln	Clemmons	NC	27012	(336) 766-2069	36.04019	-80.38912
+1575	Tallywood Shopping Center	3114 Raeford Rd	Fayetteville	NC	28303	(910) 321-0114	35.04692	-78.93146
+1580	Ogden Market Place	7144 Market St	Wilmington	NC	28411	(910) 681-3555	34.271004	-77.81954
+1582	Westchester Square	2005 N Main St Ste 101	High Point	NC	27262	(336) 905-8610	35.981407	-80.024864
+1583	The Village Shoppes	7883 Village Center N	Sherrills Ford	NC	28673	(828) 478-2644	35.584713	-80.98934
+1586	South Market Village	635 Greenville Hwy	Hendersonville	NC	28792	(828) 694-4440	35.305576	-82.45932
+1603	Cambridge Village	513 Brentwood Rd	Denver	NC	28037	(704) 483-7152	35.448223	-80.99328
+1615	Publix at First Flight Square	1530 N Croatan Hwy	Kill Devil Hills	NC	27948	(252) 255-5006	36.027336	-75.671135
+1619	Arboretum at Surf City	2765 NC Hwy 210 E	Hampstead	NC	28443	(910) 329-1000	34.45176	-77.56461
+1623	Egret Landing	8800 Crew Drive	Emerald Isle	NC	28594	(252) 354-2104	34.66231	-77.05169
+1631	Ocean Isle Beach Market Place	1560 Market Place Blvd	Ocean Isle Beach	NC	28469	(910) 393-2059	33.90404	-78.43869
+1640	Waynesville Pavilion	124 Frazier St	Waynesville	NC	28786	(828) 454-5700	35.504246	-82.99398
+1652	Peace	417 W Peace St Ste 100	Raleigh	NC	27603	(919) 755-5444	35.78837	-78.64446
+1658	Grandover Village	6029 W Gate City Blvd	Greensboro	NC	27407	(336) 894-2591	36.000057	-79.90604
+1660	Gateway Marketplace	2001 Marlin Dr Unit 100	Jacksonville	NC	28546	(910) 353-0433	34.79604	-77.40825
+1677	Publix Commons at Federal Point	1018 Lake Park Blvd N Ste 107	Carolina Beach	NC	28428	(910) 458-8615	34.04399	-77.89519
+1703	Oak Island Marketplace	5003 E Oak Island Dr	Oak Island	NC	28465	(910) 278-6785	33.91143	-78.112785
+1704	Marvin Gardens	1615 Providence Rd S	Marvin	NC	28173	(704) 843-0119	34.98699	-80.77168
+1706	Church Street Commons	2750 S Church St	Burlington	NC	27215	(336) 586-1873	36.08065	-79.483215
+1727	Marketplace at Flowers Crossroads	24 Publix Dr	Clayton	NC	27527	(919) 550-2812	35.652176	-78.351944
+1744	Publix at Wendell Falls	2257 Wendell Falls Pkwy	Wendell	NC	27591	(919) 365-7055	35.776608	-78.43507
+1765	North Creek Village	15010 Village Crossing Rd	Huntersville	NC	28078	(704) 977-0021	35.454235	-80.80321
+1817	Marketplace at Ellis Crossing	1065 Yunus Rd	Durham	NC	27703-7200	(919) 598-0245	35.9408	-78.8543
+1824	Publix at Arboretum	7933 Providence Rd	Charlotte	NC	28277	(980) 273-7487	35.099136	-80.77755
+1855	Wallbrook	821 S Main Street	Rolesville	NC	27571-9264	(919) 263-6027	35.906536	-78.4801
+1858	West Edge	5525 Robin Lark Cir	Winston-Salem	NC	27106-9906	(336) 815-6007	36.1205	-80.36928
+1872	Harris Farms Shopping Center	1254 Coddle Creek Hwy	Mooresville	NC	28115	(704) 360-6915	35.561268	-80.78994
+1881	Clear Creek Crossings	12925 Albemarle Rd	Charlotte	NC	28227	(980) 365-7588	35.22505	-80.63641
+1886	Buffaloe Bend	7330 Buffaloe Rd	Raleigh	NC	27616	(919) 679-6584	35.844086	-78.51527
+1888	Latta Park	4628 Guess Rd	Durham	NC	27712-2624	(984) 243-5497	36.078212	-78.930075
+2017	Publix At Quail Commons	11525 Carmel Commons Blvd	Charlotte	NC	28226-5317	(704) 496-5209	35.087196	-80.84484
+2029	Commons at Carolina Shores	9770 Ocean Hwy W	Calabash	NC	28467	(910) 393-4010	33.90847	-78.586439
+2031	Middlecreek Crossings	16100 NC Hwy 50 N	Garner	NC	27529	(919) 334-4539	35.59163	-78.597275
+2101	Rockfish Village	7483 Rockfish Rd	Fayetteville	NC	28306-8075	(910) 912-2926	34.980518	-79.01654
+2105	The Marketplace at Mills River	70 Vance Hill Dr	Mills River	NC	28759	(828) 393-6342	35.402587	-82.567743
+2120	Village Commons	6460 Weddington Rd	Wesley Chapel	NC	28104	(704) 839-5004	34.999227	-80.692369`;
+const DEFAULT_COORDS = ``;
 // ===EDITION-END===
 
 const COLS = ["Order Type","MaintActivType","Basic fin. date","Earliest finish","Priority","Customer","Personnel No.","Activity","Serial Number","Order","Description","Oper.WorkCenter","User status","Material","Location"];
@@ -2380,6 +2391,76 @@ function showSendCode(){
   $("sendPrev").style.display = n>1 ? "" : "none"; $("sendNext").style.display = n>1 ? "" : "none";
   $("sendPrev").disabled = i===0; $("sendNext").disabled = i===n-1;
 }
+// ---------- SAP time check (IW47) ----------
+let tcState={codes:[],i:0};
+function parseIW47(text){
+  const rows=[];
+  (text||"").split(/\r?\n/).forEach(line=>{
+    const order=(line.match(/\b(80\d{7})\b/)||[])[1]; if(!order) return;                 // skip totals / blank lines
+    const dm=line.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/); if(!dm) return;                  // posting/created date
+    const ymd=dm[3]+String(dm[1]).padStart(2,"0")+String(dm[2]).padStart(2,"0");
+    const hm=line.match(/(\d+(?:\.\d+)?)(-)?[ \s]+HR\b/i); if(!hm) return;            // Actual work; trailing "-" = reversal
+    let hrs=parseFloat(hm[1]); if(hm[2]==="-") hrs=-hrs;
+    const sm=line.match(/-(\d{3,5})(?=[ \s]|$)/);                                     // store = Func. Loc. suffix; none = overhead
+    rows.push({ymd,order,hrs,store:sm?sm[1]:""});
+  });
+  return rows;
+}
+function iw47Agg(rows){
+  const dates=[...new Set(rows.map(r=>r.ymd))].sort(), sd={}, ov={};
+  rows.forEach(r=>{ if(r.store){ const k=r.store+"|"+r.ymd; sd[k]=(sd[k]||0)+r.hrs; } else ov[r.ymd]=(ov[r.ymd]||0)+r.hrs; });
+  return {dates, sd, ov};
+}
+const ymdNice=y=>`${+y.slice(4,6)}/${+y.slice(6,8)}`;
+function renderTc(rows){
+  const {dates,sd,ov}=iw47Agg(rows);
+  const stores=[...new Set(rows.filter(r=>r.store).map(r=>r.store))].sort();
+  const total=rows.reduce((a,r)=>a+r.hrs,0), neg=rows.filter(r=>r.hrs<0).length;
+  $("tcSummary").innerHTML=`<b>${rows.length}</b> confirmation line${rows.length===1?"":"s"} · <b>${dates.length}</b> day${dates.length===1?"":"s"} (${ymdNice(dates[0])}–${ymdNice(dates[dates.length-1])}) · logged <b>${total.toFixed(2)} hr</b>`+(neg?` · ${neg} reversed entr${neg===1?"y":"ies"} netted out`:"");
+  const head=`<tr><th style="text-align:left;position:sticky;left:0;background:var(--panel)">Store</th>${dates.map(d=>`<th style="text-align:right;padding:0 6px">${ymdNice(d)}</th>`).join("")}<th style="text-align:right;padding:0 6px">Total</th></tr>`;
+  const cellFmt=v=>v?v.toFixed(2):"·";
+  const body=stores.map(st=>{ let rt=0; const cells=dates.map(d=>{ const v=sd[st+"|"+d]||0; rt+=v; return `<td style="text-align:right;padding:0 6px">${cellFmt(v)}</td>`; }).join(""); return `<tr><td style="position:sticky;left:0;background:var(--panel)">#${st}</td>${cells}<td style="text-align:right;padding:0 6px;font-weight:700">${rt.toFixed(2)}</td></tr>`; }).join("");
+  const ovRow=dates.some(d=>ov[d])?`<tr><td style="position:sticky;left:0;background:var(--panel)">Overhead</td>${dates.map(d=>`<td style="text-align:right;padding:0 6px">${cellFmt(ov[d]||0)}</td>`).join("")}<td style="text-align:right;padding:0 6px;font-weight:700">${dates.reduce((a,d)=>a+(ov[d]||0),0).toFixed(2)}</td></tr>`:"";
+  const totRow=`<tr style="border-top:2px solid var(--line)"><td style="position:sticky;left:0;background:var(--panel);font-weight:700">Total</td>${dates.map(d=>{ let c=ov[d]||0; stores.forEach(st=>c+=sd[st+"|"+d]||0); return `<td style="text-align:right;padding:0 6px;font-weight:700">${c.toFixed(2)}</td>`; }).join("")}<td style="text-align:right;padding:0 6px;font-weight:700">${total.toFixed(2)}</td></tr>`;
+  $("tcTable").innerHTML=`<table style="border-collapse:collapse;font-size:13px;white-space:nowrap">${head}${body}${ovRow}${totRow}</table>`;
+}
+function tcPayload(rows){
+  const {dates,sd,ov}=iw47Agg(rows), di=Object.fromEntries(dates.map((d,i)=>[d,i]));
+  const s=Object.keys(sd).map(k=>{ const [st,ymd]=k.split("|"); return [st,di[ymd],Math.round(sd[k]*100)/100]; }).filter(x=>Math.abs(x[2])>0.001);
+  const o=Object.keys(ov).map(ymd=>[di[ymd],Math.round(ov[ymd]*100)/100]).filter(x=>Math.abs(x[1])>0.001);
+  return {v:1,t:"iw47",d:dates,s,o};
+}
+function showTcCode(){
+  const n=tcState.codes.length, i=tcState.i, q=RouteQR.make(tcState.codes[i],"L");
+  RouteQR.draw($("tcQR"),q,8);
+  $("tcQR").style.width = q.version>20 ? "min(620px,92vw,70vh)" : "min(340px,80vw)";
+  $("tcStep").textContent = n>1 ? `Code ${i+1} of ${n} — scan all in order` : "Scan this code";
+  $("tcPrev").style.display=n>1?"":"none"; $("tcNext").style.display=n>1?"":"none";
+  $("tcPrev").disabled=i===0; $("tcNext").disabled=i===n-1;
+}
+function setupTimeCheck(){
+  const loadQR=()=>new Promise((res,rej)=>{ if(window.RouteQR) return res(); const s=document.createElement("script"); s.src="../qr.js"; s.onload=res; s.onerror=rej; document.head.appendChild(s); });
+  $("tcBtn").onclick=()=>{ $("menu").hidden=true; $("tcDlg").classList.add("show"); };
+  $("tcClose").onclick=()=>$("tcDlg").classList.remove("show");
+  $("tcDlg").onclick=e=>{ if(e.target.id==="tcDlg") $("tcDlg").classList.remove("show"); };
+  $("tcClear").onclick=()=>{ $("tcInput").value=""; $("tcResult").hidden=true; $("tcMsg").textContent=""; };
+  $("tcPrev").onclick=()=>{ if(tcState.i>0){ tcState.i--; showTcCode(); } };
+  $("tcNext").onclick=()=>{ if(tcState.i<tcState.codes.length-1){ tcState.i++; showTcCode(); } };
+  $("tcMake").onclick=async()=>{
+    const rows=parseIW47($("tcInput").value), m=$("tcMsg");
+    if(!rows.length){ m.className="msg err"; m.textContent="No IW47 rows found. Copy the rows from your IW47 report (with the Order, Actual work, and Func. Loc. columns) and paste them here."; $("tcResult").hidden=true; return; }
+    m.textContent=""; m.className="msg"; renderTc(rows); $("tcResult").hidden=false;
+    try{ await loadQR(); }catch(e){ m.className="msg err"; m.textContent="Couldn't load the barcode generator (needs internet the first time)."; return; }
+    try{
+      const data=await zip(JSON.stringify(tcPayload(rows)));
+      const MAX=1100, n=Math.ceil(data.length/MAX), CH=Math.ceil(data.length/n), id=Math.random().toString(36).slice(2,7);
+      tcState={codes:[],i:0};
+      for(let i=0;i<n;i++) tcState.codes.push(`RP47.${id}.${i+1}.${n}.${data.slice(i*CH,(i+1)*CH)}`);
+      showTcCode();
+    }catch(e){ m.className="msg err"; m.textContent="Couldn't build the barcode: "+e.message; }
+  };
+}
+
 function setupSend(){
   let loaded=false;
   const load=()=>new Promise((res,rej)=>{ if(window.RouteQR) return res(); const s=document.createElement("script"); s.src="../qr.js"; s.onload=res; s.onerror=rej; document.head.appendChild(s); });
@@ -2659,7 +2740,7 @@ function layoutSummaries(){
 // ---------- init ----------
 setupMode();
 setupFeedback();
-setupPaste(); setupSettings(); setupHandoff();
+setupPaste(); setupSettings(); setupHandoff(); setupTimeCheck();
 // A transfer link can also arrive while the planner is already open (e.g. sent from Companion): handle it then too.
 window.addEventListener("hashchange",()=>{ if(/^#sap=/.test(location.hash)) receiveSap(); else if(IS_ONLINE && /^#sync=/.test(location.hash)) receiveSync(); });
 $("replanBtn").onclick=replanHere; $("dvReplan").onclick=replanHere;

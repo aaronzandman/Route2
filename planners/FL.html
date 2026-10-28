@@ -405,6 +405,7 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
       <span id="modeActions"></span>
       <button class="hbtn" id="wnBtn" type="button">✨ What's new</button>
       <button class="hbtn" id="tourBtn" type="button">🧭 Quick tour</button>
+      <button class="hbtn" id="tcBtn" type="button">🕑 SAP time check</button>
       <button class="hbtn" id="setBtn" type="button">⚙ Settings</button>
       <button class="hbtn" id="fbBtn" type="button">💬 Feedback</button>
     </div>
@@ -471,6 +472,26 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
     <label class="hint" style="display:flex;gap:6px;justify-content:center;align-items:center;margin:4px 0"><input type="checkbox" id="smallCodes"> Smaller codes (easier to scan, but more of them)</label>
     <p class="hint" style="margin:0 0 8px">Point your phone's camera at the code and tap the link. Your calls travel only inside the code, from this screen to your phone. Nothing is uploaded.</p>
     <div class="row" style="justify-content:center"><button id="sendPrev">◀ Previous</button><button class="primary" id="sendNext">Next code ▶</button><button id="sendClose">Close</button></div>
+  </div>
+</div>
+<div class="bmk" id="tcDlg" role="dialog" aria-modal="true" aria-labelledby="tcTitle">
+  <div class="box" style="max-width:720px;max-height:96vh;overflow:auto">
+    <h3 id="tcTitle">SAP time check (IW47)</h3>
+    <p class="hint" style="margin:2px 0 6px">In SAP, run your <b>IW47</b> confirmations report for the week, select the rows and copy (Ctrl+C), then paste here. Reversed/deleted entries cancel out automatically.</p>
+    <textarea id="tcInput" placeholder="Paste your IW47 export here" style="width:100%;min-height:90px;font:12px/1.3 monospace"></textarea>
+    <div class="row" style="margin:6px 0"><button class="primary" id="tcMake">Check &amp; make barcode</button><button id="tcClear">Clear</button></div>
+    <div class="msg" id="tcMsg"></div>
+    <div id="tcResult" hidden>
+      <div id="tcSummary" class="hint" style="margin:4px 0"></div>
+      <div id="tcTable" style="overflow:auto;max-height:34vh;margin:4px 0"></div>
+      <div style="text-align:center;border-top:1px solid var(--line);margin-top:8px;padding-top:8px">
+        <p class="hint" style="margin:0 0 4px">Scan this with Companion (Time check) to compare against the time you tracked.</p>
+        <canvas id="tcQR" style="width:min(340px,80vw);height:auto;image-rendering:pixelated;border-radius:6px"></canvas>
+        <p id="tcStep" style="font-weight:700;margin:6px 0 2px"></p>
+        <div class="row" style="justify-content:center"><button id="tcPrev">◀ Previous</button><button id="tcNext">Next code ▶</button></div>
+      </div>
+    </div>
+    <div class="row" style="justify-content:flex-end;margin-top:8px"><button id="tcClose">Close</button></div>
   </div>
 </div>
 <div class="bmk" id="setDlg" role="dialog" aria-modal="true" aria-labelledby="setTitle">
@@ -787,12 +808,13 @@ const ERRLOG=[];
   window.addEventListener("unhandledrejection",e=>add("Promise: "+((e.reason&&e.reason.message)||e.reason)));
 })();
 // ---------- version ----------
-const APP_VERSION = "4.30";
+const APP_VERSION = "4.31";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const GC_CODE = "";   // GoatCounter site code for anonymous usage counts (blank = nothing is sent)
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["4.31", "🕑 SAP time check (☰ Menu): paste your IW47 confirmations, see logged hours per store per day (reversed entries cancel out), and make a barcode that Companion scans to flag time you tracked but didn't log."],
   ["4.30", "📋 Paste from SAP button on Import calls: copy your active calls in SAP (Ctrl+C), then one tap reads the clipboard and loads them — no pasting into the box."],
   ["4.29", "Desktop SAP import: a SAP GUI macro can push your IW49N list straight into the online planner and replace your whole list, no copy-paste. (Opens the planner with the calls already loaded.)"],
   ["4.28", "Importing your calls from SAP in Companion now sends them straight here and replaces your whole list — no extra tap, and completed calls drop off."],
@@ -3223,6 +3245,76 @@ function showSendCode(){
   $("sendPrev").style.display = n>1 ? "" : "none"; $("sendNext").style.display = n>1 ? "" : "none";
   $("sendPrev").disabled = i===0; $("sendNext").disabled = i===n-1;
 }
+// ---------- SAP time check (IW47) ----------
+let tcState={codes:[],i:0};
+function parseIW47(text){
+  const rows=[];
+  (text||"").split(/\r?\n/).forEach(line=>{
+    const order=(line.match(/\b(80\d{7})\b/)||[])[1]; if(!order) return;                 // skip totals / blank lines
+    const dm=line.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/); if(!dm) return;                  // posting/created date
+    const ymd=dm[3]+String(dm[1]).padStart(2,"0")+String(dm[2]).padStart(2,"0");
+    const hm=line.match(/(\d+(?:\.\d+)?)(-)?[ \s]+HR\b/i); if(!hm) return;            // Actual work; trailing "-" = reversal
+    let hrs=parseFloat(hm[1]); if(hm[2]==="-") hrs=-hrs;
+    const sm=line.match(/-(\d{3,5})(?=[ \s]|$)/);                                     // store = Func. Loc. suffix; none = overhead
+    rows.push({ymd,order,hrs,store:sm?sm[1]:""});
+  });
+  return rows;
+}
+function iw47Agg(rows){
+  const dates=[...new Set(rows.map(r=>r.ymd))].sort(), sd={}, ov={};
+  rows.forEach(r=>{ if(r.store){ const k=r.store+"|"+r.ymd; sd[k]=(sd[k]||0)+r.hrs; } else ov[r.ymd]=(ov[r.ymd]||0)+r.hrs; });
+  return {dates, sd, ov};
+}
+const ymdNice=y=>`${+y.slice(4,6)}/${+y.slice(6,8)}`;
+function renderTc(rows){
+  const {dates,sd,ov}=iw47Agg(rows);
+  const stores=[...new Set(rows.filter(r=>r.store).map(r=>r.store))].sort();
+  const total=rows.reduce((a,r)=>a+r.hrs,0), neg=rows.filter(r=>r.hrs<0).length;
+  $("tcSummary").innerHTML=`<b>${rows.length}</b> confirmation line${rows.length===1?"":"s"} · <b>${dates.length}</b> day${dates.length===1?"":"s"} (${ymdNice(dates[0])}–${ymdNice(dates[dates.length-1])}) · logged <b>${total.toFixed(2)} hr</b>`+(neg?` · ${neg} reversed entr${neg===1?"y":"ies"} netted out`:"");
+  const head=`<tr><th style="text-align:left;position:sticky;left:0;background:var(--panel)">Store</th>${dates.map(d=>`<th style="text-align:right;padding:0 6px">${ymdNice(d)}</th>`).join("")}<th style="text-align:right;padding:0 6px">Total</th></tr>`;
+  const cellFmt=v=>v?v.toFixed(2):"·";
+  const body=stores.map(st=>{ let rt=0; const cells=dates.map(d=>{ const v=sd[st+"|"+d]||0; rt+=v; return `<td style="text-align:right;padding:0 6px">${cellFmt(v)}</td>`; }).join(""); return `<tr><td style="position:sticky;left:0;background:var(--panel)">#${st}</td>${cells}<td style="text-align:right;padding:0 6px;font-weight:700">${rt.toFixed(2)}</td></tr>`; }).join("");
+  const ovRow=dates.some(d=>ov[d])?`<tr><td style="position:sticky;left:0;background:var(--panel)">Overhead</td>${dates.map(d=>`<td style="text-align:right;padding:0 6px">${cellFmt(ov[d]||0)}</td>`).join("")}<td style="text-align:right;padding:0 6px;font-weight:700">${dates.reduce((a,d)=>a+(ov[d]||0),0).toFixed(2)}</td></tr>`:"";
+  const totRow=`<tr style="border-top:2px solid var(--line)"><td style="position:sticky;left:0;background:var(--panel);font-weight:700">Total</td>${dates.map(d=>{ let c=ov[d]||0; stores.forEach(st=>c+=sd[st+"|"+d]||0); return `<td style="text-align:right;padding:0 6px;font-weight:700">${c.toFixed(2)}</td>`; }).join("")}<td style="text-align:right;padding:0 6px;font-weight:700">${total.toFixed(2)}</td></tr>`;
+  $("tcTable").innerHTML=`<table style="border-collapse:collapse;font-size:13px;white-space:nowrap">${head}${body}${ovRow}${totRow}</table>`;
+}
+function tcPayload(rows){
+  const {dates,sd,ov}=iw47Agg(rows), di=Object.fromEntries(dates.map((d,i)=>[d,i]));
+  const s=Object.keys(sd).map(k=>{ const [st,ymd]=k.split("|"); return [st,di[ymd],Math.round(sd[k]*100)/100]; }).filter(x=>Math.abs(x[2])>0.001);
+  const o=Object.keys(ov).map(ymd=>[di[ymd],Math.round(ov[ymd]*100)/100]).filter(x=>Math.abs(x[1])>0.001);
+  return {v:1,t:"iw47",d:dates,s,o};
+}
+function showTcCode(){
+  const n=tcState.codes.length, i=tcState.i, q=RouteQR.make(tcState.codes[i],"L");
+  RouteQR.draw($("tcQR"),q,8);
+  $("tcQR").style.width = q.version>20 ? "min(620px,92vw,70vh)" : "min(340px,80vw)";
+  $("tcStep").textContent = n>1 ? `Code ${i+1} of ${n} — scan all in order` : "Scan this code";
+  $("tcPrev").style.display=n>1?"":"none"; $("tcNext").style.display=n>1?"":"none";
+  $("tcPrev").disabled=i===0; $("tcNext").disabled=i===n-1;
+}
+function setupTimeCheck(){
+  const loadQR=()=>new Promise((res,rej)=>{ if(window.RouteQR) return res(); const s=document.createElement("script"); s.src="../qr.js"; s.onload=res; s.onerror=rej; document.head.appendChild(s); });
+  $("tcBtn").onclick=()=>{ $("menu").hidden=true; $("tcDlg").classList.add("show"); };
+  $("tcClose").onclick=()=>$("tcDlg").classList.remove("show");
+  $("tcDlg").onclick=e=>{ if(e.target.id==="tcDlg") $("tcDlg").classList.remove("show"); };
+  $("tcClear").onclick=()=>{ $("tcInput").value=""; $("tcResult").hidden=true; $("tcMsg").textContent=""; };
+  $("tcPrev").onclick=()=>{ if(tcState.i>0){ tcState.i--; showTcCode(); } };
+  $("tcNext").onclick=()=>{ if(tcState.i<tcState.codes.length-1){ tcState.i++; showTcCode(); } };
+  $("tcMake").onclick=async()=>{
+    const rows=parseIW47($("tcInput").value), m=$("tcMsg");
+    if(!rows.length){ m.className="msg err"; m.textContent="No IW47 rows found. Copy the rows from your IW47 report (with the Order, Actual work, and Func. Loc. columns) and paste them here."; $("tcResult").hidden=true; return; }
+    m.textContent=""; m.className="msg"; renderTc(rows); $("tcResult").hidden=false;
+    try{ await loadQR(); }catch(e){ m.className="msg err"; m.textContent="Couldn't load the barcode generator (needs internet the first time)."; return; }
+    try{
+      const data=await zip(JSON.stringify(tcPayload(rows)));
+      const MAX=1100, n=Math.ceil(data.length/MAX), CH=Math.ceil(data.length/n), id=Math.random().toString(36).slice(2,7);
+      tcState={codes:[],i:0};
+      for(let i=0;i<n;i++) tcState.codes.push(`RP47.${id}.${i+1}.${n}.${data.slice(i*CH,(i+1)*CH)}`);
+      showTcCode();
+    }catch(e){ m.className="msg err"; m.textContent="Couldn't build the barcode: "+e.message; }
+  };
+}
+
 function setupSend(){
   let loaded=false;
   const load=()=>new Promise((res,rej)=>{ if(window.RouteQR) return res(); const s=document.createElement("script"); s.src="../qr.js"; s.onload=res; s.onerror=rej; document.head.appendChild(s); });
@@ -3502,7 +3594,7 @@ function layoutSummaries(){
 // ---------- init ----------
 setupMode();
 setupFeedback();
-setupPaste(); setupSettings(); setupHandoff();
+setupPaste(); setupSettings(); setupHandoff(); setupTimeCheck();
 // A transfer link can also arrive while the planner is already open (e.g. sent from Companion): handle it then too.
 window.addEventListener("hashchange",()=>{ if(/^#sap=/.test(location.hash)) receiveSap(); else if(IS_ONLINE && /^#sync=/.test(location.hash)) receiveSync(); });
 $("replanBtn").onclick=replanHere; $("dvReplan").onclick=replanHere;
