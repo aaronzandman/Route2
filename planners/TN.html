@@ -633,7 +633,8 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
       <div id="impBox"><h2>Import calls</h2>
     <textarea id="callsInput" placeholder="Paste service call rows from SAP, or paste dispatch text messages"></textarea>
     <div class="row">
-      <button class="primary" id="loadBtn">Load calls</button>
+      <button class="primary" id="pasteSapBtn">📋 Paste from SAP</button>
+      <button id="loadBtn">Load calls</button>
       <button id="clearBtn">Clear</button>
     </div>
       </div>
@@ -786,12 +787,13 @@ const ERRLOG=[];
   window.addEventListener("unhandledrejection",e=>add("Promise: "+((e.reason&&e.reason.message)||e.reason)));
 })();
 // ---------- version ----------
-const APP_VERSION = "4.29";
+const APP_VERSION = "4.30";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const GC_CODE = "";   // GoatCounter site code for anonymous usage counts (blank = nothing is sent)
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["4.30", "📋 Paste from SAP button on Import calls: copy your active calls in SAP (Ctrl+C), then one tap reads the clipboard and loads them — no pasting into the box."],
   ["4.29", "Desktop SAP import: a SAP GUI macro can push your IW49N list straight into the online planner and replace your whole list, no copy-paste. (Opens the planner with the calls already loaded.)"],
   ["4.28", "Importing your calls from SAP in Companion now sends them straight here and replaces your whole list — no extra tap, and completed calls drop off."],
   ["4.27", "Focused on active calls: the History calendar is removed, and a call's age now comes straight from its due date (exact for Sev 3 and 4), so no past-call log is needed. Importing from SAP replaces your whole call list, so completed calls drop off on their own."],
@@ -1677,6 +1679,18 @@ $("loadBtn").onclick=()=>{
   render();
 };
 $("clearBtn").onclick=()=>{ $("callsInput").value=""; S.calls=[]; store.set("callsText",""); $("importMsg").textContent=""; render(); };
+// One-click import from SAP: copy your active calls in SAP (Ctrl+C), then this reads the clipboard and loads them.
+$("pasteSapBtn").onclick=async()=>{
+  const m=$("importMsg");
+  try{
+    const t=await navigator.clipboard.readText();
+    if(!t||!t.trim()){ m.className="msg err"; m.textContent="Clipboard is empty — in SAP, select your calls and copy (Ctrl+C) first, then tap Paste from SAP."; return; }
+    $("callsInput").value=t; $("loadBtn").click();
+  }catch(e){
+    m.className="msg err"; m.textContent="Couldn't read the clipboard. Click in the box above, paste with Ctrl+V, then select Load calls. (Your browser may ask to allow clipboard access.)";
+    try{ $("callsInput").focus(); }catch(_){}
+  }
+};
 function pastUI(){
   const counts={}; S.calls.filter(c=>!isDone(c)).forEach(c=>{const t=tierOf(c); counts[t]=(counts[t]||0)+1;});
   const host=$("pastQuick"), r=customRange();
