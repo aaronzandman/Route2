@@ -28,7 +28,13 @@ ONE-TIME SETUP
    greyed, it's off.
 
 2) SAVE THE MACRO
-   Put Import_to_RoutePlanner.vbs somewhere handy - the Desktop is fine.
+   The download comes as a .zip (browsers block .vbs downloads directly).
+   Right-click the downloaded zip -> Extract All, then put
+   Import_to_RoutePlanner.vbs somewhere handy - the Desktop is fine.
+
+   If Windows warns the first time you run it ("Windows protected your PC" or
+   a security warning): right-click Import_to_RoutePlanner.vbs -> Properties
+   -> tick "Unblock" at the bottom -> OK. Then double-click it.
 
 ----------------------------------------------------------------------
 USING IT EACH DAY
