@@ -1,16 +1,10 @@
 ROUTE PLANNER - SAP DESKTOP IMPORT (MACRO)
 
-This pushes your call list straight from SAP GUI (SAP Logon 800) into the
-online Route Planner - no copy and paste.
+This copies your call list from SAP GUI (SAP Logon 800) so you can paste it
+straight into the online Route Planner - no retyping.
 
-WHAT IT DOES
-  1. You sign into SAP and open your call list (IW49N).
-  2. You run the macro (double-click Import_to_RoutePlanner.vbs).
-  3. Edge opens the Route Planner with your calls already loaded - the whole
-     list is replaced.
-
-The macro reads the list already on your SAP screen and opens a web link.
-Nothing is sent anywhere except the Route Planner page in your own browser.
+The macro only READS SAP and copies text to your clipboard. It does not write
+files, open programs, or send anything anywhere.
 
 ----------------------------------------------------------------------
 ONE-TIME SETUP
@@ -24,27 +18,34 @@ ONE-TIME SETUP
      server", Basis/IT has to switch it on (a quick RZ11 change).
 
    10-SECOND TEST: press Alt+F12 in SAP. If "Script Recording and Playback"
-   opens and the red Record button works, scripting is on. If it's missing or
-   greyed, it's off.
+   opens and the red Record button works, scripting is on.
 
 2) SAVE THE MACRO
    The download comes as a .zip (browsers block .vbs downloads directly).
-   Right-click the downloaded zip -> Extract All, then put
-   Import_to_RoutePlanner.vbs somewhere handy - the Desktop is fine.
+   Right-click the zip -> Extract All, then put Import_to_RoutePlanner.vbs
+   somewhere handy - the Desktop is fine.
 
-   If Windows warns the first time you run it ("Windows protected your PC" or
-   a security warning): right-click Import_to_RoutePlanner.vbs -> Properties
-   -> tick "Unblock" at the bottom -> OK. Then double-click it.
+   IF ANTIVIRUS FLAGS OR BLOCKS IT (common on work PCs for downloaded scripts):
+   Make the file yourself instead - a file you type locally is not treated as a
+   download and is almost never flagged:
+     a. Open Notepad.
+     b. Paste the macro text (from the Route Planner page: SAP import ->
+        "Show macro text", or ask for it).
+     c. File -> Save As. Set "Save as type" to All files, name it
+        Import_to_RoutePlanner.vbs, Encoding UTF-8, and save it to your Desktop.
+   If it's still blocked, the macro can also be run from inside SAP:
+   Alt+F12 -> Script Recording and Playback -> open the .vbs -> Play.
+   As a last resort, ask IT to allow this one script.
 
 ----------------------------------------------------------------------
 USING IT EACH DAY
   1. Sign into SAP Logon (system 800).
   2. Run IW49N and let your call list display (your usual selection/variant).
-  3. Double-click Import_to_RoutePlanner.vbs.
-     -> Edge opens and the Route Planner loads with your calls; old list replaced.
-
-Tip: right-click the .vbs -> Send to -> Desktop (create shortcut), or pin the
-shortcut to your taskbar, for one-click use.
+  3. Run Import_to_RoutePlanner.vbs (double-click, or Alt+F12 -> Playback).
+     -> A box says "Copied N calls."
+  4. Open the Route Planner, click the "Paste service call rows" box,
+     press Ctrl+V, then select "Load calls".
+     -> Your whole call list is replaced.
 
 ----------------------------------------------------------------------
 IF SOMETHING DOESN'T WORK
@@ -57,6 +58,6 @@ The macro shows a short message naming the step that failed:
 
 GOOD TO KNOW
   - It reads whatever list is on screen, so you can filter/sort in IW49N first
-    and only the rows you see get imported.
-  - It replaces the Planner's whole list each time, so completed calls drop off.
+    and only the rows you see get copied.
+  - Pasting replaces the Planner's whole list, so completed calls drop off.
   - Desktop only (SAP GUI). It is not for phones.

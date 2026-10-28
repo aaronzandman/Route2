@@ -1,33 +1,30 @@
 ' ============================================================================
-'  Import to Route Planner  —  SAP GUI macro
+'  Copy calls to Route Planner  —  SAP GUI macro
 '  Reads the service-order list on your current SAP screen (built for IW49N)
-'  and opens the online Route Planner with your whole call list already loaded.
+'  and copies it to the clipboard. You then paste it into the Route Planner.
 '
 '  HOW TO USE
 '    1. Sign into SAP Logon (system 800).
 '    2. Run IW49N (or your usual call-list transaction) and let the list display.
-'    3. Double-click this file  (Import_to_RoutePlanner.vbs).
-'       -> Edge opens the Route Planner with your calls loaded; the old list is replaced.
+'    3. Run this macro  (double-click, or play it from SAP GUI Alt+F12).
+'       -> It copies your calls. A box tells you how many.
+'    4. Open the Route Planner, click the "Paste service call rows" box,
+'       press Ctrl+V, then select "Load calls".  Done.
 '
-'  REQUIREMENT: SAP GUI Scripting must be enabled (see the setup guide). If it is
-'  off, SAP shows "Scripting is disabled by the server/client" — ask IT to turn on
-'  sapgui/user_scripting, and tick SAP GUI Options > Accessibility & Scripting >
-'  Scripting > Enable scripting.
+'  This script only reads SAP and copies text to your clipboard. It does not
+'  write any files, open any programs, or send anything anywhere.
 '
-'  Nothing is sent anywhere except the Route Planner URL you open in your own browser.
+'  REQUIREMENT: SAP GUI Scripting must be enabled (Alt+F12 test in the guide).
 ' ============================================================================
 
 Option Explicit
 
-' ---- SETTINGS you can change -----------------------------------------------
-Dim PLANNER_URL
-PLANNER_URL = "https://aaronzandman.github.io/Route2/ALL.html"   ' online Route Planner (company-wide). Opens in Edge.
-' ----------------------------------------------------------------------------
+' Set to False if you'd rather open your IW49N list yourself before running this.
+Const RUN_IW49N = True
 
 ' The 15 columns the Route Planner expects, in order. Each entry is a list of
-' possible SAP column titles (pipe-separated) — the macro matches your grid's
-' titles against these so column order/renames don't matter. Order number and
-' description are the ones that must be present.
+' possible SAP column titles (pipe-separated); the macro matches your grid's
+' titles against these, so column order or renames don't matter.
 Dim WANT(14)
 WANT(0)  = "Order Type|Order type|OrderType|Auart"
 WANT(1)  = "MaintActivType|Maint.Activ.Type|Activity Type"
@@ -57,8 +54,7 @@ On Error Resume Next
 Set SapGuiAuto = GetObject("SAPGUI")
 If Err.Number <> 0 Or SapGuiAuto Is Nothing Then
   MsgBox "SAP GUI isn't running, or scripting can't reach it." & vbCrLf & vbCrLf & _
-         "Open SAP Logon, sign in, display your IW49N list, then run this again." & vbCrLf & _
-         "If it still fails, SAP GUI Scripting is probably turned off (see the setup guide).", vbExclamation, "Route Planner import"
+         "Open SAP Logon, sign in, display your IW49N list, then run this again.", vbExclamation, "Copy calls to Route Planner"
   WScript.Quit
 End If
 Set app = SapGuiAuto.GetScriptingEngine
@@ -66,8 +62,19 @@ Set connection = app.Children(0)
 Set session = connection.Children(0)
 On Error GoTo 0
 If session Is Nothing Then
-  MsgBox "No open SAP session found. Sign into SAP (system 800) first.", vbExclamation, "Route Planner import"
+  MsgBox "No open SAP session found. Sign into SAP (system 800) first.", vbExclamation, "Copy calls to Route Planner"
   WScript.Quit
+End If
+
+' ---- optionally run IW49N and execute with your last-used selection --------
+' SAP remembers your last IW49N selection per user, so Execute (F8) reproduces your list. If you pick a saved
+' variant each time instead, record those steps once (Alt+F12) and send them to me, and I'll wire them in here.
+If RUN_IW49N Then
+  On Error Resume Next
+  session.findById("wnd[0]/tbar[0]/okcd").Text = "/nIW49N"
+  session.findById("wnd[0]").sendVKey 0        ' open IW49N (lands on the selection screen)
+  session.findById("wnd[0]").sendVKey 8        ' Execute (F8) with your remembered selection
+  On Error GoTo 0
 End If
 
 ' ---- find the ALV grid on the current screen -------------------------------
@@ -75,12 +82,12 @@ Dim grid
 Set grid = FindGrid(session.ActiveWindow)
 If grid Is Nothing Then
   MsgBox "No service-order list found on the current SAP screen." & vbCrLf & vbCrLf & _
-         "Run IW49N (or your call-list transaction) and let the list display, then run this again.", vbExclamation, "Route Planner import"
+         "Run IW49N (or your call-list transaction) and let the list display, then run this again.", vbExclamation, "Copy calls to Route Planner"
   WScript.Quit
 End If
 
 ' ---- map the planner's wanted columns to the grid's actual columns ---------
-Dim gcols, colId(14), i, j, k, title, found
+Dim gcols, colId(14), i, j, k, title
 Set gcols = grid.ColumnOrder
 For i = 0 To 14
   colId(i) = ""
@@ -101,7 +108,7 @@ Next
 If colId(9) = "" Then
   MsgBox "Couldn't find the 'Order' column in this list." & vbCrLf & vbCrLf & _
          "Make sure the IW49N list shows the Order and Description columns, then run this again." & vbCrLf & _
-         "(If your columns are named differently, send me the column titles and I'll adjust the macro.)", vbExclamation, "Route Planner import"
+         "(If your columns are named differently, send me the column titles and I'll adjust the macro.)", vbExclamation, "Copy calls to Route Planner"
   WScript.Quit
 End If
 
@@ -126,72 +133,50 @@ Do While r < total
         v = grid.GetCellValue(rr, colId(i))
         On Error GoTo 0
       End If
-      ' tabs/newlines inside a cell would break the row layout
       v = Replace(Replace(Replace(v, vbTab, " "), vbCr, " "), vbLf, " ")
       If i > 0 Then line = line & vbTab
       line = line & v
     Next
-    ' only keep rows that actually have an order number
     If Trim(Split(line, vbTab)(9)) <> "" Then rowsText = rowsText & vbLf & line
   Next
   r = last + 1
 Loop
 
-Dim nLines : nLines = UBound(Split(rowsText, vbLf))   ' minus the header
+Dim nLines : nLines = UBound(Split(rowsText, vbLf))   ' minus the header row
 If nLines < 1 Then
-  MsgBox "The list has no calls to import.", vbInformation, "Route Planner import"
+  MsgBox "The list has no calls to copy.", vbInformation, "Copy calls to Route Planner"
   WScript.Quit
 End If
 
-' ---- encode to base64url and open the planner ------------------------------
-' A full list encodes to ~15-20 KB, which is too long for a command line. So we write a tiny local launcher page
-' that carries the data and redirects the browser to the planner — the long part lives in the file, not the command line.
-Dim payload, url
-payload = Base64Url(rowsText)
-url = PLANNER_URL & "#sap=" & payload
+' ---- copy to the clipboard -------------------------------------------------
+SetClipboard rowsText
 
-Dim sh : Set sh = CreateObject("WScript.Shell")
-Dim fso : Set fso = CreateObject("Scripting.FileSystemObject")
-Dim tempFile : tempFile = sh.ExpandEnvironmentStrings("%TEMP%") & "\RoutePlannerImport.html"
-
-Dim html
-html = "<!doctype html><html><head><meta charset=""utf-8""><title>Opening Route Planner</title></head>" & _
-       "<body style=""font-family:Segoe UI,Arial,sans-serif;padding:28px;color:#1F6B4F"">" & _
-       "Opening Route Planner with " & nLines & " call(s)&hellip;" & _
-       "<script>location.replace(" & JsStr(url) & ");<" & "/script></body></html>"
-
-Dim ts : Set ts = fso.CreateTextFile(tempFile, True, False)   ' overwrite; content is pure ASCII, matches meta utf-8
-ts.Write html : ts.Close
-
-' Open the launcher in Edge (falls back to the default browser if Edge isn't found).
-Dim shellApp : Set shellApp = CreateObject("Shell.Application")
-On Error Resume Next
-shellApp.ShellExecute "msedge.exe", """" & tempFile & """", "", "open", 1
-If Err.Number <> 0 Then
-  Err.Clear
-  shellApp.ShellExecute tempFile, "", "", "open", 1   ' default browser
-End If
-On Error GoTo 0
-
-' done — the launcher redirects, and the planner replaces its list. Silent on success.
+MsgBox "Copied " & nLines & " call(s)." & vbCrLf & vbCrLf & _
+       "Now open the Route Planner, click the 'Paste service call rows' box, press Ctrl+V, " & _
+       "and select Load calls. Your whole list is replaced.", vbInformation, "Copy calls to Route Planner"
 WScript.Quit
 
 ' ============================================================================
 ' helpers
 ' ============================================================================
-' JavaScript string literal (for the launcher page).
-Function JsStr(s)
-  Dim t : t = CStr(s)
-  t = Replace(t, "\", "\\")
-  t = Replace(t, """", "\""")
-  JsStr = """" & t & """"
-End Function
+
+' Put text on the Windows clipboard by piping it to the built-in clip tool.
+Sub SetClipboard(text)
+  Dim sh, ex
+  Set sh = CreateObject("WScript.Shell")
+  Set ex = sh.Exec("clip")
+  ex.StdIn.Write text
+  ex.StdIn.Close
+  ' wait briefly for clip to finish reading
+  Do While ex.Status = 0
+    WScript.Sleep 50
+  Loop
+End Sub
 
 Function Norm(s)
-  Dim t, ch, out
+  Dim t, ch, out, p
   t = LCase(CStr(s))
   out = ""
-  Dim p
   For p = 1 To Len(t)
     ch = Mid(t, p, 1)
     If (ch >= "a" And ch <= "z") Or (ch >= "0" And ch <= "9") Then out = out & ch
@@ -222,24 +207,4 @@ Function FindGrid(node)
       Exit Function
     End If
   Next
-End Function
-
-' UTF-8 base64url (no padding), the format the Route Planner's #sap= import expects.
-Function Base64Url(text)
-  Dim stm, b64
-  ' UTF-8 bytes. ADODB.Stream writes a 3-byte UTF-8 BOM first, so skip it (Position = 3) before reading.
-  Set stm = CreateObject("ADODB.Stream")
-  stm.Type = 2 : stm.Charset = "utf-8" : stm.Open : stm.WriteText text
-  stm.Position = 0 : stm.Type = 1 : stm.Position = 3 : Dim bytes : bytes = stm.Read : stm.Close
-  ' standard base64 via MSXML
-  Dim xml, node
-  Set xml = CreateObject("MSXML2.DOMDocument")
-  Set node = xml.createElement("b64")
-  node.DataType = "bin.base64"
-  node.NodeTypedValue = bytes
-  b64 = node.Text
-  ' make it url-safe, strip padding and whitespace
-  b64 = Replace(b64, vbCrLf, "") : b64 = Replace(b64, vbLf, "") : b64 = Replace(b64, vbCr, "") : b64 = Replace(b64, " ", "")
-  b64 = Replace(b64, "+", "-") : b64 = Replace(b64, "/", "_") : b64 = Replace(b64, "=", "")
-  Base64Url = b64
 End Function
