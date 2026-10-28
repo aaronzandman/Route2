@@ -21,6 +21,8 @@ Option Explicit
 
 ' Set to False if you'd rather open your IW49N list yourself before running this.
 Const RUN_IW49N = True
+Const ORDER_TYPE = "ZSM4"                               ' predefined order type for the IW49N selection
+Const REG_WC = "HKCU\Software\RoutePlanner\WorkCenter"  ' where your default Work Center range is remembered
 
 ' The 15 columns the Route Planner expects, in order. Each entry is a list of
 ' possible SAP column titles (pipe-separated); the macro matches your grid's
@@ -66,14 +68,41 @@ If session Is Nothing Then
   WScript.Quit
 End If
 
-' ---- optionally run IW49N and execute with your last-used selection --------
-' SAP remembers your last IW49N selection per user, so Execute (F8) reproduces your list. If you pick a saved
-' variant each time instead, record those steps once (Alt+F12) and send them to me, and I'll wire them in here.
+' ---- run IW49N with Order Type ZSM4 and your Work Center range -------------
 If RUN_IW49N Then
+  Dim sh0 : Set sh0 = CreateObject("WScript.Shell")
+  Dim savedWC : savedWC = ""
+  On Error Resume Next : savedWC = sh0.RegRead(REG_WC) : On Error GoTo 0
+
+  ' Ask for the Work Center range, pre-filled with your saved default so you can edit it.
+  Dim wc : wc = InputBox( _
+    "Operation Work Center range to pull (Order Type " & ORDER_TYPE & ")." & vbCrLf & vbCrLf & _
+    "Examples:   20E-20F   (a range)      20E   (one center)" & vbCrLf & _
+    "Leave blank for all work centers.", "Route Planner – Work Center", savedWC)
+
+  ' Offer to save it as the new default when it changed (ignore a blank, e.g. if you pressed Cancel).
+  If wc <> "" And wc <> savedWC Then
+    If MsgBox("Save """ & wc & """ as your default Work Center range?", vbYesNo + vbQuestion, "Route Planner") = vbYes Then
+      On Error Resume Next : sh0.RegWrite REG_WC, wc, "REG_SZ" : On Error GoTo 0
+    End If
+  End If
+
+  ' Split "LOW-HIGH" into a range (or a single value).
+  Dim lo, hi
+  If InStr(wc, "-") > 0 Then
+    lo = Trim(Split(wc, "-")(0)) : hi = Trim(Split(wc, "-")(1))
+  Else
+    lo = Trim(wc) : hi = ""
+  End If
+
   On Error Resume Next
   session.findById("wnd[0]/tbar[0]/okcd").Text = "/nIW49N"
-  session.findById("wnd[0]").sendVKey 0        ' open IW49N (lands on the selection screen)
-  session.findById("wnd[0]").sendVKey 8        ' Execute (F8) with your remembered selection
+  session.findById("wnd[0]").sendVKey 0        ' open IW49N (selection screen)
+  ' Set the selection fields (several possible field names are tried, so small layout differences still work).
+  SetField session, Array("wnd[0]/usr/ctxtS_AUART-LOW","wnd[0]/usr/txtS_AUART-LOW","wnd[0]/usr/ctxtAUART-LOW"), ORDER_TYPE
+  If lo <> "" Then SetField session, Array("wnd[0]/usr/ctxtS_ARBPL-LOW","wnd[0]/usr/txtS_ARBPL-LOW","wnd[0]/usr/ctxtARBPL-LOW"), lo
+  If hi <> "" Then SetField session, Array("wnd[0]/usr/ctxtS_ARBPL-HIGH","wnd[0]/usr/txtS_ARBPL-HIGH","wnd[0]/usr/ctxtARBPL-HIGH"), hi
+  session.findById("wnd[0]").sendVKey 8        ' Execute (F8)
   On Error GoTo 0
 End If
 
@@ -159,6 +188,23 @@ WScript.Quit
 ' ============================================================================
 ' helpers
 ' ============================================================================
+
+' Set a selection-screen field, trying each candidate id until one exists (field names differ a little by system).
+Sub SetField(session, ids, value)
+  Dim n, f
+  For n = 0 To UBound(ids)
+    Set f = Nothing
+    On Error Resume Next
+    Set f = session.findById(ids(n))
+    On Error GoTo 0
+    If Not (f Is Nothing) Then
+      On Error Resume Next
+      f.Text = value
+      On Error GoTo 0
+      Exit Sub
+    End If
+  Next
+End Sub
 
 ' Put text on the Windows clipboard by piping it to the built-in clip tool.
 Sub SetClipboard(text)
