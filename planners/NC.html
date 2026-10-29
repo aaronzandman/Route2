@@ -819,12 +819,13 @@ const ERRLOG=[];
   window.addEventListener("unhandledrejection",e=>add("Promise: "+((e.reason&&e.reason.message)||e.reason)));
 })();
 // ---------- version ----------
-const APP_VERSION = "4.34";
+const APP_VERSION = "4.35";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const GC_CODE = "";   // GoatCounter site code for anonymous usage counts (blank = nothing is sent)
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["4.35", "SAP time check: travel time (ActType ITLABT) is split out from each store’s total, so the per-store on-site hours line up with what Companion tracks at the store; travel is shown on its own row."],
   ["4.34", "Fix: garbled symbols (≈, the middot, date badges and the drag handle) from a text-encoding bug in 4.33."],
   ["4.33", "Route options: choose where you Finish (back to start or a store) and which store is First, for a tighter route. The stop list is your visit order — drag the ⠿ handle (works on phones) or use the arrows to reorder, then just go down the list."],
   ["4.32", "New dispatch texts can now import on their own: when Companion's Auto-add is on, a new call opens the planner and is added with no tap."],
@@ -2465,6 +2466,8 @@ function showSendCode(){
 }
 // ---------- SAP time check (IW47) ----------
 let tcState={codes:[],i:0};
+// Activity types that are travel (drive time), not on-site work — kept out of each store's total.
+const IW47_TRAVEL=new Set(["ITLABT"]);
 function parseIW47(text){
   const rows=[];
   (text||"").split(/\r?\n/).forEach(line=>{
@@ -2473,34 +2476,41 @@ function parseIW47(text){
     const ymd=dm[3]+String(dm[1]).padStart(2,"0")+String(dm[2]).padStart(2,"0");
     const hm=line.match(/(\d+(?:\.\d+)?)(-)?[ \s]+HR\b/i); if(!hm) return;            // Actual work; trailing "-" = reversal
     let hrs=parseFloat(hm[1]); if(hm[2]==="-") hrs=-hrs;
+    const am=line.match(/\bHR\b[ \s]+([A-Z0-9]{3,})/i); const act=am?am[1].toUpperCase():"";  // ActType (ITLABD/ITLABT/ITLABO)
     const sm=line.match(/-(\d{3,5})(?=[ \s]|$)/);                                     // store = Func. Loc. suffix; none = overhead
-    rows.push({ymd,order,hrs,store:sm?sm[1]:""});
+    rows.push({ymd,order,hrs,store:sm?sm[1]:"",act,travel:IW47_TRAVEL.has(act)});
   });
   return rows;
 }
 function iw47Agg(rows){
-  const dates=[...new Set(rows.map(r=>r.ymd))].sort(), sd={}, ov={};
-  rows.forEach(r=>{ if(r.store){ const k=r.store+"|"+r.ymd; sd[k]=(sd[k]||0)+r.hrs; } else ov[r.ymd]=(ov[r.ymd]||0)+r.hrs; });
-  return {dates, sd, ov};
+  const dates=[...new Set(rows.map(r=>r.ymd))].sort(), sd={}, ov={}, tv={};
+  rows.forEach(r=>{
+    if(!r.store){ ov[r.ymd]=(ov[r.ymd]||0)+r.hrs; return; }   // overhead (no store)
+    if(r.travel){ tv[r.ymd]=(tv[r.ymd]||0)+r.hrs; return; }   // travel — kept out of the store total
+    const k=r.store+"|"+r.ymd; sd[k]=(sd[k]||0)+r.hrs;        // on-site work at the store
+  });
+  return {dates, sd, ov, tv};
 }
 const ymdNice=y=>`${+y.slice(4,6)}/${+y.slice(6,8)}`;
 function renderTc(rows){
-  const {dates,sd,ov}=iw47Agg(rows);
-  const stores=[...new Set(rows.filter(r=>r.store).map(r=>r.store))].sort();
+  const {dates,sd,ov,tv}=iw47Agg(rows);
+  const stores=[...new Set(rows.filter(r=>r.store&&!r.travel).map(r=>r.store))].sort();
   const total=rows.reduce((a,r)=>a+r.hrs,0), neg=rows.filter(r=>r.hrs<0).length;
-  $("tcSummary").innerHTML=`<b>${rows.length}</b> confirmation line${rows.length===1?"":"s"} · <b>${dates.length}</b> day${dates.length===1?"":"s"} (${ymdNice(dates[0])}–${ymdNice(dates[dates.length-1])}) · logged <b>${total.toFixed(2)} hr</b>`+(neg?` · ${neg} reversed entr${neg===1?"y":"ies"} netted out`:"");
+  const travTot=dates.reduce((a,d)=>a+(tv[d]||0),0);
+  $("tcSummary").innerHTML=`<b>${rows.length}</b> confirmation line${rows.length===1?"":"s"} · <b>${dates.length}</b> day${dates.length===1?"":"s"} (${ymdNice(dates[0])}–${ymdNice(dates[dates.length-1])}) · logged <b>${total.toFixed(2)} hr</b>`+(travTot?` (incl. ${travTot.toFixed(2)} travel, shown separately)`:"")+(neg?` · ${neg} reversed entr${neg===1?"y":"ies"} netted out`:"");
   const head=`<tr><th style="text-align:left;position:sticky;left:0;background:var(--panel)">Store</th>${dates.map(d=>`<th style="text-align:right;padding:0 6px">${ymdNice(d)}</th>`).join("")}<th style="text-align:right;padding:0 6px">Total</th></tr>`;
   const cellFmt=v=>v?v.toFixed(2):"·";
   const body=stores.map(st=>{ let rt=0; const cells=dates.map(d=>{ const v=sd[st+"|"+d]||0; rt+=v; return `<td style="text-align:right;padding:0 6px">${cellFmt(v)}</td>`; }).join(""); return `<tr><td style="position:sticky;left:0;background:var(--panel)">#${st}</td>${cells}<td style="text-align:right;padding:0 6px;font-weight:700">${rt.toFixed(2)}</td></tr>`; }).join("");
-  const ovRow=dates.some(d=>ov[d])?`<tr><td style="position:sticky;left:0;background:var(--panel)">Overhead</td>${dates.map(d=>`<td style="text-align:right;padding:0 6px">${cellFmt(ov[d]||0)}</td>`).join("")}<td style="text-align:right;padding:0 6px;font-weight:700">${dates.reduce((a,d)=>a+(ov[d]||0),0).toFixed(2)}</td></tr>`:"";
-  const totRow=`<tr style="border-top:2px solid var(--line)"><td style="position:sticky;left:0;background:var(--panel);font-weight:700">Total</td>${dates.map(d=>{ let c=ov[d]||0; stores.forEach(st=>c+=sd[st+"|"+d]||0); return `<td style="text-align:right;padding:0 6px;font-weight:700">${c.toFixed(2)}</td>`; }).join("")}<td style="text-align:right;padding:0 6px;font-weight:700">${total.toFixed(2)}</td></tr>`;
-  $("tcTable").innerHTML=`<table style="border-collapse:collapse;font-size:13px;white-space:nowrap">${head}${body}${ovRow}${totRow}</table>`;
+  const sumRow=(label,map)=>dates.some(d=>map[d])?`<tr><td style="position:sticky;left:0;background:var(--panel);color:var(--muted)">${label}</td>${dates.map(d=>`<td style="text-align:right;padding:0 6px;color:var(--muted)">${cellFmt(map[d]||0)}</td>`).join("")}<td style="text-align:right;padding:0 6px;font-weight:700">${dates.reduce((a,d)=>a+(map[d]||0),0).toFixed(2)}</td></tr>`:"";
+  const totRow=`<tr style="border-top:2px solid var(--line)"><td style="position:sticky;left:0;background:var(--panel);font-weight:700">Total</td>${dates.map(d=>{ let c=(ov[d]||0)+(tv[d]||0); stores.forEach(st=>c+=sd[st+"|"+d]||0); return `<td style="text-align:right;padding:0 6px;font-weight:700">${c.toFixed(2)}</td>`; }).join("")}<td style="text-align:right;padding:0 6px;font-weight:700">${total.toFixed(2)}</td></tr>`;
+  $("tcTable").innerHTML=`<table style="border-collapse:collapse;font-size:13px;white-space:nowrap">${head}${body}${sumRow("Travel",tv)}${sumRow("Overhead",ov)}${totRow}</table>`;
 }
 function tcPayload(rows){
-  const {dates,sd,ov}=iw47Agg(rows), di=Object.fromEntries(dates.map((d,i)=>[d,i]));
+  const {dates,sd,ov,tv}=iw47Agg(rows), di=Object.fromEntries(dates.map((d,i)=>[d,i]));
   const s=Object.keys(sd).map(k=>{ const [st,ymd]=k.split("|"); return [st,di[ymd],Math.round(sd[k]*100)/100]; }).filter(x=>Math.abs(x[2])>0.001);
   const o=Object.keys(ov).map(ymd=>[di[ymd],Math.round(ov[ymd]*100)/100]).filter(x=>Math.abs(x[1])>0.001);
-  return {v:1,t:"iw47",d:dates,s,o};
+  const tr=Object.keys(tv).map(ymd=>[di[ymd],Math.round(tv[ymd]*100)/100]).filter(x=>Math.abs(x[1])>0.001);
+  return {v:1,t:"iw47",d:dates,s,o,tr};
 }
 function showTcCode(){
   const n=tcState.codes.length, i=tcState.i, q=RouteQR.make(tcState.codes[i],"L");
