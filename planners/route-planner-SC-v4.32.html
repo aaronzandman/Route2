@@ -808,12 +808,13 @@ const ERRLOG=[];
   window.addEventListener("unhandledrejection",e=>add("Promise: "+((e.reason&&e.reason.message)||e.reason)));
 })();
 // ---------- version ----------
-const APP_VERSION = "4.31";
+const APP_VERSION = "4.32";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const GC_CODE = "";   // GoatCounter site code for anonymous usage counts (blank = nothing is sent)
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["4.32", "New dispatch texts can now import on their own: when Companion's Auto-add is on, a new call opens the planner and is added with no tap."],
   ["4.31", "🕑 SAP time check (☰ Menu): paste your IW47 confirmations, see logged hours per store per day (reversed entries cancel out), and make a barcode that Companion scans to flag time you tracked but didn't log."],
   ["4.30", "📋 Paste from SAP button on Import calls: copy your active calls in SAP (Ctrl+C), then one tap reads the clipboard and loads them — no pasting into the box."],
   ["4.29", "Desktop SAP import: a SAP GUI macro can push your IW49N list straight into the online planner and replace your whole list, no copy-paste. (Opens the planner with the calls already loaded.)"],
@@ -883,71 +884,84 @@ const CHANGELOG = [
   ["1.0", "Import calls, group by store, filters, route ordering, Google Maps directions."]
 ];
 // ===EDITION-START===
-const EDITION = {id:"state-TN", name:"Service Route Planner \u2013 Tennessee", key:"rp-TN.", resetLabel:"Restore Tennessee store list", groupBy:"city"};
+const EDITION = {id:"state-SC", name:"Service Route Planner \u2013 South Carolina", key:"rp-SC.", resetLabel:"Restore South Carolina store list", groupBy:"city"};
 const DEFAULT_GROUPS = ``;
 const DEFAULT_STORES = `Store #	Shopping Center	Address	City	State	Zip	Phone	Latitude	Longitude
-119	Indian Lake Marketplace	110 Indian Lake Blvd	Hendersonville	TN	37075-6206	(615) 264-1350	36.310326	-86.60525
-123	Bellevue Center	7604 Highway 70 S	Nashville	TN	37221-1852	(615) 646-1870	36.07842	-86.94549
-142	Cool Springs Festival	8105 Moores Ln	Brentwood	TN	37027-8020	(615) 221-9880	35.963474	-86.80216
-160	Harpeth Village	2020 Fieldstone Pkwy	Franklin	TN	37069-4337	(615) 599-1825	35.964565	-86.883
-176	Franklin Marketplace	1021 Riverside Dr	Franklin	TN	37064-6500	(615) 591-3285	35.912518	-86.82829
-182	Oakwood Commons	4670 Lebanon Pike	Hermitage	TN	37076-1314	(615) 874-0898	36.217186	-86.59337
-1016	Parkway Town Centre	661 President Pl	Smyrna	TN	37167-5671	(615) 220-1919	35.97982	-86.55493
-1021	Marketplace at Maryland Farms	101 Creekside Xing	Brentwood	TN	37027-1062	(615) 507-1505	36.0369	-86.798805
-1031	McKay's Mill Village Center	1400 Liberty Pike Ste 200	Franklin	TN	37067-8628	(615) 591-4061	35.92483	-86.795746
-1033	Greensboro Village	1483 Nashville Pike	Gallatin	TN	37066-7144	(615) 451-6285	36.359604	-86.49569
-1047	Spring Hill Village	4935 Main St	Spring Hill	TN	37174-2735	(615) 302-4068	35.775105	-86.91837
-1057	Concord Village	10638 Concord Rd	Brentwood	TN	37027-8811	(615) 941-8871	35.997143	-86.69183
-1116	Nippers Corner	15544 Old Hickory Blvd	Nashville	TN	37211-7329	(615) 331-4912	36.04101	-86.74143
-1133	Publix at Harpeth Village	8028 Highway 100	Nashville	TN	37221-4212	(615) 673-2347	36.04716	-86.95227
-1141	Caldwell Square	460 Long Hollow Pike	Goodlettsville	TN	37072-3480	(615) 851-7180	36.3315	-86.69917
-1163	Kensington Place Shopping Center	1731 S Rutherford Blvd Ste S	Murfreesboro	TN	37130-5957	(615) 849-4290	35.81333	-86.36847
-1164	Publix at North Murfreesboro	3415 Memorial Blvd	Murfreesboro	TN	37129-3640	(615) 849-6254	35.912144	-86.386
-1165	Hurricane Creek	8644 E Brainerd Rd	Chattanooga	TN	37421-8325	(423) 296-1903	34.999165	-85.13403
-1166	Creek Plantation Village	5928 Hixson Pike Ste 112	Hixson	TN	37343-4839	(423) 847-8461	35.147335	-85.20735
-1172	Market at Victory Village	4175 Franklin Rd	Murfreesboro	TN	37128-4119	(615) 494-3196	35.84199	-86.471825
-1175	Lebanon Center	1703 W Main St	Lebanon	TN	37087-3193	(615) 444-2581	36.223503	-86.34521
-1211	Hill Center at Belle Meade	4324 Harding Pike	Nashville	TN	37205-2202	(615) 279-2038	36.126785	-86.84753
-1220	Mt Juliet Village	11207 Lebanon Rd	Mount Juliet	TN	37122-5545	(615) 758-4200	36.233017	-86.5144
-1234	Market at Salem Cove	2650 New Salem Hwy	Murfreesboro	TN	37128-5265	(615) 895-7096	35.812706	-86.45771
-1235	Mt View Marketplace	3532 Murfreesboro Pike	Antioch	TN	37013-2210	(615) 501-8250	36.05345	-86.614914
-1238	The Shops of Lee Village	1640 Lee Victory Pkwy	Smyrna	TN	37167-6529	(615) 223-9101	35.941505	-86.52754
-1244	Snow Hill Village	5958 Snow Hill Rd Ste 168	Ooltewah	TN	37363-7834	(423) 238-1032	35.09058	-85.0643
-1268	Providence Commons	665 S Mount Juliet Rd	Mount Juliet	TN	37122-6483	(615) 773-0250	36.161266	-86.51256
-1298	Hill Center at Nashville West	6614 Charlotte Pike	Nashville	TN	37209-4202	(615) 352-1055	36.140236	-86.88297
-1356	Publix at Mouse Creek	635 Paul Huff Pkwy NW	Cleveland	TN	37312-2970	(423) 476-4022	35.209568	-84.86069
-1360	Bowie Commons	7014 City Center Way	Fairview	TN	37062-6004	(615) 799-3474	35.97349	-87.13114
-1392	Madison Street Commons	1771 Madison St	Clarksville	TN	37043-4990	(931) 551-7031	36.51563	-87.3132
-1415	Publix at Turkey Creek	11656 Parkside Dr	Knoxville	TN	37934-2659	(865) 675-3018	35.89353	-84.17003
-1416	Northshore Town Center	2010 Town Center Blvd	Knoxville	TN	37922-6677	(865) 470-0720	35.860603	-84.07646
-1418	University Commons	2429 University Commons Way	Knoxville	TN	37919	(865) 522-6313	35.94992	-83.93972
-1425	Shoppes at Peachers Mill	1490 Tiny Town Rd	Clarksville	TN	37042-7201	(931) 503-2551	36.625175	-87.37263
-1426	The Crossings	2324 Lebanon Pike	Nashville	TN	37214-2411	(615) 884-2665	36.170834	-86.68387
-1460	Publix on North Market Street	400 N Market St	Chattanooga	TN	37405-4433	(423) 755-7901	35.065063	-85.30836
-1515	Valley Forge Shopping Center	2656 Parkway	Pigeon Forge	TN	37863-3246	(865) 774-2030	35.802597	-83.57625
-1529	Berry Farms Town Center	5021 Hughes Crossing Blvd	Franklin	TN	37064	(615) 595-2021	35.863697	-86.8431
-1543	Fairgrounds Plaza	2321 E Andrew Johnson Hwy	Greeneville	TN	37745	(423) 636-1478	36.18022	-82.78244
-1613	Northgate Mall	1600 N Jackson St Ste 340	Tullahoma	TN	37388	(931) 455-6032	35.380245	-86.22652
-1621	Village at Waterside	7326 McCutcheon Rd	Chattanooga	TN	37421	(423) 855-1376	35.043793	-85.15007
-1633	Markets West at Franklin	509 N State of Franklin Rd Ste 20	Johnson City	TN	37604	(423) 926-1260	36.313084	-82.38906
-1634	The Shoppes at Eagle Point	1265 Interstate Dr Ste 111	Cookeville	TN	38501-4135	(931) 526-8830	36.1385	-85.50757
-1648	Sango Square	920 Hwy 76	Clarksville	TN	37043	(931) 358-2257	36.52266	-87.23441
-1665	Publix at Melrose	2223 8th Ave S	Nashville	TN	37204	(615) 279-9470	36.128822	-86.77856
-1680	Capitol View	1010 Dr Martin L King Jr Blvd	Nashville	TN	37203	(615) 259-6072	36.16331	-86.789734
-1713	Smoky Mountain Gateway	750 Winfield Dunn Pkwy Ste 100	Sevierville	TN	37876	(865) 429-1734	35.88291	-83.57406
-1731	Publix at Mount Vernon Point	3535 Broad St	Chattanooga	TN	37409	(423) 668-5233	35.015038	-85.32541
-1732	Hill Center Greenwood	1111 Gallatin Ave	Nashville	TN	37206	(615) 226-7100	36.1898	-86.7449
-1739	The Shops at Windsong	211 Maharris Dr	Gallatin	TN	37066	(615) 989-9989	36.364582	-86.44221
-1778	Westlawn	5229 Veterans Pkwy	Murfreesboro	TN	37128-4377	(615) 995-7914	35.860924	-86.50897
-1779	Foothills Mall	198 Foothills Mall	Maryville	TN	37801-2310	(865) 518-0971	35.744446	-83.99438
-1780	Newman's Crossing	1931 Long Hollow Pike	Gallatin	TN	37066-8591	(615) 230-7647	36.382328	-86.54891
-1801	Hickory Ridge Shopping Center	445 Hwy 109 N	Lebanon	TN	37090	(615) 443-4349	36.19268	-86.410095
-1802	Walker Farms Shopping Center	2300 Trenton Rd	Clarksville	TN	37040	(931) 553-5067	36.577137	-87.31543
-1863	Shops at Enclave	1688 Ooltewah Ringgold Rd Ste 100	Ooltewah	TN	37363	(423) 508-6834	34.999672	-85.09461
-2009	Village Green	7344 Nolensville Rd	Nolensville	TN	37135	(629) 529-8036	35.949902	-86.664896
-2020	White House Shops	453 Hwy 76	White House	TN	37188	(615) 581-6132	36.46734	-86.66399
-2036	Spring Hill Towne Crossing	1021 Jim Warren Pkwy	Spring Hill	TN	37174	(931) 487-5038	35.732	-86.89
-2106	Westerly Commons	13123 Kingston Pike	Farragut	TN	37934	(865) 672-5008	35.862803	-84.223535`;
+17	Kennerly Crossing	7320 Broad River Rd	Irmo	SC	29063-9656	(803) 407-0127	34.096973	-81.15759
+35	Five Forks Place	2700 Woodruff Rd	Simpsonville	SC	29681-4804	(864) 234-3860	34.804302	-82.227325
+67	Rosewood Shopping Center	2800 Rosewood Dr	Columbia	SC	29205-3412	(803) 806-8839	33.987236	-81.00321
+205	Center Point	6525 Calhoun Memorial Hwy	Easley	SC	29640-3669	(864) 850-2270	34.820007	-82.58483
+360	Anderson Pavilion Shopping Center	1611 E Greenville St	Anderson	SC	29621-2006	(864) 231-5240	34.530933	-82.636505
+449	Queensborough Shopping Center	1000 Johnnie Dodds Blvd Ste 106	Mount Pleasant	SC	29464-3187	(843) 856-3000	32.813595	-79.86796
+459	St James Shopping Center	208 Saint James Ave Ste C	Goose Creek	SC	29445-2994	(843) 569-7920	33.006596	-80.04259
+472	Ashley Landing Mall	1401 Sam Rittenberg Blvd	Charleston	SC	29407-5031	(843) 852-3350	32.814617	-79.995285
+473	Festival Centre at Indigo Park	45 Pembroke Dr	Hilton Head Island	SC	29926-2262	(843) 689-9977	32.21035	-80.72526
+483	Oakbrook Shopping Center	1575 Old Trolley Rd	Summerville	SC	29485-8208	(843) 832-0456	32.96681	-80.166
+486	North Augusta Plaza	334 E Martintown Rd	North Augusta	SC	29841-4261	(803) 441-3900	33.49586	-81.962395
+506	Eastgate Shopping Center	250 Eastgate Dr	Aiken	SC	29803-7698	(803) 643-7970	33.511307	-81.716354
+512	Lexington Place	100 Old Cherokee Rd	Lexington	SC	29072-9316	(803) 951-3999	33.999886	-81.21981
+530	Publix at Woodruff	1750 Woodruff Rd	Greenville	SC	29607-5933	(864) 987-7080	34.81824	-82.27172
+531	Publix at Thornblade	411 The Pkwy	Greer	SC	29650-4522	(864) 848-7820	34.87138	-82.25606
+543	Poplar Springs Plaza	2153 E Main St Ste B9	Duncan	SC	29334-8863	(864) 486-4700	34.88853	-82.067245
+563	Boulevard Market Fair	3801-E Clemson Blvd	Anderson	SC	29621-1318	(864) 231-1170	34.553623	-82.68535
+587	North Pointe Shopping Center	10128 Two Notch Rd	Columbia	SC	29223-4384	(803) 788-9484	34.11447	-80.88457
+597	Trenholm Plaza	4840 Forest Dr Ste 10	Columbia	SC	29206-4810	(803) 790-4920	34.016594	-80.96496
+602	McAlister Square	235 S Pleasantburg Dr	Greenville	SC	29607-2521	(864) 250-4700	34.836174	-82.36451
+632	Hampton Village	2801 Wade Hampton Blvd Ste 120	Taylors	SC	29687-2758	(864) 609-7300	34.9022	-82.33722
+633	Merchants Village	520 Folly Rd	Charleston	SC	29412-3019	(843) 762-5670	32.75359	-79.97096
+656	Columbiana Station	150 Harbison Blvd	Columbia	SC	29212-2204	(803) 407-0449	34.067978	-81.1622
+687	Hillcrest Shopping Center	1905 E Main St	Spartanburg	SC	29307-2308	(864) 253-1820	34.967255	-81.89057
+700	Island Crossing Shopping Center	11 Palmetto Bay Rd	Hilton Head Island	SC	29928-3293	(843) 842-2632	32.15791	-80.766136
+824	Palmetto Pavilion	8409 Dorchester Rd Ste 104	North Charleston	SC	29420-7324	(843) 767-5970	32.912964	-80.109795
+829	Rice Creek Village	4611 Hard Scrabble Rd	Columbia	SC	29229-8584	(803) 699-8131	34.153267	-80.91329
+845	Bluffton Commons at Belfair	80 Baylor Dr	Bluffton	SC	29910-8902	(843) 706-3049	32.277798	-80.87721
+874	Pelham Commons	215 Pelham Rd	Greenville	SC	29615-2546	(864) 370-8210	34.867878	-82.34706
+883	Murray Landing	2732 N Lake Dr	Columbia	SC	29212-8733	(803) 407-2216	34.09795	-81.22081
+1012	Mauldin Square	111 W Butler Rd	Mauldin	SC	29662-2534	(864) 987-1601	34.776943	-82.31019
+1055	Publix at North Point	1435 Ben Sawyer Blvd	Mount Pleasant	SC	29464-4574	(843) 856-3018	32.791634	-79.85432
+1081	The Shoppes of Park West	1125 Park West Blvd	Mount Pleasant	SC	29466-6974	(843) 388-2263	32.874115	-79.779335
+1095	Gervais Place	501 Gervais St	Columbia	SC	29201-3045	(803) 255-4351	33.99827	-81.0445
+1120	Paradise Shoppes of Summerville	1585 Central Ave Unit A	Summerville	SC	29483-5587	(843) 832-4017	33.01167	-80.234856
+1145	West Ashley Place	3642 Savannah Hwy Ste 132	Johns Island	SC	29455-7948	(843) 573-8734	32.805138	-80.11151
+1148	McBee Station	400 E McBee Ave Ste 100	Greenville	SC	29601-2940	(864) 240-2015	34.847927	-82.39516
+1205	Buckwalter Place	101 Buckwalter Place Blvd	Bluffton	SC	29910-5155	(843) 815-6430	32.270252	-80.91682
+1266	The Market at Cane Bay	1724 State Rd	Summerville	SC	29486	(843) 761-3750	33.10635	-80.12522
+1354	New River Crossing	112 Nickle Plate Rd	Hardeeville	SC	29927-4414	(843) 208-3600	32.308353	-80.97333
+1379	Gateway Village	1390 Tiger Blvd	Clemson	SC	29631-2617	(864) 654-3776	34.68573	-82.8174
+1383	Hendrix Crossing	847 Highway 378 W	Lexington	SC	29072-8316	(803) 996-6160	33.991127	-81.30632
+1412	Cross Creek	8360 Charlotte Hwy	Indian Land	SC	29707-6532	(803) 548-9000	34.95623	-80.8498
+1419	Publix On Gold Hill	928 Gold Hill Rd	Fort Mill	SC	29708-7947	(803) 548-7900	35.062683	-80.96444
+1463	Lady's Island	61 Ladys Island Dr	Beaufort	SC	29907-1618	(843) 770-0026	32.41221	-80.65107
+1464	Shops at Publix Pavilion	479 Bypass 72 NW Ste 100	Greenwood	SC	29649-1484	(864) 223-8902	34.20627	-82.18599
+1478	Pawleys Island Plaza	10225 Ocean Hwy # 17	Pawleys Island	SC	29585-6507	(843) 235-3755	33.43828	-79.13194
+1479	Coastal North Town Center	1576 Highway 17 N	North Myrtle Beach	SC	29582-2552	(843) 272-0050	33.84235	-78.658195
+1482	Wedgewood Square Shopping Center	1735 Heckle Blvd	Rock Hill	SC	29732-4803	(803) 372-6364	34.95063	-81.06379
+1485	Cherry Road Crossing	2186 Cherry Rd Ste 101	Rock Hill	SC	29732-3282	(803) 366-7500	34.96478	-80.996994
+1486	Landing Station	158 Highway 274	Lake Wylie	SC	29710-6045	(803) 831-5667	35.120228	-81.081085
+1510	Publix at Forest Square	2170 Oakheart Rd	Myrtle Beach	SC	29579-1253	(843) 903-4603	33.75856	-78.95881
+1511	Chapin Crossing	1235 Chapin Rd	Chapin	SC	29036	(803) 345-7536	34.164394	-81.35174
+1524	Village Shops at Grande Dunes	7925 N Kings Hwy	Myrtle Beach	SC	29572-3056	(843) 449-1660	33.751034	-78.81594
+1568	Prince Creek Village Center	11920 Hwy 707 Ste A	Murrells Inlet	SC	29576	(843) 357-0739	33.585896	-79.05471
+1599	10 Westedge	10 Westedge St Ste 100	Charleston	SC	29403	(843) 720-7000	32.786217	-79.956406
+1608	Martin Farms Shopping Center	704 Fairview Rd	Simpsonville	SC	29680	(864) 962-1030	34.702866	-82.25975
+1637	Publix at Lake Crossing	5441 Platt Springs Rd	Lexington	SC	29073	(803) 358-9587	33.906555	-81.22073
+1645	Riverland Market	1411 Folly Rd Ste 100	Charleston	SC	29412	(843) 762-5570	32.714508	-79.96693
+1646	Point Hope Commons	730 Hopewell Dr	Charleston	SC	29492	(843) 856-5193	32.921623	-79.871284
+1671	Seneca 130 Plaza	115 Rochester Hwy	Seneca	SC	29672	(864) 885-7055	34.702732	-82.938896
+1714	May River Crossing	2501 May River Crossing	Bluffton	SC	29910	(843) 815-3800	32.242702	-80.97825
+1716	Beaufort Plaza	33 Robert Smalls Pkwy	Beaufort	SC	29906	(843) 470-1231	32.43967	-80.70342
+1717	Market at Standing Springs	1400 W Georgia Rd	Simpsonville	SC	29680	(864) 962-1183	34.724815	-82.29491
+1767	University Square	5000 Old Buncombe Rd Unit 15	Greenville	SC	29617-8208	(864) 448-7652	34.910557	-82.42777
+1775	Moncks Corner Marketplace	2830 Hwy 52	Moncks Corner	SC	29461	(843) 761-7741	33.091057	-80.03289
+1806	Coventry Marketplace	955 Wood Duck Dr	Myrtle Beach	SC	29577-9412	(843) 293-1012	33.66426	-78.969376
+1812	Marketplace at the Mill	136 Sapwood Rd	Myrtle Beach	SC	29579-3738	(843) 903-2807	33.75309	-78.870155
+1856	Market at Boiling Springs	4400 Highway 9	Boiling Springs	SC	29316	(864) 381-6929	35.0622	-81.99729
+1866	One Nexton	1274 Nexton Pkwy	Summerville	SC	29486-2167	(843) 879-5573	33.06032	-80.1538
+2001	Market at Spears Creek	185 Earth Rd	Columbia	SC	29229	(803) 769-0440	34.113445	-80.844604
+2038	The Market Place at Carnes Crossroads	2700 N Main St Ste A	Summerville	SC	29486-7841	(843) 879-5076	33.063465	-80.09442
+2040	The Village at Woodside	1535 Silver Bluff Rd	Aiken	SC	29803	(803) 845-6298	33.495453	-81.750007
+2090	Daniel Island Town Center	162 Seven Farms Dr Ste 100	Charleston	SC	29492-8024	(843) 972-6081	32.863676	-79.903614
+2100	The Shops at Arden Woods	1311 Fork Shoals Rd	Mauldin	SC	29605	(864) 248-1125	34.74568	-82.352922`;
 const DEFAULT_COORDS = ``;
 // ===EDITION-END===
 
@@ -2526,6 +2540,7 @@ function offerSync(d, packed, fromPaste){
     render(); $("savedNote").textContent="Replaced from Companion (SAP)."; toast(`${n} call${n===1?"":"s"} from SAP — your list was replaced.`); return;
   }
   if(d.a && d.src==="companion" && (d.rt==="reroute"||d.rt==="keep")){ applyNewCall(d); return; }
+  if(d.a && d.auto && d.src==="companion"){ applySync(d); $("savedNote").textContent="Added from Companion (new dispatch)."; return; }   // auto-import a new dispatch, no prompt
   const count=d.c?d.c.split("\n").length:0;
   if(d.a){
     $("recvText").innerHTML=`Add <b>${count} ${d.src==="companion"?"call":"handed-off call"}${count>1?"s":""}</b>${d.src==="companion"?" from Companion":""} to your list? Your current calls stay.`;

@@ -808,12 +808,13 @@ const ERRLOG=[];
   window.addEventListener("unhandledrejection",e=>add("Promise: "+((e.reason&&e.reason.message)||e.reason)));
 })();
 // ---------- version ----------
-const APP_VERSION = "4.31";
+const APP_VERSION = "4.32";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const GC_CODE = "";   // GoatCounter site code for anonymous usage counts (blank = nothing is sent)
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["4.32", "New dispatch texts can now import on their own: when Companion's Auto-add is on, a new call opens the planner and is added with no tap."],
   ["4.31", "🕑 SAP time check (☰ Menu): paste your IW47 confirmations, see logged hours per store per day (reversed entries cancel out), and make a barcode that Companion scans to flag time you tracked but didn't log."],
   ["4.30", "📋 Paste from SAP button on Import calls: copy your active calls in SAP (Ctrl+C), then one tap reads the clipboard and loads them — no pasting into the box."],
   ["4.29", "Desktop SAP import: a SAP GUI macro can push your IW49N list straight into the online planner and replace your whole list, no copy-paste. (Opens the planner with the calls already loaded.)"],
@@ -2480,6 +2481,7 @@ function offerSync(d, packed, fromPaste){
     render(); $("savedNote").textContent="Replaced from Companion (SAP)."; toast(`${n} call${n===1?"":"s"} from SAP — your list was replaced.`); return;
   }
   if(d.a && d.src==="companion" && (d.rt==="reroute"||d.rt==="keep")){ applyNewCall(d); return; }
+  if(d.a && d.auto && d.src==="companion"){ applySync(d); $("savedNote").textContent="Added from Companion (new dispatch)."; return; }   // auto-import a new dispatch, no prompt
   const count=d.c?d.c.split("\n").length:0;
   if(d.a){
     $("recvText").innerHTML=`Add <b>${count} ${d.src==="companion"?"call":"handed-off call"}${count>1?"s":""}</b>${d.src==="companion"?" from Companion":""} to your list? Your current calls stay.`;
