@@ -51,7 +51,7 @@ legend{font-weight:600;font-size:14px;margin-bottom:6px}
 .chip .n{color:var(--muted);font-size:12px}
 .chip.plain{padding-left:10px}
 
-/* Group shield — the one bold element */
+/* Group shield â the one bold element */
 .shield{display:inline-grid;place-items:center;width:30px;height:32px;flex:none;
   color:#fff;font:700 18px/1 var(--sign);padding-top:5px;
   background:linear-gradient(var(--shield-top) 0 8px,var(--shield) 8px);
@@ -77,7 +77,7 @@ legend{font-weight:600;font-size:14px;margin-bottom:6px}
 .calls{table-layout:fixed}
 .calls td:nth-child(2){width:118px}.calls td:nth-child(4){width:150px}.calls td:nth-child(5){width:64px}
 .calls td:nth-child(3){overflow-wrap:anywhere;overflow:hidden}
-/* Phone: each call is two lines: the description across the full width, then priority · past due · status underneath. */
+/* Phone: each call is two lines: the description across the full width, then priority Â· past due Â· status underneath. */
 @media (max-width:600px){
   .calls,.calls tbody{display:block}
   .calls tr{display:grid;grid-template-columns:34px minmax(0,auto) minmax(0,auto) minmax(0,1fr);align-items:center;column-gap:6px;border-bottom:1px solid var(--line)}
@@ -139,7 +139,7 @@ legend{font-weight:600;font-size:14px;margin-bottom:6px}
 details.filters{padding:0}
 details.filters>summary{cursor:pointer;padding:12px 14px;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
 details.filters>summary::-webkit-details-marker{display:none}
-details.filters>summary::before{content:"▸";transition:transform .15s}
+details.filters>summary::before{content:"â¸";transition:transform .15s}
 details.filters[open]>summary::before{transform:rotate(90deg)}
 .fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:4px 18px;padding:0 14px 12px}
 .fgrid fieldset{margin:8px 0 0}
@@ -232,7 +232,7 @@ details.ropts[open]{padding-bottom:10px}
 .tag.soon{background:#DCEBFF;color:#173E70}
 .tag.rep{background:#EFE3FF;color:#4B2A84}
 @media (prefers-color-scheme:dark){.tag.soon{background:#1F3550;color:#CFE3FF}.tag.rep{background:#33264D;color:#E6D9FF}}
-/* call age (days since the call was put in): 0–3 green, 4–5 yellow, 6 orange, 7–8 red, 9+ fire */
+/* call age (days since the call was put in): 0â3 green, 4â5 yellow, 6 orange, 7â8 red, 9+ fire */
 .tag.age{border:1px solid transparent}
 .tag.age.g{background:#DDF3E4;color:#14532D;border-color:#9AD3AE}
 .tag.age.y{background:#FFF4BF;color:#5C4400;border-color:#E9CF55}
@@ -292,7 +292,7 @@ details.ropts[open]{padding-bottom:10px}
 .pastq button .dot{width:12px;height:12px;border-radius:50%;background:var(--muted)}
 .pastq button .n{color:var(--muted);font-size:12px}
 .pastq button.on{border-color:var(--ink);background:var(--soft);font-weight:600}
-.pastq button.on::after{content:"✓";font-weight:700}
+.pastq button.on::after{content:"â";font-weight:700}
 .pastq button .dot.t1,.tier.t1{background:var(--t1)}.pastq button .dot.t2,.tier.t2{background:var(--t2)}.pastq button .dot.t3,.tier.t3{background:var(--t3)}.pastq button .dot.t0{background:transparent;border:2px solid var(--muted)}
 .tier{display:inline-block;color:#fff;border-radius:4px;padding:1px 6px;font-size:12px;font-weight:700;white-space:nowrap}
 .tier.t1{color:#3A2E00}
@@ -369,6 +369,8 @@ details.help kbd{font:12px ui-monospace,Consolas,monospace;border:1px solid var(
 #grpDlg .mapfoot{grid-column:1/-1;font-size:12px;color:var(--muted)}
 @media (max-width:860px){ #grpDlg .box{grid-template-columns:1fr;grid-template-rows:auto 40% minmax(0,1fr) auto} }
 .mv button{padding:0 7px;line-height:1.3;font-size:13px}
+.drag{cursor:grab;touch-action:none;font-size:16px;color:var(--muted);line-height:1;padding:3px 5px;user-select:none;-webkit-user-select:none}
+.stop.dragging .drag{cursor:grabbing}
 .totals{display:flex;gap:18px;margin-top:10px;padding:10px;background:var(--soft);border-radius:8px}
 .totals b{font:700 22px/1 var(--sign);display:block}
 .totals span{font-size:12px;color:var(--muted)}
@@ -398,16 +400,16 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
   <h1><span id="appName">Service Route Planner</span> <span id="verTag" style="font-size:15px;opacity:.8"></span></h1>
   <span class="sub" id="summary">No calls loaded</span>
   <span class="saved" id="savedNote">Saved on this computer</span>
-  <div class="hacts"><button class="hbtn" id="sendBtn" type="button" style="display:none">📱 Send to phone</button>
+  <div class="hacts"><button class="hbtn" id="sendBtn" type="button" style="display:none">ð± Send to phone</button>
   <div class="menuwrap">
-    <button class="hbtn" id="menuBtn" type="button" aria-haspopup="true" aria-expanded="false">☰ Menu</button>
+    <button class="hbtn" id="menuBtn" type="button" aria-haspopup="true" aria-expanded="false">â° Menu</button>
     <div class="menu" id="menu" hidden>
       <span id="modeActions"></span>
-      <button class="hbtn" id="wnBtn" type="button">✨ What's new</button>
-      <button class="hbtn" id="tourBtn" type="button">🧭 Quick tour</button>
-      <button class="hbtn" id="tcBtn" type="button">🕑 SAP time check</button>
-      <button class="hbtn" id="setBtn" type="button">⚙ Settings</button>
-      <button class="hbtn" id="fbBtn" type="button">💬 Feedback</button>
+      <button class="hbtn" id="wnBtn" type="button">â¨ What's new</button>
+      <button class="hbtn" id="tourBtn" type="button">ð§­ Quick tour</button>
+      <button class="hbtn" id="tcBtn" type="button">ð SAP time check</button>
+      <button class="hbtn" id="setBtn" type="button">â Settings</button>
+      <button class="hbtn" id="fbBtn" type="button">ð¬ Feedback</button>
     </div>
   </div></div>
   <div class="modebar">
@@ -451,7 +453,7 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
     <div class="hint" id="fbPHint">Numbers only, 3 to 10 digits. The P is added for you.</div>
     <label class="lbl" for="fbMsg">What happened, or what would you like?</label>
     <textarea id="fbMsg" maxlength="1500" required></textarea>
-    <div class="shot">📷 <b>A screenshot helps a lot.</b> Take one showing the problem, then attach it in Outlook before you tap Send.
+    <div class="shot">ð· <b>A screenshot helps a lot.</b> Take one showing the problem, then attach it in Outlook before you tap Send.
       <span class="hint" id="fbShotHow"></span></div>
     <div class="warn"><b>Keep it general when you can.</b> Broad terms are best. If your report needs proprietary or confidential details, check the box below so it's handled carefully.</div>
     <label class="ack"><input type="checkbox" id="fbProp"> <span><b>This report contains proprietary or confidential information.</b></span></label>
@@ -471,7 +473,7 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
     <p id="sendStep" style="font-weight:700;margin:6px 0 2px"></p>
     <label class="hint" style="display:flex;gap:6px;justify-content:center;align-items:center;margin:4px 0"><input type="checkbox" id="smallCodes"> Smaller codes (easier to scan, but more of them)</label>
     <p class="hint" style="margin:0 0 8px">Point your phone's camera at the code and tap the link. Your calls travel only inside the code, from this screen to your phone. Nothing is uploaded.</p>
-    <div class="row" style="justify-content:center"><button id="sendPrev">◀ Previous</button><button class="primary" id="sendNext">Next code ▶</button><button id="sendClose">Close</button></div>
+    <div class="row" style="justify-content:center"><button id="sendPrev">â Previous</button><button class="primary" id="sendNext">Next code â¶</button><button id="sendClose">Close</button></div>
   </div>
 </div>
 <div class="bmk" id="tcDlg" role="dialog" aria-modal="true" aria-labelledby="tcTitle">
@@ -488,7 +490,7 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
         <p class="hint" style="margin:0 0 4px">Scan this with Companion (Time check) to compare against the time you tracked.</p>
         <canvas id="tcQR" style="width:min(340px,80vw);height:auto;image-rendering:pixelated;border-radius:6px"></canvas>
         <p id="tcStep" style="font-weight:700;margin:6px 0 2px"></p>
-        <div class="row" style="justify-content:center"><button id="tcPrev">◀ Previous</button><button id="tcNext">Next code ▶</button></div>
+        <div class="row" style="justify-content:center"><button id="tcPrev">â Previous</button><button id="tcNext">Next code â¶</button></div>
       </div>
     </div>
     <div class="row" style="justify-content:flex-end;margin-top:8px"><button id="tcClose">Close</button></div>
@@ -561,7 +563,7 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
 
 <details class="settings" id="storeData">
   <summary>Store data and groups</summary>
-  <p class="hint">Edit and save to change store info, groups, or map positions. Saved in this browser only. Mileage is straight-line × 1.25 at 45 mph, so treat it as a rough guide; the Google Maps link gives real directions.</p>
+  <p class="hint">Edit and save to change store info, groups, or map positions. Saved in this browser only. Mileage is straight-line Ã 1.25 at 45 mph, so treat it as a rough guide; the Google Maps link gives real directions.</p>
   <div class="set-grid">
     <div><label for="groupsInput">Store groups (store, group)</label><textarea id="groupsInput"></textarea></div>
     <div><label for="storesInput">Store list (paste with the header row, or load a file)</label><textarea id="storesInput"></textarea>
@@ -583,7 +585,7 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
   <div class="box" style="max-width:560px">
     <h3 id="eodTitle">End-of-day summary</h3>
     <textarea id="eodText" readonly aria-label="Summary"></textarea>
-    <div class="row"><button id="eodClose">Close</button><button id="eodMail">Open in Outlook</button><button class="primary" id="eodCopy">📋 Copy</button></div>
+    <div class="row"><button id="eodClose">Close</button><button id="eodMail">Open in Outlook</button><button class="primary" id="eodCopy">ð Copy</button></div>
   </div>
 </div>
 <div class="bmk" id="handDlg" role="dialog" aria-modal="true" aria-labelledby="handTitle">
@@ -592,16 +594,16 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
     <p class="hint" id="handSum" style="margin:0 0 6px"></p>
     <canvas id="handQR" style="width:min(300px,75vw);height:auto;image-rendering:pixelated;border-radius:6px;display:none"></canvas>
     <p class="hint" id="handHow" style="margin:6px 0"></p>
-    <div class="row" style="justify-content:center"><button class="primary" id="handCopy">📋 Copy for teammate</button><button id="handHide">Hide from my list</button><button id="handClose">Close</button></div>
+    <div class="row" style="justify-content:center"><button class="primary" id="handCopy">ð Copy for teammate</button><button id="handHide">Hide from my list</button><button id="handClose">Close</button></div>
   </div>
 </div>
 <div class="dayv" id="dayView" role="dialog" aria-modal="true" aria-label="Day view">
-  <div class="dv-top"><button id="dvClose" aria-label="Close day view">✕</button><button id="dvReplan" aria-label="Re-plan from here" title="Re-plan from here">📍</button><button id="dvCopy" aria-label="Copy list" style="width:auto;padding:0 12px;font-size:15px;font-weight:700">📋 Copy</button>
+  <div class="dv-top"><button id="dvClose" aria-label="Close day view">â</button><button id="dvReplan" aria-label="Re-plan from here" title="Re-plan from here">ð</button><button id="dvCopy" aria-label="Copy list" style="width:auto;padding:0 12px;font-size:15px;font-weight:700">ð Copy</button>
     <div class="dv-prog"><b id="dvTitle">Today's route</b><div class="dv-bar"><i id="dvBar"></i></div><span id="dvSub"></span></div></div>
   <div class="dv-track" id="dvTrack"></div>
-  <div class="dv-nav"><button id="dvPrev">◀ Prev</button><div class="dv-dots" id="dvDots"></div><button class="primary" id="dvNext">Next ▶</button></div>
+  <div class="dv-nav"><button id="dvPrev">â Prev</button><div class="dv-dots" id="dvDots"></div><button class="primary" id="dvNext">Next â¶</button></div>
 </div>
-<button class="dvfab" id="dvFab" type="button">▶ Day view</button>
+<button class="dvfab" id="dvFab" type="button">â¶ Day view</button>
 <div class="bmk" id="mapDlg" role="dialog" aria-modal="true" aria-labelledby="mapTitle">
   <div class="box">
     <div class="maphead"><h3 id="mapTitle">Route map</h3><span class="hint" id="mapSum"></span><span style="flex:1"></span>
@@ -609,7 +611,7 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
       <button id="mapOpt" type="button" title="Put back the planner's order (your Stop order setting)">Re-optimize</button><button id="mapGo" type="button">Open in Google Maps</button><button class="primary" id="mapClose" type="button">Close</button></div>
     <ol class="stops dnd" id="mapStops"></ol>
     <div id="mapView"></div>
-    <div class="mapfoot">Drag stops in the list to change the order; the map and miles update right away. Click a number on the map to find that stop in the list. Lines are straight between stops, so real driving is a little longer. Only map pictures are loaded from the map service, never your calls. Map © OpenStreetMap contributors.</div>
+    <div class="mapfoot">Drag stops in the list to change the order; the map and miles update right away. Click a number on the map to find that stop in the list. Lines are straight between stops, so real driving is a little longer. Only map pictures are loaded from the map service, never your calls. Map Â© OpenStreetMap contributors.</div>
   </div>
 </div>
 <div class="bmk" id="grpDlg" role="dialog" aria-modal="true" aria-labelledby="grpTitle">
@@ -617,7 +619,7 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
     <div class="maphead"><h3 id="grpTitle">Virginia route groups</h3><span class="hint" id="grpSum"></span><span style="flex:1"></span><button class="primary" id="grpClose" type="button">Close</button></div>
     <div id="grpList"></div>
     <div id="grpMap"></div>
-    <div class="mapfoot">Tap a group to zoom to it; tap a dot for the store. Groups follow your store list (Settings) and any changes you've made there. Map © OpenStreetMap contributors.</div>
+    <div class="mapfoot">Tap a group to zoom to it; tap a dot for the store. Groups follow your store list (Settings) and any changes you've made there. Map Â© OpenStreetMap contributors.</div>
   </div>
 </div>
 <div class="bmk" id="pasteDlg" role="dialog" aria-modal="true" aria-labelledby="pasteTitle">
@@ -654,14 +656,14 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
       <div id="impBox"><h2>Import calls</h2>
     <textarea id="callsInput" placeholder="Paste service call rows from SAP, or paste dispatch text messages"></textarea>
     <div class="row">
-      <button class="primary" id="pasteSapBtn">📋 Paste from SAP</button>
+      <button class="primary" id="pasteSapBtn">ð Paste from SAP</button>
       <button id="loadBtn">Load calls</button>
       <button id="clearBtn">Clear</button>
     </div>
       </div>
     <div class="msg" id="importMsg"></div>
     <div class="chg" id="chgBox" hidden></div>
-    <div class="row" id="pasteRow"><button id="pasteBtn2" type="button">📥 Paste a handoff or transfer</button></div>
+    <div class="row" id="pasteRow"><button id="pasteBtn2" type="button">ð¥ Paste a handoff or transfer</button></div>
     <details class="help" id="sapHelp">
       <summary>How to get your calls from SAP</summary>
       <div class="hb">
@@ -731,7 +733,7 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
           <option value="old">Call start date: oldest first</option>
           <option value="new">Call start date: newest first</option>
         </select>
-        <button id="copyList">📋 Copy list</button>
+        <button id="copyList">ð Copy list</button>
       </div>
     </div>
     <div id="storeList"></div>
@@ -764,17 +766,26 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
       <option value="start">Oldest call start date first</option>
       <option value="manual">Manual (drag or use arrows)</option>
     </select>
-    <label class="incl" style="margin-top:10px"><input type="checkbox" id="roundTrip"> Return to start</label>
-    <div class="row"><button id="allIn">Include all stores</button><button id="allOut">Exclude all</button></div>
+    <label class="hint" for="firstSel" style="display:block;margin-top:10px">First stop</label>
+    <select id="firstSel"><option value="">Auto (best order)</option></select>
+    <label class="hint" for="endSel" style="display:block;margin-top:10px">Finish at</label>
+    <select id="endSel">
+      <option value="">End anywhere (fewest miles)</option>
+      <option value="start">Back to start</option>
+      <option value="store">A storeâ¦</option>
+    </select>
+    <div id="endStoreBox" style="display:none"><input type="text" id="endStore" inputmode="numeric" autocomplete="off" placeholder="Finish store number" style="margin-top:6px"><div class="msg" id="endStoreMsg"></div></div>
+    <input type="checkbox" id="roundTrip" hidden>
+    <div class="row" style="margin-top:10px"><button id="allIn">Include all stores</button><button id="allOut">Exclude all</button></div>
     </details>
 
-    <button class="dvbtn" id="dvBtn" type="button">▶ Day view: go stop by stop</button>
-    <div class="row"><button id="replanBtn" type="button">📍 Re-plan from here</button><button id="eodBtn" type="button">📊 End-of-day summary</button></div>
+    <button class="dvbtn" id="dvBtn" type="button">â¶ Day view: go stop by stop</button>
+    <div class="row"><button id="replanBtn" type="button">ð Re-plan from here</button><button id="eodBtn" type="button">ð End-of-day summary</button></div>
     <div class="totals" id="totals"></div>
-    <button class="mapbtn" id="mapBtn" type="button" style="display:none">🗺 Show route on map</button>
+    <button class="mapbtn" id="mapBtn" type="button" style="display:none">ðº Show route on map</button>
     <div class="links" id="links"></div>
     <ol class="stops" id="stops"></ol>
-    <div class="dndhint" id="dndHint" style="display:none">Drag a stop up or down to change the order.</div>
+    <div class="dndhint" id="dndHint" style="display:none">Drag the â ¿ handle (or use â²â¼) to change the order â you go down the list in order.</div>
     <div class="share">
       <button class="primary" id="copyBtn">Copy route for team</button>
       <div class="opts">
@@ -784,7 +795,7 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
         <label><input type="checkbox" id="optDrive" checked> Total driving time</label>
       </div>
       <div class="row">
-        <button id="shareBtn" hidden>Share…</button>
+        <button id="shareBtn" hidden>Shareâ¦</button>
         <button id="previewBtn">Preview</button>
         <button id="printBtn">Print</button>
       </div>
@@ -808,45 +819,46 @@ const ERRLOG=[];
   window.addEventListener("unhandledrejection",e=>add("Promise: "+((e.reason&&e.reason.message)||e.reason)));
 })();
 // ---------- version ----------
-const APP_VERSION = "4.32";
+const APP_VERSION = "4.33";
 const FEEDBACK_TO = "@@FEEDBACK_TO@@";
 const GC_CODE = "@@GC_CODE@@";   // GoatCounter site code for anonymous usage counts (blank = nothing is sent)
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["4.33", "Route options: choose where you Finish (back to start or a store) and which store is First, for a tighter route. The stop list is your visit order  drag the ⠿ handle (works on phones) or use the arrows to reorder, then just go down the list."],
   ["4.32", "New dispatch texts can now import on their own: when Companion's Auto-add is on, a new call opens the planner and is added with no tap."],
-  ["4.31", "🕑 SAP time check (☰ Menu): paste your IW47 confirmations, see logged hours per store per day (reversed entries cancel out), and make a barcode that Companion scans to flag time you tracked but didn't log."],
-  ["4.30", "📋 Paste from SAP button on Import calls: copy your active calls in SAP (Ctrl+C), then one tap reads the clipboard and loads them — no pasting into the box."],
+  ["4.31", "ð SAP time check (â° Menu): paste your IW47 confirmations, see logged hours per store per day (reversed entries cancel out), and make a barcode that Companion scans to flag time you tracked but didn't log."],
+  ["4.30", "ð Paste from SAP button on Import calls: copy your active calls in SAP (Ctrl+C), then one tap reads the clipboard and loads them â no pasting into the box."],
   ["4.29", "Desktop SAP import: a SAP GUI macro can push your IW49N list straight into the online planner and replace your whole list, no copy-paste. (Opens the planner with the calls already loaded.)"],
-  ["4.28", "Importing your calls from SAP in Companion now sends them straight here and replaces your whole list — no extra tap, and completed calls drop off."],
+  ["4.28", "Importing your calls from SAP in Companion now sends them straight here and replaces your whole list â no extra tap, and completed calls drop off."],
   ["4.27", "Focused on active calls: the History calendar is removed, and a call's age now comes straight from its due date (exact for Sev 3 and 4), so no past-call log is needed. Importing from SAP replaces your whole call list, so completed calls drop off on their own."],
   ["4.26", "Fix: on very narrow phones the call badges no longer push the page sideways."],
-  ["4.25", "Cleaner look: on phones each call shows its description across the full width with priority, past due and status underneath; 7–8 day old calls use a lighter red so solid red always means past due; the route list drops the extra past-due band; Settings is split into Features, Your data & privacy, and About & store data."],
+  ["4.25", "Cleaner look: on phones each call shows its description across the full width with priority, past due and status underneath; 7â8 day old calls use a lighter red so solid red always means past due; the route list drops the extra past-due band; Settings is split into Features, Your data & privacy, and About & store data."],
   ["4.24", "The route list shows how many days old each stop's oldest call is, with the same colors."],
-  ["4.23", "Route options → Stop order: \"Strictly oldest due first\" (nearly the same as Most past due first) is replaced by Oldest call start date first, which visits stores in the order their calls were put in. The list sort is renamed Call start date."],
+  ["4.23", "Route options â Stop order: \"Strictly oldest due first\" (nearly the same as Most past due first) is replaced by Oldest call start date first, which visits stores in the order their calls were put in. The list sort is renamed Call start date."],
   ["4.22", "Sort the store list by days old: oldest first or newest first (Sort menu above the stores)."],
   ["4.21", "Call age now comes from SAP itself: the due date and severity give the day the call was put in (Sev 1 same day by midnight, Sev 2 next day by 5 PM, Sev 3 72 hours, Sev 4 120 hours). Hover a badge to see the date."],
-  ["4.20", "Call age colors: 0–3 days green, 4–5 yellow, 6 orange, 7–8 red, 9+ days 🔥 fire."],
-  ["4.19", "Call age badge on every call: 📅 days since the call was put in, colored by age. Exact when the dispatch text is known (from Companion), otherwise ≈ estimated. Turn it off in Settings if you don't want it."],
+  ["4.20", "Call age colors: 0â3 days green, 4â5 yellow, 6 orange, 7â8 red, 9+ days ð¥ fire."],
+  ["4.19", "Call age badge on every call: ð days since the call was put in, colored by age. Exact when the dispatch text is known (from Companion), otherwise â estimated. Turn it off in Settings if you don't want it."],
   ["4.18", "Copy route for team can include the total driving time (new Total driving time box under the Copy button, on by default)."],
   ["4.17", "Virginia: group areas on the maps are bolder, so each group is easier to pick out."],
-  ["4.16", "Virginia: the route map shades each route group (A–F) in its own color under your stops. Turn it off with Show groups at the top of the map."],
+  ["4.16", "Virginia: the route map shades each route group (AâF) in its own color under your stops. Turn it off with Show groups at the top of the map."],
   ["4.15", "Maps now use OpenStreetMap's own map pictures: no API key or sign-up needed."],
-  ["4.14", "Route options → Start from → A store: just type the number, no drop-down list, and any Publix store works, in every state, not only the stores in this edition."],
-  ["4.13", "Virginia: ☰ Menu → 🗺 Route groups shows each group (A–F) with its area and store numbers, on a map that shades each area."],
-  ["4.12", "Computer only: 🗺 Show route on map opens a map of your stops in order, next to the stop list. Drag a stop up or down (on the map screen or in the route panel) to change the order; the map, miles and Google Maps links update right away. Re-optimize puts the planner's order back."],
-  ["4.11", "Send to phone moved out of the menu: when it's turned on, it has its own button at the top, next to ☰ Menu. History now keeps every call you load from SAP (IW49), not just the ones you mark Done. To bring in your past dispatch texts on a computer, export them from Companion (Settings → Export all calls for desktop) and choose History → Import Companion file."],
+  ["4.14", "Route options â Start from â A store: just type the number, no drop-down list, and any Publix store works, in every state, not only the stores in this edition."],
+  ["4.13", "Virginia: â° Menu â ðº Route groups shows each group (AâF) with its area and store numbers, on a map that shades each area."],
+  ["4.12", "Computer only: ðº Show route on map opens a map of your stops in order, next to the stop list. Drag a stop up or down (on the map screen or in the route panel) to change the order; the map, miles and Google Maps links update right away. Re-optimize puts the planner's order back."],
+  ["4.11", "Send to phone moved out of the menu: when it's turned on, it has its own button at the top, next to â° Menu. History now keeps every call you load from SAP (IW49), not just the ones you mark Done. To bring in your past dispatch texts on a computer, export them from Companion (Settings â Export all calls for desktop) and choose History â Import Companion file."],
   ["4.10", "How to get your calls from SAP now always starts collapsed; tap it to open."],
   ["4.9", "Automatic updates: an open planner checks for a new version every 30 minutes and when you come back to it, and refreshes itself (never while you're typing or have a window open). Your calls and settings stay."],
   ["4.8", "New dispatch calls from Companion: choose Reroute now (re-plans from where you are) or Keep my route (your stop order stays the same and the new store goes at the end) right from Companion's notification."],
   ["4.7", "Past calls from Companion: after importing past dispatch texts in Companion, send them to Route Planner and they appear in History (by the day the text arrived), and count toward repeat-issue alerts and Your stats."],
-  ["4.6", "Fixes: the ☰ Menu no longer runs off the edge of the screen on phones; dialogs and the tour stay on screen at every phone size. Send feedback now reminds you to attach a screenshot of the problem."],
+  ["4.6", "Fixes: the â° Menu no longer runs off the edge of the screen on phones; dialogs and the tour stay on screen at every phone size. Send feedback now reminds you to attach a screenshot of the problem."],
   ["4.5", "Usage data is only sent from phones and tablets. Nothing is sent when you use the planner on a computer."],
-  ["4.4", "Anonymous user ID: a random code (shown in Settings → Usage data) so one person is counted once across days and devices. It travels with Send to phone, calls from Companion, and backup files (never with a hand-off to a teammate), and can be typed in on another device. It is never linked to your name, P number, or email."],
-  ["4.3", "Usage data and Your stats: ☰ Menu → Settings shows fun facts from your own data (calls completed, stores and cities served, routes opened, busiest day) and explains exactly what anonymous usage data is sent: app version, what you used (by name only), device type, screen size, and general area (country and state). Your calls, store numbers, addresses, GPS location, and names are never sent."],
+  ["4.4", "Anonymous user ID: a random code (shown in Settings â Usage data) so one person is counted once across days and devices. It travels with Send to phone, calls from Companion, and backup files (never with a hand-off to a teammate), and can be typed in on another device. It is never linked to your name, P number, or email."],
+  ["4.3", "Usage data and Your stats: â° Menu â Settings shows fun facts from your own data (calls completed, stores and cities served, routes opened, busiest day) and explains exactly what anonymous usage data is sent: app version, what you used (by name only), device type, screen size, and general area (country and state). Your calls, store numbers, addresses, GPS location, and names are never sent."],
   ["4.2", "Feedback can include device details (browser, screen, planner version, counts of loaded calls and stores, recent errors) to help fix problems. You see exactly what is added before sending and can uncheck it. Your calls, locations and addresses are never included."],
-  ["4.1", "What's new: after an update, a short note shows what changed. Quick tour: a one-minute walk through the screen, offered on first use and any time from ☰ Menu."],
-  ["4.0", "Simpler screen: one ☰ Menu for Install, Send to phone, Bookmark, Download, Settings and Feedback; the paste box shrinks to one line after loading; all filters in one Filters bar with a summary; tighter store cards (tap a store for address and phone); route options folded away with the stop list on top; version history and store data moved into Settings."],
+  ["4.1", "What's new: after an update, a short note shows what changed. Quick tour: a one-minute walk through the screen, offered on first use and any time from â° Menu."],
+  ["4.0", "Simpler screen: one â° Menu for Install, Send to phone, Bookmark, Download, Settings and Feedback; the paste box shrinks to one line after loading; all filters in one Filters bar with a summary; tighter store cards (tap a store for address and phone); route options folded away with the stop list on top; version history and store data moved into Settings."],
   ["3.12", "Optional features now start turned off for a simpler screen: What changed, Repeat-issue alerts, Due soon, Re-plan from here, End-of-day summary, Hand off, Day view, and Send to phone. Turn on the ones you want in Settings."],
   ["3.11", "Send to phone fits a typical day in one QR code: calls are packed tighter and shown as one larger code. Check Smaller codes if your phone has trouble scanning."],
   ["3.10", "Calls sent from the Companion app (or a transfer link) are picked up even when the planner is already open."],
@@ -869,7 +881,7 @@ const CHANGELOG = [
   ["2.5", "Removed links to the Google Drive folder. New versions come from GitHub."],
   ["2.4", "Banner shows Online or Offline version. The online version has a Download button to save an offline copy. The offline version links to the GitHub repository and checks for updates automatically."],
   ["2.3", "Step-by-step help for copying open calls out of SAP (IW49N), with the required column order. The planner now warns when pasted columns are in the wrong order or a date can't be read."],
-  ["2.2", "Past-due color levels: 1–2 days (yellow), 3 days (orange), 4+ days (red); pick more than one. Custom day range only ever shows expired calls. Each store shows all of its other open calls too. Sort the store list by days past due, most or least first. Most past due first switch builds the route oldest-first, then shortest drive."],
+  ["2.2", "Past-due color levels: 1â2 days (yellow), 3 days (orange), 4+ days (red); pick more than one. Custom day range only ever shows expired calls. Each store shows all of its other open calls too. Sort the store list by days past due, most or least first. Most past due first switch builds the route oldest-first, then shortest drive."],
   ["2.1", "Days past due filter with quick buttons (7+, 14+, 30+) and your own day range. Sort stores by most past due. Each call shows how many days it is past due, also in the copied route."],
   ["2.0", "Link to the shared Google Drive folder where the latest version of every edition is kept."],
   ["1.9", "State editions for AL, FL, GA, KY, NC, SC, and TN, alongside the company-wide and VA editions. In state editions, stores without a group are grouped by city. Long group names are shortened to fit."],
@@ -884,7 +896,7 @@ const CHANGELOG = [
   ["1.0", "Import calls, group by store, filters, route ordering, Google Maps directions."]
 ];
 // ===EDITION-START===
-const EDITION = {id:"local", name:"Service Route Planner – Virginia", key:"rp.", resetLabel:"Restore defaults"};
+const EDITION = {id:"local", name:"Service Route Planner â Virginia", key:"rp.", resetLabel:"Restore defaults"};
 const DEFAULT_GROUPS = `P1566	B
 P1587	B
 P1588	C
@@ -1072,7 +1084,7 @@ function parseDue(d,t){
 // ---------- dispatch texts ----------
 // Reads texts like "801624020 2035 scale printer scale not advancing Sev: 3 P1593 - THE VILLAGE SHOPPING CENTER Retail Stores."
 // (same rules as the Companion app's reader). Texts carry no due date; status SMS marks where the call came from.
-const DISPATCH_RX=/(\d{9,10})\s+([\s\S]+?)\s+Sev\s*:?\s*(\d)\s+P0*(\d{3,5})\s*[-–—]\s*([\s\S]+?)(?=\s+\d{9,10}\s|\s*$)/gi;
+const DISPATCH_RX=/(\d{9,10})\s+([\s\S]+?)\s+Sev\s*:?\s*(\d)\s+P0*(\d{3,5})\s*[-ââ]\s*([\s\S]+?)(?=\s+\d{9,10}\s|\s*$)/gi;
 const SEV_LABEL={"1":"1 - Urgent","2":"2 - High","3":"3 - Standard","4":"4 - Low"};
 function parseDispatch(text){
   const out=[]; let m; DISPATCH_RX.lastIndex=0;
@@ -1099,8 +1111,8 @@ function parseCalls(text){
     const pr=parseInt(c[4])||9;
     calls.push({
       type:c[0], activ:c[1], date:c[2], time:c[3], due:parseDue(c[2],c[3]),
-      prioLabel:c[4]||"—", prio:pr, store:cust||loc, location:loc,
-      serial:c[8], order:c[9], desc:c[10], wc:c[11], status:c[12]||"—", material:c[13]
+      prioLabel:c[4]||"â", prio:pr, store:cust||loc, location:loc,
+      serial:c[8], order:c[9], desc:c[10], wc:c[11], status:c[12]||"â", material:c[13]
     });
   });
   if(badDates) warnings.push(`${badDates} call${badDates>1?"s have":" has"} a due date the planner can't read. Column 3 should be "Basic fin. date" (like 9/20/2026).`);
@@ -1113,7 +1125,7 @@ const esc = s => String(s??"").replace(/[&<>"]/g,ch=>({"&":"&amp;","<":"&lt;",">
 const groupOf = n => S.groups[n] || (S.stores[n] && (S.stores[n].group || S.stores[n].division || (EDITION.groupBy==="city" ? S.stores[n].city : S.stores[n].state))) || "?";
 const shieldHTML = (g, size) => `<span class="shield${size?" "+size:""}${String(g).length>2?" wide":""}" title="Group ${esc(g)}">${esc(g)}</span>`;
 const fullAddr = n => { const s=S.stores[n]; return s && s.addr ? `${s.addr}, ${s.city}, ${s.state} ${s.zip}` : `Store ${n}`; };
-const fmtDue = d => d ? d.toLocaleDateString(undefined,{weekday:"short",month:"numeric",day:"numeric"})+" "+d.toLocaleTimeString([], {hour:"numeric",minute:"2-digit"}) : "—";
+const fmtDue = d => d ? d.toLocaleDateString(undefined,{weekday:"short",month:"numeric",day:"numeric"})+" "+d.toLocaleTimeString([], {hour:"numeric",minute:"2-digit"}) : "â";
 function miles(a,b){
   if(!a||!b) return null;
   const R=3958.8, r=x=>x*Math.PI/180;
@@ -1132,7 +1144,7 @@ function fmtPast(c){
   const n=Math.floor(d); return `${n} day${n>1?"s":""} past due`;
 }
 // Past-due levels: 0 not yet due, 1 = expired under 3 days, 2 = 3 days, 3 = 4+ days.
-const TIERS=[{k:1,label:"1–2 days"},{k:2,label:"3 days"},{k:3,label:"4+ days"},{k:0,label:"Not yet due"}];
+const TIERS=[{k:1,label:"1â2 days"},{k:2,label:"3 days"},{k:3,label:"4+ days"},{k:0,label:"Not yet due"}];
 function tierOf(c){ const d=pastDays(c); if(d===null||d<=0) return 0; const w=Math.floor(d); return w>=4?3:w===3?2:1; }
 const tierLabel = t => (TIERS.find(x=>x.k===t)||{}).label;
 const pastSortMode = () => $("modeSel").value==="pasttier";
@@ -1165,7 +1177,7 @@ function renderDates(){
   host.innerHTML=list.map(o=>{
     const on=S.fDates.has(o.k);
     const top = o.k==="none" ? "No date" : o.k===today ? "Today" : o.k===tmr ? "Tomorrow" : o.d.toLocaleDateString(undefined,{weekday:"short"});
-    const day = o.k==="none" ? "—" : `${o.d.getMonth()+1}/${o.d.getDate()}`;
+    const day = o.k==="none" ? "â" : `${o.d.getMonth()+1}/${o.d.getDate()}`;
     return `<button class="dchip t${o.t}${o.k===today?" today":""}${on?" on":""}" data-date="${o.k}" aria-pressed="${on}" title="${o.n} call${o.n>1?"s":""}"><span>${top}</span><b>${day}</b><span class="n">${o.n} call${o.n>1?"s":""}</span></button>`;
   }).join("");
   host.querySelectorAll(".dchip").forEach(b=>b.onclick=()=>{ const k=b.dataset.date; S.fDates.has(k)?S.fDates.delete(k):S.fDates.add(k); store.set("fDates",[...S.fDates]); render(); });
@@ -1241,7 +1253,7 @@ function addExtras(groups, shown){
 }
 function renderStores(groups){
   const host=$("storeList");
-  if(!Object.keys(S.stores).length){ host.innerHTML='<div class="empty">Your store list is empty. Open <b>☰ Menu → Settings → Store data</b> and load your company store file.</div>'; return; }
+  if(!Object.keys(S.stores).length){ host.innerHTML='<div class="empty">Your store list is empty. Open <b>â° Menu â Settings â Store data</b> and load your company store file.</div>'; return; }
   if(!S.calls.length){ host.innerHTML='<div class="empty">Paste your service call rows above and select <b>Load calls</b>.</div>'; return; }
   if(!groups.length){ host.innerHTML='<div class="empty">No calls match the current filters.</div>'; return; }
   const now=new Date();
@@ -1255,8 +1267,8 @@ function renderStores(groups){
       return `<tr class="${dn?"done":t?"t"+t:""}${extra?" extra":""}">
         <td class="chk"><label class="done-box" title="Mark call done"><input type="checkbox" data-done="${esc(c.order)}" ${dn?"checked":""} aria-label="Done: ${esc(c.desc)}"></label></td>
         <td><span class="pri p${c.prio}">${esc(c.prioLabel)}</span></td>
-        <td><b>${esc(c.desc)}</b> <span class="muted ordl"><a class="ord" href="${ORDER_HREF(c.order)}"${orderTarget()} title="Opens in Microsoft Edge">${esc(c.order)}</a>${dn?" · completed "+new Date(S.done[c.order]).toLocaleDateString():""}${c.serial?` <span class="sn" title="Serial number">· SN ${esc(c.serial)}</span>`:""}${F("handoff")&&!dn?` <button class="hand" type="button" data-hand="${esc(c.order)}">↗ Hand off</button>`:""}</span>${locNote}${callTags(c)}</td>
-        <td class="due">${t&&!dn?`<span class="tier t${t}" title="Due ${esc(fmtDue(c.due))}">${fmtPast(c)}</span>`:`<span class="muted">${c.due?c.due.toLocaleDateString(undefined,{month:"numeric",day:"numeric"}):"—"}</span>`}</td>
+        <td><b>${esc(c.desc)}</b> <span class="muted ordl"><a class="ord" href="${ORDER_HREF(c.order)}"${orderTarget()} title="Opens in Microsoft Edge">${esc(c.order)}</a>${dn?" Â· completed "+new Date(S.done[c.order]).toLocaleDateString():""}${c.serial?` <span class="sn" title="Serial number">Â· SN ${esc(c.serial)}</span>`:""}${F("handoff")&&!dn?` <button class="hand" type="button" data-hand="${esc(c.order)}">â Hand off</button>`:""}</span>${locNote}${callTags(c)}</td>
+        <td class="due">${t&&!dn?`<span class="tier t${t}" title="Due ${esc(fmtDue(c.due))}">${fmtPast(c)}</span>`:`<span class="muted">${c.due?c.due.toLocaleDateString(undefined,{month:"numeric",day:"numeric"}):"â"}</span>`}</td>
         <td><span class="status">${esc(c.status)}</span></td></tr>`;
     };
     const ex=g.extra||[];
@@ -1266,8 +1278,8 @@ function renderStores(groups){
       <div class="store-head">
         ${shieldHTML(groupOf(g.num))}
         <div class="info">
-          <button class="store-name" type="button" data-more="${esc(g.num)}" aria-expanded="false" title="Show address and phone">${esc(g.num)}<small>${esc(s?s.center:"Store not in list")}${s&&s.city?" · "+esc(s.city):""}</small><span class="more">▾</span></button>
-          <div class="addr" hidden>${s?`<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddr(g.num))}" target="_blank" rel="noopener">${esc(fullAddr(g.num))}</a> · <a href="tel:${esc(s.phone)}">${esc(s.phone)}</a>`:"Add this store under Store data to get an address"}</div>
+          <button class="store-name" type="button" data-more="${esc(g.num)}" aria-expanded="false" title="Show address and phone">${esc(g.num)}<small>${esc(s?s.center:"Store not in list")}${s&&s.city?" Â· "+esc(s.city):""}</small><span class="more">â¾</span></button>
+          <div class="addr" hidden>${s?`<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddr(g.num))}" target="_blank" rel="noopener">${esc(fullAddr(g.num))}</a> Â· <a href="tel:${esc(s.phone)}">${esc(s.phone)}</a>`:"Add this store under Store data to get an address"}</div>
           <div class="muted" style="font-size:13px">${storeRepeat(g.num)}${g.calls.length>1?g.calls.length+" calls":""}${ex.length?` + ${ex.length} more open`:""}${(()=>{const o=g.calls.concat(ex).filter(c=>!isDone(c)&&pastDays(c)>0); if(o.length<2 && g.calls.length+ex.length<2) return ""; if(!o.length) return ""; const old=o.reduce((m,c)=>c.due<m.due?c:m); return `<span class="tier t${tierOf(old)} pastbadge">Oldest ${fmtPast(old)}</span>`;})()}</div>
         </div>
         <label class="incl sm" title="Include this store in the route"><input type="checkbox" data-store="${esc(g.num)}" ${inc?"checked":""}> Route</label>
@@ -1299,7 +1311,7 @@ function getStart(){
   if(v==="store"){
     const n=cleanNum($("startStore").value);
     if(!S.stores[n]){ const c=companyStore(n); if(!c||!c.pt) return null;
-      return {label:`Start: store ${n} · ${c.city}${c.state?", "+c.state:""}`, addr:`${c.pt[0]},${c.pt[1]}`, pt:c.pt, num:n}; }
+      return {label:`Start: store ${n} Â· ${c.city}${c.state?", "+c.state:""}`, addr:`${c.pt[0]},${c.pt[1]}`, pt:c.pt, num:n}; }
     return {label:"Start: store "+n, addr:fullAddr(n), pt:S.coords[n]||null, num:n};
   }
   if(v==="custom"){
@@ -1309,34 +1321,40 @@ function getStart(){
   }
   return {label:"Start: store "+v, addr:fullAddr(v), pt:S.coords[v]||null, num:v};
 }
-function pathCost(start, seq, round){
+// end = where the route should finish (a point to end nearest), or null for "end anywhere".
+function pathCost(start, seq, end){
   let d=0, prev=start?start.pt:null;
   for(const s of seq){ if(prev) d+=miles(prev,S.coords[s.num]); prev=S.coords[s.num]; }
-  if(round && start && start.pt && prev) d+=miles(prev,start.pt);
+  if(end && end.pt && prev) d+=miles(prev,end.pt);
   return d;
 }
-function optimize(start, stops, round){
+function optimize(start, stops, end, firstNum){
   if(stops.length<2) return stops.slice();
-  // nearest neighbour
-  let rest=stops.slice(), seq=[], cur=start&&start.pt ? start.pt : null;
-  if(!cur){ seq.push(rest.shift()); cur=S.coords[seq[0].num]; }
+  let rest=stops.slice(), pinned=null;
+  if(firstNum){ const i=rest.findIndex(s=>s.num===firstNum); if(i>=0) pinned=rest.splice(i,1)[0]; }
+  // nearest neighbour (from the pinned first stop if set, else from the start point)
+  let seq=[], cur;
+  if(pinned){ seq.push(pinned); cur=S.coords[pinned.num]; }
+  else cur = start&&start.pt ? start.pt : null;
+  if(!cur && rest.length){ seq.push(rest.shift()); cur=S.coords[seq[seq.length-1].num]; }
   while(rest.length){
     let bi=0,bd=Infinity; rest.forEach((s,i)=>{const d=miles(cur,S.coords[s.num]); if(d<bd){bd=d;bi=i;}});
     const s=rest.splice(bi,1)[0]; seq.push(s); cur=S.coords[s.num];
   }
-  // 2-opt
-  let improved=true, best=pathCost(start,seq,round), guard=0;
+  // 2-opt (never move the pinned first stop)
+  const lock=pinned?1:0;
+  let improved=true, best=pathCost(start,seq,end), guard=0;
   while(improved && guard++<200){
     improved=false;
-    for(let i=0;i<seq.length-1;i++) for(let k=i+1;k<seq.length;k++){
+    for(let i=lock;i<seq.length-1;i++) for(let k=i+1;k<seq.length;k++){
       const cand=seq.slice(0,i).concat(seq.slice(i,k+1).reverse(),seq.slice(k+1));
-      const c=pathCost(start,cand,round);
+      const c=pathCost(start,cand,end);
       if(c<best-0.01){ seq=cand; best=c; improved=true; }
     }
   }
   return seq;
 }
-function orderStops(start, stops, mode, round){
+function orderStops(start, stops, mode, end, firstNum){
   const zipOf=n=>(S.stores[n]&&S.stores[n].zip)||"99999";
   const withPt=stops.filter(s=>S.coords[s.num]);
   const noPt=stops.filter(s=>!S.coords[s.num]).sort((a,b)=>zipOf(a.num).localeCompare(zipOf(b.num)) || a.num.localeCompare(b.num,undefined,{numeric:true}));
@@ -1356,59 +1374,76 @@ function orderStops(start, stops, mode, round){
     const levels=[...new Set(withPt.map(key))].sort((a,b)=>a-b);
     seq=[]; let from=start;
     levels.forEach((lv,idx)=>{
-      const part=optimize(from, withPt.filter(s=>key(s)===lv), round && idx===levels.length-1);
+      const part=optimize(from, withPt.filter(s=>key(s)===lv), idx===levels.length-1?end:null, idx===0?firstNum:"");
       seq=seq.concat(part);
       if(part.length){ const last=part[part.length-1]; from={pt:S.coords[last.num]}; }
     });
     return seq.concat(mode==="pasttier" ? noPt.sort((a,b)=>b.tier-a.tier) : noPt);
   }
-  return optimize(start, withPt, round).concat(noPt);
+  return optimize(start, withPt, end, firstNum).concat(noPt);
+}
+// The finish point, mirroring the start options.
+function getEnd(){
+  const v=$("endSel").value;
+  if(v==="start") return getStart();
+  if(v==="store"){ const n=cleanNum($("endStore").value); if(!n) return null;
+    if(S.stores[n]) return {label:"Finish: store "+n, addr:fullAddr(n), pt:S.coords[n]||null, num:n};
+    const c=companyStore(n); if(c&&c.pt) return {label:`Finish: store ${n} Â· ${c.city}${c.state?", "+c.state:""}`, addr:`${c.pt[0]},${c.pt[1]}`, pt:c.pt, num:n}; return null; }
+  return null;
 }
 // Oldest open call at a stop, as a days-old badge (same colors as on the calls).
 function stopAge(s){
   if(!F("age")) return "";
   let a=null; s.calls.forEach(c=>{ const x=callAge(c); if(x&&(!a||x.t<a.t)) a=x; }); if(!a) return "";
-  return ` <span class="tag age ${a.cls}" title="${esc((s.calls.length>1?"Oldest call here. ":"")+a.title)}">${a.cls==="f"?"🔥":"📅"} ${a.est?"≈":""}${a.days} day${a.days===1?"":"s"} old</span>`;
+  return ` <span class="tag age ${a.cls}" title="${esc((s.calls.length>1?"Oldest call here. ":"")+a.title)}">${a.cls==="f"?"ð¥":"ð"} ${a.est?"â":""}${a.days} day${a.days===1?"":"s"} old</span>`;
 }
 function dvToggle(){ const on=S.lastOrder.length>0 && F("dayview"); $("dvFab").classList.toggle("has",on); $("dvBtn").style.display=on?"":"none"; }
 function renderRoute(groups){
   const stops=groups.filter(g=>!S.excluded.has(g.num));
-  const start=getStart(), mode=$("modeSel").value, round=$("roundTrip").checked;
-  const seq=orderStops(start, stops, mode, round);
+  const start=getStart(), mode=$("modeSel").value;
+  const endMode=$("endSel").value, firstNum=store.get("firstStop","");
+  const end = endMode==="start" ? start : (endMode ? getEnd() : null);
+  const round = endMode==="start"; $("roundTrip").checked=round;   // keep the old flag for the transfer payload
+  const seq=orderStops(start, stops, mode, end, firstNum);
   S.lastOrder=seq.map(s=>s.num);
+  // First-stop picker lists the in-route stores (visit order); keep the saved choice if it's still in the route.
+  { const sel=$("firstSel"), want=store.get("firstStop","");
+    sel.innerHTML=['<option value="">Auto (best order)</option>'].concat(seq.map(s=>`<option value="${esc(s.num)}">#${esc(s.num)}${S.stores[s.num]?" Â· "+esc(S.stores[s.num].city):""}</option>`)).join("");
+    sel.value = seq.some(s=>s.num===want)?want:""; if(sel.value!==want) store.set("firstStop",sel.value); }
   const list=$("stops"); list.innerHTML="";
   let total=0, known=true, prev=start?start.pt:null;
-  if(start) list.insertAdjacentHTML("beforeend",`<li class="stop home"><span class="num">⌂</span><div><div class="t">${esc(start.label)}</div><div class="leg">${esc(start.addr)}</div></div><span></span></li>`);
+  if(start) list.insertAdjacentHTML("beforeend",`<li class="stop home"><span class="num">â</span><div><div class="t">${esc(start.label)}</div><div class="leg">${esc(start.addr)}</div></div><span></span></li>`);
   seq.forEach((s,i)=>{
     const pt=S.coords[s.num]; let leg="";
-    if(prev&&pt){ const d=miles(prev,pt); total+=d; leg=`≈ ${d.toFixed(0)} mi · ${fmtTime(d/45*60)} from previous`; }
+    if(prev&&pt){ const d=miles(prev,pt); total+=d; leg=`â ${d.toFixed(0)} mi Â· ${fmtTime(d/45*60)} from previous`; }
     else if(i>0||start){ known=false; leg="Distance unknown (no map position)"; }
     prev=pt||prev;
     const s0=S.stores[s.num];
     const li=document.createElement("li"); li.className="stop"; li.dataset.i=i; li.dataset.n=s.num;
     li.innerHTML=`<span class="num">${i+1}</span>
-      <div><div class="t">${shieldHTML(groupOf(s.num),"sm")} ${esc(s.num)} ${s0?"· "+esc(s0.city):""}</div>
+      <div><div class="t">${shieldHTML(groupOf(s.num),"sm")} ${esc(s.num)} ${s0?"Â· "+esc(s0.city):""}</div>
       <div class="leg">${s.calls.length} call${s.calls.length>1?"s":""}${s.extra&&s.extra.length?` + ${s.extra.length} more open`:""}, top priority ${esc(s.calls[0].prioLabel)}${stopAge(s)}</div>
       ${leg?`<div class="leg">${leg}</div>`:""}</div>
-      <div class="mv">${mode==="manual"?`<button aria-label="Move up" data-up="${i}">▲</button><button aria-label="Move down" data-down="${i}">▼</button>`:""}</div>`;
+      <div class="mv"><span class="drag" title="Drag to reorder" aria-hidden="true">â ¿</span><button aria-label="Move up" data-up="${i}">â²</button><button aria-label="Move down" data-down="${i}">â¼</button></div>`;
     list.appendChild(li);
   });
-  if(round && start && seq.length){
-    const last=S.coords[seq[seq.length-1].num];
-    let leg="";
-    if(start.pt&&last){ const d=miles(last,start.pt); total+=d; leg=`≈ ${d.toFixed(0)} mi · ${fmtTime(d/45*60)}`; }
-    list.insertAdjacentHTML("beforeend",`<li class="stop home"><span class="num">⌂</span><div><div class="t">Back to start</div><div class="leg">${leg}</div></div><span></span></li>`);
+  if(end && seq.length){
+    const last=S.coords[seq[seq.length-1].num]; let leg="";
+    if(end.pt&&last){ const d=miles(last,end.pt); total+=d; leg=`â ${d.toFixed(0)} mi Â· ${fmtTime(d/45*60)}`; }
+    const txt = endMode==="start" ? "Back to start" : esc(end.label||"Finish");
+    list.insertAdjacentHTML("beforeend",`<li class="stop home"><span class="num">â</span><div><div class="t">${txt}</div><div class="leg">${leg}</div></div><span></span></li>`);
   }
   wireStops(list);
+  if(seq.length && !S._roOpened){ $("routeOpts").open=true; S._roOpened=true; }   // show the visit-order list the first time there are stops
   const desk=isDesk();
-  list.classList.toggle("dnd",desk); $("dndHint").style.display=desk&&seq.length>1?"":"none"; $("mapBtn").style.display=desk&&seq.length?"":"none";
+  list.classList.toggle("dnd",seq.length>1); $("dndHint").style.display=seq.length>1?"":"none"; $("mapBtn").style.display=desk&&seq.length?"":"none";
   const calls=seq.reduce((n,s)=>n+s.calls.length,0);
   S.routeTotals={stops:seq.length, calls, miles:known?total:null, start, round};
   $("totals").innerHTML = seq.length
-    ? `<div><b>${seq.length}</b><span>stops</span></div><div><b>${calls}</b><span>calls</span></div><div><b>${known?"≈ "+total.toFixed(0):"?"}</b><span>miles</span></div><div><b>${known?fmtTime(total/45*60):"?"}</b><span>driving</span></div>`
+    ? `<div><b>${seq.length}</b><span>stops</span></div><div><b>${calls}</b><span>calls</span></div><div><b>${known?"â "+total.toFixed(0):"?"}</b><span>miles</span></div><div><b>${known?fmtTime(total/45*60):"?"}</b><span>driving</span></div>`
     : `<span class="hint">No stops selected. Check "In route" on a store to add it.</span>`;
   // Google Maps links (max 10 places per link)
-  const pts=[]; if(start) pts.push(start.addr); seq.forEach(s=>pts.push(fullAddr(s.num))); if(round&&start) pts.push(start.addr);
+  const pts=[]; if(start) pts.push(start.addr); seq.forEach(s=>pts.push(fullAddr(s.num))); if(end) pts.push(end.addr);
   const links=$("links"); links.innerHTML=""; S.mapLinks=[];
   if(pts.length>=2){
     const chunks=[]; for(let i=0;i<pts.length-1;i+=9) chunks.push(pts.slice(i,i+10));
@@ -1435,6 +1470,7 @@ function wireStops(list){
     if(j<0||j>=S.lastOrder.length) return;
     const o=S.lastOrder.slice(); [o[i],o[j]]=[o[j],o[i]]; setOrder(o);
   });
+  wireDragHandles(list);
   if(!isDesk()) return;
   const items=[...list.querySelectorAll("li.stop[data-i]")];
   const clear=()=>items.forEach(x=>x.classList.remove("over","over-end"));
@@ -1448,6 +1484,33 @@ function wireStops(list){
     li.ondrop=e=>{ e.preventDefault(); const from=S.dragFrom; S.dragFrom=null; clear(); if(from==null) return;
       let to=+li.dataset.i+(li.dataset.after?1:0); const o=S.lastOrder.slice(); const [n]=o.splice(from,1); if(to>from) to--;
       if(to===from) return; o.splice(to,0,n); setOrder(o); };
+  });
+}
+// Touch/pointer drag-to-reorder via the â ¿ handle (works on phones). Desktop mouse keeps the native drag on the row.
+function wireDragHandles(list){
+  list.querySelectorAll(".drag").forEach(h=>{
+    h.style.touchAction="none";
+    h.onpointerdown=ev=>{
+      if(ev.pointerType==="mouse" && isDesk()) return;   // desktop mouse uses the native row drag below
+      ev.preventDefault();
+      const li=h.closest("li.stop"); if(!li) return;
+      const all=[...list.querySelectorAll("li.stop[data-i]")];
+      li.classList.add("dragging"); try{ h.setPointerCapture(ev.pointerId); }catch(_){}
+      let to=null;
+      const move=e=>{
+        const y=e.clientY; let tgt=null, after=false;
+        all.forEach(x=>{ if(x===li) return; const r=x.getBoundingClientRect(); if(y>=r.top&&y<=r.bottom){ tgt=x; after=y>r.top+r.height/2; } });
+        all.forEach(x=>x.classList.remove("over","over-end"));
+        if(tgt){ tgt.classList.add(after?"over-end":"over"); to=(+tgt.dataset.i)+(after?1:0); } else to=null;
+      };
+      const up=()=>{
+        document.removeEventListener("pointermove",move); document.removeEventListener("pointerup",up); document.removeEventListener("pointercancel",up);
+        li.classList.remove("dragging"); all.forEach(x=>x.classList.remove("over","over-end"));
+        const from=+li.dataset.i;
+        if(to!=null && to!==from && to!==from+1){ const o=S.lastOrder.slice(); const [n]=o.splice(from,1); let t=to; if(t>from) t--; o.splice(t,0,n); setOrder(o); }
+      };
+      document.addEventListener("pointermove",move); document.addEventListener("pointerup",up); document.addEventListener("pointercancel",up);
+    };
   });
 }
 let MAP=null, MAPL=null;
@@ -1484,7 +1547,7 @@ async function openMap(){
 function syncMap(fit){
   const t=S.routeTotals||{}, ml=$("mapStops");
   ml.innerHTML=$("stops").innerHTML; wireStops(ml);
-  $("mapSum").textContent = t.stops ? `${t.stops} stop${t.stops>1?"s":""} · ${t.calls} call${t.calls>1?"s":""}`+(t.miles!=null?` · ≈ ${t.miles.toFixed(0)} mi · ${fmtTime(t.miles/45*60)} driving`:"")+($("modeSel").value==="manual"?" · your order":"") : "No stops in your route";
+  $("mapSum").textContent = t.stops ? `${t.stops} stop${t.stops>1?"s":""} Â· ${t.calls} call${t.calls>1?"s":""}`+(t.miles!=null?` Â· â ${t.miles.toFixed(0)} mi Â· ${fmtTime(t.miles/45*60)} driving`:"")+($("modeSel").value==="manual"?" Â· your order":"") : "No stops in your route";
   $("mapOpt").disabled = $("modeSel").value!=="manual";
   $("mapGo").disabled = !S.mapLinks || !S.mapLinks.length;
   drawMap(fit);
@@ -1498,9 +1561,9 @@ function drawGroupsOverlay(){
 function drawMap(fit){
   if(!MAP) return; MAPL.clearLayers();
   const t=S.routeTotals||{}, st=t.start, pts=[], icon=(h,c)=>L.divIcon({className:"mk"+(c?" "+c:""),html:h,iconSize:[28,28],iconAnchor:[14,14]});
-  if(st&&st.pt){ pts.push(st.pt); L.marker(st.pt,{icon:icon("⌂","home"),keyboard:false}).bindTooltip(esc(st.label)).addTo(MAPL); }
+  if(st&&st.pt){ pts.push(st.pt); L.marker(st.pt,{icon:icon("â","home"),keyboard:false}).bindTooltip(esc(st.label)).addTo(MAPL); }
   S.lastOrder.forEach((n,i)=>{ const p=S.coords[n]; if(!p) return; pts.push(p); const s0=S.stores[n]||{};
-    L.marker(p,{icon:icon(String(i+1)),title:`Stop ${i+1}: store ${n}`}).bindTooltip(`${i+1}. Store ${esc(n)}${s0.city?" · "+esc(s0.city):""}`)
+    L.marker(p,{icon:icon(String(i+1)),title:`Stop ${i+1}: store ${n}`}).bindTooltip(`${i+1}. Store ${esc(n)}${s0.city?" Â· "+esc(s0.city):""}`)
       .on("click",()=>{ const li=$("mapStops").querySelector(`li[data-i="${i}"]`); if(li){ li.scrollIntoView({block:"center",behavior:"smooth"}); li.classList.add("flash"); setTimeout(()=>li.classList.remove("flash"),1200); } }).addTo(MAPL); });
   if(t.round&&st&&st.pt&&pts.length>1) pts.push(st.pt);
   if(pts.length>1) L.polyline(pts,{color:"#1F6B4F",weight:3,opacity:.85,dashArray:"7 6"}).addTo(MAPL);
@@ -1533,12 +1596,12 @@ function hull(pts){   // convex hull, [lat,lng] points
 }
 async function openGroups(focus){
   const g=vaGroups(), keys=Object.keys(g).sort(), col=k=>GRP_COLORS[k]||"#666";
-  $("grpSum").textContent=`${keys.length} groups · ${Object.keys(S.stores).length} stores`;
+  $("grpSum").textContent=`${keys.length} groups Â· ${Object.keys(S.stores).length} stores`;
   $("grpList").innerHTML=keys.map(k=>{
     const cities={}; g[k].forEach(n=>{ const c=(S.stores[n]||{}).city||""; cities[c]=(cities[c]||0)+1; });
     const area=GRP_AREAS[k]||Object.keys(cities).sort((a,b)=>cities[b]-cities[a]).slice(0,4).join(", ");
     return `<div class="gcard" data-g="${esc(k)}" style="--gc:${col(k)}" tabindex="0" role="button" aria-label="Group ${esc(k)}">
-      <div class="gh">${shieldHTML(k,"sm")} Group ${esc(k)} <span class="hint" style="font-weight:400">· ${g[k].length} store${g[k].length>1?"s":""}</span></div>
+      <div class="gh">${shieldHTML(k,"sm")} Group ${esc(k)} <span class="hint" style="font-weight:400">Â· ${g[k].length} store${g[k].length>1?"s":""}</span></div>
       <div class="ga">${esc(area)}</div>
       <div class="gs">${g[k].map(n=>`<span><b>${esc(n)}</b> ${esc((S.stores[n]||{}).city||"")}</span>`).join("")}</div></div>`; }).join("");
   $("grpList").querySelectorAll(".gcard").forEach(c=>c.onclick=c.onkeydown=e=>{ if(e.type==="keydown"&&e.key!=="Enter") return; zoomGroup(c.dataset.g); });
@@ -1563,7 +1626,7 @@ function groupAreas(dots){
     const h=hull(pts); if(h.length>=3) L.polygon(h,{color:c,weight:3.5,opacity:.95,fillColor:c,fillOpacity:.32,interactive:false}).addTo(layer);
     else if(h.length===2) L.polyline(h,{color:c,weight:14,opacity:.45,interactive:false}).addTo(layer);
     if(dots) g[k].forEach(n=>{ const p=S.coords[n]; if(!p) return; const s0=S.stores[n]||{};
-      L.marker(p,{icon:L.divIcon({className:"gwrap",html:`<div class="gdot" style="--gc:${c}"></div>`,iconSize:[12,12],iconAnchor:[6,6]}),title:`Store ${n}`}).bindTooltip(`Group ${esc(k)} · Store ${esc(n)}${s0.city?" · "+esc(s0.city):""}`).addTo(layer); });
+      L.marker(p,{icon:L.divIcon({className:"gwrap",html:`<div class="gdot" style="--gc:${c}"></div>`,iconSize:[12,12],iconAnchor:[6,6]}),title:`Store ${n}`}).bindTooltip(`Group ${esc(k)} Â· Store ${esc(n)}${s0.city?" Â· "+esc(s0.city):""}`).addTo(layer); });
     L.marker(bounds[k].getCenter(),{icon:L.divIcon({className:"gwrap",html:`<div class="glabel" style="--gc:${c}">${esc(k)}</div>`,iconSize:[26,26],iconAnchor:[13,-8]}),keyboard:false,interactive:false}).addTo(layer);
   });
   return {layer,bounds,all};
@@ -1574,7 +1637,7 @@ function zoomGroup(k){
 }
 $("grpClose").onclick=()=>$("grpDlg").classList.remove("show");
 if(EDITION.id==="local"){   // the Virginia edition
-  $("setBtn").insertAdjacentHTML("beforebegin",`<button class="hbtn" id="grpBtn" type="button">🗺 Route groups</button>`);
+  $("setBtn").insertAdjacentHTML("beforebegin",`<button class="hbtn" id="grpBtn" type="button">ðº Route groups</button>`);
   $("grpBtn").onclick=()=>{ const m=$("menu"); if(m){ m.hidden=true; $("menuBtn").setAttribute("aria-expanded","false"); } openGroups(); };
 }
 
@@ -1601,19 +1664,19 @@ function render(){
   $("doneMsg").textContent = doneN ? `${doneN} completed call${doneN>1?"s":""}${S.showDone?" shown, crossed off":" hidden"}.` : "Check Done on a call to cross it off.";
   const over=S.calls.filter(c=>!isDone(c)&&c.due&&c.due<new Date()).length;
   $("summary").textContent = S.calls.length
-    ? `${S.calls.filter(c=>!isDone(c)).length} open of ${S.calls.length} calls at ${new Set(S.calls.map(c=>c.store)).size} stores · showing ${vis.length}${over?` · ${over} overdue`:""}`
+    ? `${S.calls.filter(c=>!isDone(c)).length} open of ${S.calls.length} calls at ${new Set(S.calls.map(c=>c.store)).size} stores Â· showing ${vis.length}${over?` Â· ${over} overdue`:""}`
     : "No calls loaded";
 }
 function fillStartSelect(){
   const sel=$("startSel");
   let cur=store.get("start","");
   if(/^\d+$/.test(cur)){ store.set("startStore",cur); cur="store"; store.set("start",cur); }
-  sel.innerHTML=`<option value="">First stop (no fixed start)</option><option value="gps">My current location</option><option value="store">A store…</option><option value="custom">Custom address…</option>`;
+  sel.innerHTML=`<option value="">First stop (no fixed start)</option><option value="gps">My current location</option><option value="store">A storeâ¦</option><option value="custom">Custom addressâ¦</option>`;
   sel.value=["","gps","store","custom"].includes(cur)?cur:"";
   $("startStore").value=store.get("startStore","");
   showStartExtras(sel.value); storeStartStatus();
 }
-// Every company store (any edition can start from any store): "num|lat|lng|city|ST;…"
+// Every company store (any edition can start from any store): "num|lat|lng|city|ST;â¦"
 const ALL_STORES="@@ALL_STORES@@";
 let ALL_IDX=null;
 function companyStore(n){
@@ -1637,7 +1700,7 @@ function showStartExtras(v){
 function locate(){
   const m=$("gpsMsg");
   if(!navigator.geolocation){ m.className="msg err"; m.textContent="This browser can't share your location. Use a custom address instead."; return; }
-  m.className="msg"; m.textContent="Finding your location…";
+  m.className="msg"; m.textContent="Finding your locationâ¦";
   navigator.geolocation.getCurrentPosition(pos=>{
     S.gps={lat:pos.coords.latitude,lng:pos.coords.longitude,acc:pos.coords.accuracy,at:Date.now()};
     store.set("gps",S.gps); gpsStatus(); render();
@@ -1651,7 +1714,7 @@ function gpsStatus(){
   const m=$("gpsMsg"); m.className="msg";
   if(!S.gps){ m.textContent="Location not found yet."; return; }
   const near=Object.keys(S.coords).map(n=>[n,miles([S.gps.lat,S.gps.lng],S.coords[n])]).sort((a,b)=>a[1]-b[1])[0];
-  m.textContent=`Located at ${new Date(S.gps.at).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}`+(near?` · about ${near[1].toFixed(0)} mi from store ${near[0]}`:"");
+  m.textContent=`Located at ${new Date(S.gps.at).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}`+(near?` Â· about ${near[1].toFixed(0)} mi from store ${near[0]}`:"");
 }
 function loadSettings(){
   const pick=(k,d)=>{ const v=store.get(k,null); return (typeof v==="string" && v.trim()) ? v : d; };
@@ -1722,7 +1785,7 @@ $("pasteSapBtn").onclick=async()=>{
   const m=$("importMsg");
   try{
     const t=await navigator.clipboard.readText();
-    if(!t||!t.trim()){ m.className="msg err"; m.textContent="Clipboard is empty — in SAP, select your calls and copy (Ctrl+C) first, then tap Paste from SAP."; return; }
+    if(!t||!t.trim()){ m.className="msg err"; m.textContent="Clipboard is empty â in SAP, select your calls and copy (Ctrl+C) first, then tap Paste from SAP."; return; }
     $("callsInput").value=t; $("loadBtn").click();
   }catch(e){
     m.className="msg err"; m.textContent="Couldn't read the clipboard. Click in the box above, paste with Ctrl+V, then select Load calls. (Your browser may ask to allow clipboard access.)";
@@ -1774,29 +1837,36 @@ $("modeSel").onchange=e=>{
   store.set("mode",e.target.value); render();
 };
 $("roundTrip").checked=store.get("round",false);
-$("roundTrip").onchange=e=>{ store.set("round",e.target.checked); render(); };
+// Finish point + first stop
+function showEndExtras(v){ $("endStoreBox").style.display = v==="store"?"":"none"; }
+$("endSel").value = store.get("end", store.get("round",false)?"start":"");   // migrate the old "Return to start"
+$("endStore").value = store.get("endStore","");
+showEndExtras($("endSel").value);
+$("endSel").onchange=e=>{ store.set("end",e.target.value); store.set("round",e.target.value==="start"); showEndExtras(e.target.value); render(); };
+$("endStore").oninput=e=>{ store.set("endStore",e.target.value.trim()); render(); };
+$("firstSel").onchange=e=>{ store.set("firstStop",e.target.value); render(); };
 function buildShareText(){
   const withCalls=$("optCalls").checked, withLinks=$("optLinks").checked, withMaps=$("optMaps").checked, withDrive=$("optDrive").checked;
   const t=S.routeTotals||{stops:0,calls:0};
   if(!t.stops) return "";
   const vis=visibleCalls();
   const day=new Date().toLocaleDateString(undefined,{weekday:"short",month:"numeric",day:"numeric"});
-  let out=`Route ${day}: ${t.stops} stop${t.stops>1?"s":""}, ${t.calls} call${t.calls>1?"s":""}`+(t.miles!=null?`, ≈ ${t.miles.toFixed(0)} mi`:"");
-  if(withDrive) out+= t.miles!=null ? `\nTotal driving time: ≈ ${fmtTime(t.miles/45*60)}${t.round&&t.start?" (including the drive back)":""}` : `\nTotal driving time: unknown (a stop has no map position)`;
+  let out=`Route ${day}: ${t.stops} stop${t.stops>1?"s":""}, ${t.calls} call${t.calls>1?"s":""}`+(t.miles!=null?`, â ${t.miles.toFixed(0)} mi`:"");
+  if(withDrive) out+= t.miles!=null ? `\nTotal driving time: â ${fmtTime(t.miles/45*60)}${t.round&&t.start?" (including the drive back)":""}` : `\nTotal driving time: unknown (a stop has no map position)`;
   if(t.start) out+=`\nStarting from ${t.start.num?"store "+t.start.num:t.start.label.replace("Start: ","")}`;
   S.lastOrder.forEach((n,i)=>{
     const s=S.stores[n];
-    out+=`\n\n${i+1}. Store ${n}${s?" – "+s.city:""} (group ${groupOf(n)})`;
+    out+=`\n\n${i+1}. Store ${n}${s?" â "+s.city:""} (group ${groupOf(n)})`;
     if(withMaps) out+=`\n   Map: ${navLink(n)}`;
     if(withCalls){
       S.calls.filter(c=>c.store===n && !isDone(c) && vis.includes(c)).forEach(c=>{
-        out+=`\n   • ${c.prioLabel.replace(/^\d\s*-\s*/,"")}: ${c.desc} (#${c.order})${fmtPast(c)?" – "+fmtPast(c):F("soon")&&fmtSoon(c)?" – "+fmtSoon(c):""}`;
+        out+=`\n   â¢ ${c.prioLabel.replace(/^\d\s*-\s*/,"")}: ${c.desc} (#${c.order})${fmtPast(c)?" â "+fmtPast(c):F("soon")&&fmtSoon(c)?" â "+fmtSoon(c):""}`;
         if(withLinks) out+=`\n     ${ORDER_URL(c.order)}`;
       });
       const ex=S.calls.filter(c=>c.store===n && !isDone(c) && !S.handed[c.order] && !vis.includes(c));
       if(ex.length){
         out+=`\n   Also open here:`;
-        ex.forEach(c=>{ out+=`\n   ◦ ${c.prioLabel.replace(/^\d\s*-\s*/,"")}: ${c.desc} (#${c.order})${fmtPast(c)?" – "+fmtPast(c):""}`; if(withLinks) out+=`\n     ${ORDER_URL(c.order)}`; });
+        ex.forEach(c=>{ out+=`\n   â¦ ${c.prioLabel.replace(/^\d\s*-\s*/,"")}: ${c.desc} (#${c.order})${fmtPast(c)?" â "+fmtPast(c):""}`; if(withLinks) out+=`\n     ${ORDER_URL(c.order)}`; });
       }
     }
   });
@@ -1806,7 +1876,7 @@ $("copyBtn").onclick=()=>{
   const text=buildShareText(), m=$("routeMsg");
   if(!text){ m.textContent="Add at least one stop to the route first."; return; }
   const done=()=>{ m.textContent="Copied. Paste it into Teams, a text, or an email."; };
-  const fail=()=>{ openPreview(); $("sharePreview").select(); m.textContent="Copy was blocked. The text is selected below: press Ctrl+C (or ⌘C)."; };
+  const fail=()=>{ openPreview(); $("sharePreview").select(); m.textContent="Copy was blocked. The text is selected below: press Ctrl+C (or âC)."; };
   if(navigator.clipboard && window.isSecureContext!==false) navigator.clipboard.writeText(text).then(done,()=>fallbackCopy(text,done,fail));
   else fallbackCopy(text,done,fail);
 };
@@ -1836,9 +1906,9 @@ function buildDayText(){
   let out=`Route ${day}: ${DV.stops.length} stop${DV.stops.length>1?"s":""}, ${done} of ${calls} calls done`;
   DV.stops.forEach((n,i)=>{
     const s=S.stores[n], cs=dvCallsAt(n), all=cs.length&&cs.every(isDone);
-    out+=`\n\n${i+1}. ${all?"✅ ":""}Store ${n}${s?" – "+s.city:""} (group ${groupOf(n)})`;
+    out+=`\n\n${i+1}. ${all?"â ":""}Store ${n}${s?" â "+s.city:""} (group ${groupOf(n)})`;
     if(withMaps) out+=`\n   Map: ${navLink(n)}`;
-    cs.forEach(c=>{ out+=`\n   ${isDone(c)?"☑":"☐"} ${c.prioLabel.replace(/^\d\s*-\s*/,"")}: ${c.desc} (#${c.order})${!isDone(c)&&fmtPast(c)?" – "+fmtPast(c):""}`;
+    cs.forEach(c=>{ out+=`\n   ${isDone(c)?"â":"â"} ${c.prioLabel.replace(/^\d\s*-\s*/,"")}: ${c.desc} (#${c.order})${!isDone(c)&&fmtPast(c)?" â "+fmtPast(c):""}`;
       if(withLinks) out+=`\n     ${ORDER_URL(c.order)}`; });
   });
   return out;
@@ -1912,7 +1982,7 @@ function setupMode(){
   if(IS_ONLINE){
     badge.className="modebadge online"; badge.textContent="Online version";
     liveUpdates();
-    act.innerHTML=`<button class="hbtn" id="pasteBtn" hidden>📋 Paste transfer</button> <button class="hbtn" id="instBtn">📲 Install app</button> <button class="hbtn" id="bmkBtn">☆ Bookmark</button> <button class="hbtn" id="dlSelf">Download offline copy</button>`;
+    act.innerHTML=`<button class="hbtn" id="pasteBtn" hidden>ð Paste transfer</button> <button class="hbtn" id="instBtn">ð² Install app</button> <button class="hbtn" id="bmkBtn">â Bookmark</button> <button class="hbtn" id="dlSelf">Download offline copy</button>`;
     setupSend();
     setupBookmark();
     $("dlSelf").onclick=async()=>{
@@ -1939,7 +2009,7 @@ function setupMode(){
 const FEATURES=[
   ["changes","What changed","After each import, tag new calls and list calls no longer in SAP."],
   ["repeats","Repeat-issue alerts","Flag devices and stores with several calls in 30 days."],
-  ["age","Call age","Color badge for how many days since each call was put in: 0–3 green, 4–5 yellow, 6 orange, 7–8 red, 9+ 🔥."],
+  ["age","Call age","Color badge for how many days since each call was put in: 0â3 green, 4â5 yellow, 6 orange, 7â8 red, 9+ ð¥."],
   ["soon","Due soon","Show countdowns like \"due in 3 hrs\" for calls not yet past due."],
   ["replan","Re-plan from here","Reorder the remaining stops from where you are now."],
   ["eod","End-of-day summary","One-tap summary of the day to copy or email."],
@@ -1954,7 +2024,7 @@ function applyFeatures(){
   const show=(id,on)=>{ const e=$(id); if(e) e.style.display=on?"":"none"; };
   show("replanBtn",F("replan")); show("dvReplan",F("replan")); show("eodBtn",F("eod"));
   show("pasteRow",F("handoff")); if(!F("changes")) $("chgBox").hidden=true;
-  show("sendBtn", IS_ONLINE && F("send") && !/iPhone|iPad|iPod|Android/.test(navigator.userAgent));   // its own button next to ☰ Menu
+  show("sendBtn", IS_ONLINE && F("send") && !/iPhone|iPad|iPod|Android/.test(navigator.userAgent));   // its own button next to â° Menu
   if(!F("dayview")){ show("dvBtn",false); $("dvFab").classList.remove("has"); }
   // The installed phone app always keeps Paste transfer (Send to phone from a computer lands in Safari on iPhone).
   if($("pasteBtn")) $("pasteBtn").hidden = !(IS_APP || ((F("handoff")||F("send")) && /iPhone|iPad|iPod|Android/.test(navigator.userAgent)));
@@ -1994,7 +2064,7 @@ function callAge(c){
   const days=Math.max(0,Math.round((dayStart(Date.now())-dayStart(t))/864e5));
   const cls=days<=3?"g":days<=5?"y":days===6?"o":days<=8?"r":"f";
   const when=new Date(t).toLocaleDateString(undefined,{weekday:"short",month:"numeric",day:"numeric"})+(exact?" "+new Date(t).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"}):"");
-  return {days,est:false,cls,t,title:`Put in ${when}: ${how}. 0–3 days green, 4–5 yellow, 6 orange, 7–8 red, 9+ fire.`};
+  return {days,est:false,cls,t,title:`Put in ${when}: ${how}. 0â3 days green, 4â5 yellow, 6 orange, 7â8 red, 9+ fire.`};
 }
 function fmtSoon(c){
   const d=pastDays(c); if(d===null||d>0) return "";
@@ -2011,14 +2081,14 @@ function repeatCount(c){
 function storeRepeat(n){
   if(!F("repeats")) return "";
   const k=new Set(S.calls.filter(c=>c.store===n).map(c=>c.order));
-  return k.size>=5 ? `<span class="tag rep">🏪 ${k.size} open calls here</span> ` : "";
+  return k.size>=5 ? `<span class="tag rep">ðª ${k.size} open calls here</span> ` : "";
 }
 function callTags(c){
   let t="";
   if(F("changes")&&S.newOrders.has(c.order)) t+=`<span class="tag new">NEW</span>`;
-  if(F("age")&&!isDone(c)){ const a=callAge(c); if(a) t+=`<span class="tag age ${a.cls}" title="${esc(a.title)}">${a.cls==="f"?"🔥":"📅"} ${a.est?"≈":""}${a.days} day${a.days===1?"":"s"} old</span>`; }
-  if(F("soon")){ const s=fmtSoon(c); if(s) t+=`<span class="tag soon">⏱ ${s}</span>`; }
-  if(F("repeats")){ const r=repeatCount(c); if(r) t+=`<span class="tag rep">🔁 device: ${r+1}${r+1===2?"nd":r+1===3?"rd":"th"} call in 30 days</span>`; }
+  if(F("age")&&!isDone(c)){ const a=callAge(c); if(a) t+=`<span class="tag age ${a.cls}" title="${esc(a.title)}">${a.cls==="f"?"ð¥":"ð"} ${a.est?"â":""}${a.days} day${a.days===1?"":"s"} old</span>`; }
+  if(F("soon")){ const s=fmtSoon(c); if(s) t+=`<span class="tag soon">â± ${s}</span>`; }
+  if(F("repeats")){ const r=repeatCount(c); if(r) t+=`<span class="tag rep">ð device: ${r+1}${r+1===2?"nd":r+1===3?"rd":"th"} call in 30 days</span>`; }
   return t?`<div>${t}</div>`:"";
 }
 
@@ -2048,7 +2118,7 @@ function renderChanges(){
 // ---------- re-plan from here ----------
 function replanHere(){
   if(!navigator.geolocation){ toast("This device can't share its location."); return; }
-  toast("Finding your location…");
+  toast("Finding your locationâ¦");
   navigator.geolocation.getCurrentPosition(pos=>{
     S.gps={lat:pos.coords.latitude,lng:pos.coords.longitude,acc:pos.coords.accuracy,at:Date.now()}; store.set("gps",S.gps);
     $("startSel").value="gps"; store.set("start","gps"); showStartExtras("gps"); gpsStatus();
@@ -2067,14 +2137,14 @@ function buildEOD(){
   const tiers=[0,0,0,0]; open.forEach(c=>tiers[tierOf(c)]++);
   const handed=S.calls.filter(c=>S.handed[c.order]&&dateKey(new Date(S.handed[c.order]))===today);
   const stores=new Set(done.map(x=>x.s));
-  let t=`End of day – ${dayTxt}\n\nCompleted today: ${done.length} call${done.length===1?"":"s"} at ${stores.size} store${stores.size===1?"":"s"}`;
-  done.forEach(x=>{ t+=`\n  ✔ ${new Date(x.at).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}  Store ${x.s}${x.city?" – "+x.city:""}: ${x.d} (#${x.o})`; });
+  let t=`End of day â ${dayTxt}\n\nCompleted today: ${done.length} call${done.length===1?"":"s"} at ${stores.size} store${stores.size===1?"":"s"}`;
+  done.forEach(x=>{ t+=`\n  â ${new Date(x.at).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}  Store ${x.s}${x.city?" â "+x.city:""}: ${x.d} (#${x.o})`; });
   t+=`\n\nStill open: ${open.length} call${open.length===1?"":"s"}`;
   const past=tiers[1]+tiers[2]+tiers[3];
-  if(past) t+=`\n  Past due: ${past} (4+ days: ${tiers[3]} · 3 days: ${tiers[2]} · 1–2 days: ${tiers[1]})`;
+  if(past) t+=`\n  Past due: ${past} (4+ days: ${tiers[3]} Â· 3 days: ${tiers[2]} Â· 1â2 days: ${tiers[1]})`;
   const soon=open.filter(c=>fmtSoon(c)); if(soon.length) t+=`\n  Due in the next 2 days: ${soon.length}`;
-  if(handed.length){ t+=`\n\nHanded off today: ${handed.length}`; handed.forEach(c=>{ t+=`\n  ↗ Store ${c.store}: ${c.desc} (#${c.order})`; }); }
-  const rt=S.routeTotals; if(rt&&rt.stops) t+=`\n\nRemaining route: ${rt.stops} stop${rt.stops>1?"s":""}${rt.miles!=null?`, ≈ ${rt.miles.toFixed(0)} mi`:""}`;
+  if(handed.length){ t+=`\n\nHanded off today: ${handed.length}`; handed.forEach(c=>{ t+=`\n  â Store ${c.store}: ${c.desc} (#${c.order})`; }); }
+  const rt=S.routeTotals; if(rt&&rt.stops) t+=`\n\nRemaining route: ${rt.stops} stop${rt.stops>1?"s":""}${rt.miles!=null?`, â ${rt.miles.toFixed(0)} mi`:""}`;
   return t;
 }
 function openEOD(){ $("eodText").value=buildEOD(); $("eodDlg").classList.add("show"); }
@@ -2087,14 +2157,14 @@ function outlookCompose(subject, body){
 // ---------- hand off a call or a stop ----------
 let handCalls=[];
 async function packCalls(calls, add){
-  const rows=calls.map(c=>["","",c.date,c.time,c.prioLabel,"P"+c.store,"","",c.serial||"",c.order,c.desc,c.wc||"",c.status==="—"?"":c.status,"",c.location||""].join("\t"));
+  const rows=calls.map(c=>["","",c.date,c.time,c.prioLabel,"P"+c.store,"","",c.serial||"",c.order,c.desc,c.wc||"",c.status==="â"?"":c.status,"",c.location||""].join("\t"));
   return zip(JSON.stringify({v:1,a:add?1:0,c:rows.join("\n")}));   // hand-offs go to a teammate: no ID
 }
 async function openHandoff(calls){
   handCalls=calls.filter(c=>!isDone(c)); if(!handCalls.length) return;
   const n=handCalls.length, st=handCalls[0].store;
   $("handTitle").textContent = n>1 ? `Hand off store ${st}` : "Hand off this call";
-  $("handSum").textContent = `${n} call${n>1?"s":""} at store ${st}${S.stores[st]?" – "+S.stores[st].city:""}.`;
+  $("handSum").textContent = `${n} call${n>1?"s":""} at store ${st}${S.stores[st]?" â "+S.stores[st].city:""}.`;
   const packed=await packCalls(handCalls,true); handCalls.packed=packed;
   const qr=$("handQR"); qr.style.display="none";
   $("handHow").textContent="Copy and send it to your teammate in Teams, a text, or email. They paste the whole message into Import calls and select Load calls.";
@@ -2110,8 +2180,8 @@ async function openHandoff(calls){
 }
 function handoffText(){
   const c0=handCalls[0], s=S.stores[c0.store];
-  let t=`Handing off ${handCalls.length} call${handCalls.length>1?"s":""} – Store ${c0.store}${s?" – "+fullAddr(c0.store):""}`;
-  handCalls.forEach(c=>{ t+=`\n• ${c.prioLabel.replace(/^\d\s*-\s*/,"")}: ${c.desc} (#${c.order})${fmtPast(c)?" – "+fmtPast(c):""}\n  ${ORDER_URL(c.order)}`; });
+  let t=`Handing off ${handCalls.length} call${handCalls.length>1?"s":""} â Store ${c0.store}${s?" â "+fullAddr(c0.store):""}`;
+  handCalls.forEach(c=>{ t+=`\nâ¢ ${c.prioLabel.replace(/^\d\s*-\s*/,"")}: ${c.desc} (#${c.order})${fmtPast(c)?" â "+fmtPast(c):""}\n  ${ORDER_URL(c.order)}`; });
   t+=`\n\nTo add these to Route Planner, copy this whole message, paste it into Import calls, and select Load calls.\n${SYNC_TAG}${handCalls.packed}`;
   return t;
 }
@@ -2157,23 +2227,23 @@ function dvCard(n,i){
   const tel=(s.phone||"").replace(/[^0-9+]/g,"");
   const rows=cs.map(c=>{ const dn=isDone(c), t=tierOf(c);
     return `<label class="dv-call${dn?" isdone":""}"><input type="checkbox" data-dv="${esc(c.order)}" ${dn?"checked":""}>
-      <span class="d"><b>${esc(c.desc)}</b>${dn?"":callTags(c)}<span class="m"><span class="pri p${c.prio}">${esc(c.prioLabel)}</span> ${t&&!dn?`<span class="tier t${t}">${fmtPast(c)}</span> `:""}Order <a class="ord" href="${ORDER_HREF(c.order)}"${orderTarget()} onclick="event.stopPropagation()">${esc(c.order)}</a>${c.serial?" · SN "+esc(c.serial):""}</span></span></label>`; }).join("");
+      <span class="d"><b>${esc(c.desc)}</b>${dn?"":callTags(c)}<span class="m"><span class="pri p${c.prio}">${esc(c.prioLabel)}</span> ${t&&!dn?`<span class="tier t${t}">${fmtPast(c)}</span> `:""}Order <a class="ord" href="${ORDER_HREF(c.order)}"${orderTarget()} onclick="event.stopPropagation()">${esc(c.order)}</a>${c.serial?" Â· SN "+esc(c.serial):""}</span></span></label>`; }).join("");
   return `<section class="dv-card" data-i="${i}"><div class="dv-inner${allDone?" done":""}">
     <div class="dv-step">Stop ${i+1} of ${DV.stops.length}</div>
     <div class="dv-store">${shieldHTML(groupOf(n))}<b>${esc(n)}</b><span class="dv-addr">${esc(s.center||"")}</span></div>
     <div class="dv-addr">${esc(fullAddr(n))}</div>
-    <div class="dv-acts"><a class="go" href="${navLink(n)}" target="_blank" rel="noopener">🧭 Navigate</a>${/iPhone|iPad|iPod/.test(navigator.userAgent)?`<a href="maps://?daddr=${encodeURIComponent(fullAddr(n))}&dirflg=d">Apple Maps</a>`:""}${tel?`<a href="tel:${esc(tel)}">📞 Call store</a>`:""}</div>
+    <div class="dv-acts"><a class="go" href="${navLink(n)}" target="_blank" rel="noopener">ð§­ Navigate</a>${/iPhone|iPad|iPod/.test(navigator.userAgent)?`<a href="maps://?daddr=${encodeURIComponent(fullAddr(n))}&dirflg=d">Apple Maps</a>`:""}${tel?`<a href="tel:${esc(tel)}">ð Call store</a>`:""}</div>
     ${rows||'<p class="hint">No open calls here anymore.</p>'}
     ${storeRepeat(n)?`<div class="hint" style="margin-top:8px">${storeRepeat(n)}</div>`:""}
-    ${F("handoff")&&cs.some(c=>!isDone(c))?`<button class="hand" type="button" data-handstop="${esc(n)}" style="margin:10px 0 0">↗ Hand off this stop</button>`:""}
-    <div class="dv-ok">✓ All calls at this stop are done</div>
+    ${F("handoff")&&cs.some(c=>!isDone(c))?`<button class="hand" type="button" data-handstop="${esc(n)}" style="margin:10px 0 0">â Hand off this stop</button>`:""}
+    <div class="dv-ok">â All calls at this stop are done</div>
   </div></section>`;
 }
 function dvProgress(){
   let calls=0, done=0, stopsDone=0;
   DV.stops.forEach(n=>{ const cs=dvCallsAt(n); calls+=cs.length; const d=cs.filter(isDone).length; done+=d; if(cs.length&&d===cs.length) stopsDone++; });
   $("dvBar").style.width=(calls?Math.round(done/calls*100):0)+"%";
-  $("dvSub").textContent=`${done} of ${calls} calls done · ${stopsDone} of ${DV.stops.length} stops`;
+  $("dvSub").textContent=`${done} of ${calls} calls done Â· ${stopsDone} of ${DV.stops.length} stops`;
   $("dvDots").innerHTML=DV.stops.map((n,i)=>{ const cs=dvCallsAt(n); return `<i class="${cs.length&&cs.every(isDone)?"d":""}${i===DV.idx?" c":""}"></i>`; }).join("");
   $("dvPrev").disabled=DV.idx===0; $("dvNext").disabled=DV.idx===DV.stops.length-1;
 }
@@ -2246,10 +2316,10 @@ function dailyUsage(){
   if(shared.get("uidDay","")!==today){ shared.set("uidDay",today); track("user/"+getUid().i); }
 }
 function renderUsage(){
-  $("usageEd").textContent=`${EDITION.name.replace(/^Service Route Planner\s*[–-]\s*/,"")} v${APP_VERSION}`;
+  $("usageEd").textContent=`${EDITION.name.replace(/^Service Route Planner\s*[â-]\s*/,"")} v${APP_VERSION}`;
   const log=shared.get("sentLog",[]).slice().reverse();
   $("uidShow").textContent=getUid().i;
-  $("sentLog").innerHTML = log.length ? log.map(x=>`${esc(new Date(x.t).toLocaleString())} – <b>${esc(x.e.startsWith("users/")?"daily user count, ID "+x.e.slice(6):x.e.split("/").pop())}</b> (${esc(x.e.startsWith("users/")?"":x.e.split("/")[1]+" ")}v${esc(x.v)}, screen ${screen.width}×${screen.height})${x.s?"":IS_MOBILE?" – not sent: offline or counting not set up yet":" – not sent: computers never send usage data"}`).join("<br>") : "Nothing yet.";
+  $("sentLog").innerHTML = log.length ? log.map(x=>`${esc(new Date(x.t).toLocaleString())} â <b>${esc(x.e.startsWith("users/")?"daily user count, ID "+x.e.slice(6):x.e.split("/").pop())}</b> (${esc(x.e.startsWith("users/")?"":x.e.split("/")[1]+" ")}v${esc(x.v)}, screen ${screen.width}Ã${screen.height})${x.s?"":IS_MOBILE?" â not sent: offline or counting not set up yet":" â not sent: computers never send usage data"}`).join("<br>") : "Nothing yet.";
   // Completed calls from every version used on this device (each keeps its own list).
   const all={}; try{ for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(/^(rp|rpc|rp-[A-Z]{2})\.history$/.test(k)) Object.assign(all,JSON.parse(localStorage.getItem(k)||"{}")); } }catch(e){}
   const h=Object.values(all), cnt=(arr)=>{ const m={}; arr.forEach(k=>m[k]=(m[k]||0)+1); return Object.entries(m).sort((a,b)=>b[1]-a[1]); };
@@ -2259,8 +2329,8 @@ function renderUsage(){
     [USAGE.days, `day${USAGE.days===1?"":"s"} used since ${new Date(USAGE.first).toLocaleDateString()}`],
     [h.length, "calls completed"], [month, "completed this month"],
     [byStore.length, "stores served"], [cities.size, `cit${cities.size===1?"y":"ies"} visited`],
-    [byStore[0]?byStore[0][0]:"—", byStore[0]?`your most-served store (${byStore[0][1]} calls)`:"most-served store"],
-    [byDay[0]?byDay[0][1]:"—", byDay[0]?`calls on your busiest day (${new Date(byDay[0][0]).toLocaleDateString()})`:"busiest day"],
+    [byStore[0]?byStore[0][0]:"â", byStore[0]?`your most-served store (${byStore[0][1]} calls)`:"most-served store"],
+    [byDay[0]?byDay[0][1]:"â", byDay[0]?`calls on your busiest day (${new Date(byDay[0][0]).toLocaleDateString()})`:"busiest day"],
     [USAGE.routes, "routes opened in Google Maps"], [USAGE.imports, "call lists loaded"]];
   $("facts").innerHTML=facts.map(([n,l])=>`<div class="fact"><b>${esc(String(n))}</b><span>${esc(l)}</span></div>`).join("");
 }
@@ -2275,16 +2345,16 @@ function deviceDetails(){
   let bytes=0; try{ for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k.startsWith(EDITION.key)) bytes+=k.length+(localStorage.getItem(k)||"").length; } }catch(e){}
   const loaded=store.get("loadedAt",0), on=FEATURES.filter(f=>F(f[0])).map(f=>f[1]);
   const lines=[
-    `Planner: ${EDITION.name} v${APP_VERSION} · ${how}`,
+    `Planner: ${EDITION.name} v${APP_VERSION} Â· ${how}`,
     `Browser: ${browser} on ${os}`,
-    `Screen: ${screen.width}×${screen.height} · window ${innerWidth}×${innerHeight} · zoom/pixel ratio ${devicePixelRatio} · ${matchMedia("(pointer:coarse)").matches?"touch":"mouse"} · ${matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"} mode`,
+    `Screen: ${screen.width}Ã${screen.height} Â· window ${innerWidth}Ã${innerHeight} Â· zoom/pixel ratio ${devicePixelRatio} Â· ${matchMedia("(pointer:coarse)").matches?"touch":"mouse"} Â· ${matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"} mode`,
     `Language / time zone: ${navigator.language} / ${Intl.DateTimeFormat().resolvedOptions().timeZone}`,
-    `Internet: ${navigator.onLine?"online":"offline"} · offline cache: ${"serviceWorker" in navigator?(navigator.serviceWorker.controller?"active":"not active"):"not supported"}`,
+    `Internet: ${navigator.onLine?"online":"offline"} Â· offline cache: ${"serviceWorker" in navigator?(navigator.serviceWorker.controller?"active":"not active"):"not supported"}`,
     `Data (counts only): ${S.calls.length} calls loaded, ${Object.keys(S.stores).length} stores, ${Object.keys(S.done||{}).length} marked done${loaded?", last import "+new Date(loaded).toLocaleString():""}`,
     `Saved data size: ${(bytes/1024).toFixed(0)} KB`,
     `Optional features on: ${on.length?on.join(", "):"none"}`,
     `Recent errors: ${ERRLOG.length?"":"none"}`,
-    ...ERRLOG.slice(-5).map(e=>`  ${new Date(e.t).toLocaleString()} – ${e.m}`)
+    ...ERRLOG.slice(-5).map(e=>`  ${new Date(e.t).toLocaleString()} â ${e.m}`)
   ];
   return lines.join("\n");
 }
@@ -2310,10 +2380,10 @@ function setupFeedback(){
     if(msg.length<5){ err.textContent="Describe the bug, error, or suggestion."; $("fbMsg").focus(); return; }
     const prop=$("fbProp").checked;
     err.textContent=""; store.set("fbName",name); store.set("fbP",pn);
-    const subject=`[Route2 Feedback]${prop?" [PROPRIETARY]":""} ${type} – ${name} (P${pn})`;
-    const body=[...(prop?["🚩 RED FLAG: The sender marked this report as containing PROPRIETARY or CONFIDENTIAL information. Review before sharing it anywhere else.",""]:[]),`Type: ${type}`,`Name: ${name}`,`P Number: P${pn}`,"",msg,"",...(type!=="Suggestion"?["📷 Screenshot: please attach a screenshot of the problem before sending.",""]:[]),"---",
+    const subject=`[Route2 Feedback]${prop?" [PROPRIETARY]":""} ${type} â ${name} (P${pn})`;
+    const body=[...(prop?["ð© RED FLAG: The sender marked this report as containing PROPRIETARY or CONFIDENTIAL information. Review before sharing it anywhere else.",""]:[]),`Type: ${type}`,`Name: ${name}`,`P Number: P${pn}`,"",msg,"",...(type!=="Suggestion"?["ð· Screenshot: please attach a screenshot of the problem before sending.",""]:[]),"---",
       `Planner: ${EDITION.name} v${APP_VERSION} (${IS_ONLINE?"online":"offline"})`,
-      `Sent: ${new Date().toLocaleString()}`,`Proprietary information: ${prop?"YES – flagged by sender":"No"}`,
+      `Sent: ${new Date().toLocaleString()}`,`Proprietary information: ${prop?"YES â flagged by sender":"No"}`,
       ...($("fbDevOn").checked?["","Device details (included with the sender's permission):",deviceDetails()]:["","Device details: not included (sender unchecked it)"])].join("\n");
     const q=`to=${encodeURIComponent(FEEDBACK_TO)}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     const mobile=/iPhone|iPad|iPod|Android/.test(navigator.userAgent);
@@ -2356,7 +2426,7 @@ const DAY0=Date.UTC(2020,0,1);
 function packRow(c, w){
   const m=/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(c.date||""), day=m?Math.round((Date.UTC(+m[3],+m[1]-1,+m[2])-DAY0)/864e5):"";
   const tt=/^(\d{1,2}):(\d{2})/.exec(c.time||""), mins=tt?(+tt[1])*60+(+tt[2]):"";
-  const r=[c.order, c.store, day, mins, PRIO_CODE[c.prioLabel]||c.prioLabel||"", c.desc, c.serial||"", c.status==="DISP"?0:(c.status==="—"?"":c.status), (c.wc||"")===w?0:(c.wc||""), c.location&&c.location!==c.store?c.location:""];
+  const r=[c.order, c.store, day, mins, PRIO_CODE[c.prioLabel]||c.prioLabel||"", c.desc, c.serial||"", c.status==="DISP"?0:(c.status==="â"?"":c.status), (c.wc||"")===w?0:(c.wc||""), c.location&&c.location!==c.store?c.location:""];
   const dflt=["","","","","","","",0,0,""];
   while(r.length>6 && r[r.length-1]===dflt[r.length-1]) r.pop();
   return r;
@@ -2391,7 +2461,7 @@ async function buildSend(){
   sendState={links:[],i:0};
   for(let i=0;i<n;i++) sendState.links.push(`${SITE_URL}planners/${dest}.html#sync=${id}.${i+1}.${n}.${data.slice(i*CH,(i+1)*CH)}`);
   const away=S.calls.filter(c=>!isDone(c)&&EDITION_CODE==="ALL"&&(S.stores[c.store]||{}).state&&(S.stores[c.store]||{}).state!==dest&&!(dest==="VA"&&c.store==="1615")).length;
-  $("sendSummary").textContent=`${p.n} open call${p.n>1?"s":""} and your route settings → ${STATE_NAMES[dest]} planner.`+(away?` ${away} call${away>1?"s are":" is"} at stores outside ${STATE_NAMES[dest]} and will show without an address.`:"");
+  $("sendSummary").textContent=`${p.n} open call${p.n>1?"s":""} and your route settings â ${STATE_NAMES[dest]} planner.`+(away?` ${away} call${away>1?"s are":" is"} at stores outside ${STATE_NAMES[dest]} and will show without an address.`:"");
   $("sendQR").style.display=""; showSendCode();
 }
 function showSendCode(){
@@ -2411,9 +2481,9 @@ function parseIW47(text){
     const order=(line.match(/\b(80\d{7})\b/)||[])[1]; if(!order) return;                 // skip totals / blank lines
     const dm=line.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/); if(!dm) return;                  // posting/created date
     const ymd=dm[3]+String(dm[1]).padStart(2,"0")+String(dm[2]).padStart(2,"0");
-    const hm=line.match(/(\d+(?:\.\d+)?)(-)?[ \s]+HR\b/i); if(!hm) return;            // Actual work; trailing "-" = reversal
+    const hm=line.match(/(\d+(?:\.\d+)?)(-)?[â\s]+HR\b/i); if(!hm) return;            // Actual work; trailing "-" = reversal
     let hrs=parseFloat(hm[1]); if(hm[2]==="-") hrs=-hrs;
-    const sm=line.match(/-(\d{3,5})(?=[ \s]|$)/);                                     // store = Func. Loc. suffix; none = overhead
+    const sm=line.match(/-(\d{3,5})(?=[â\s]|$)/);                                     // store = Func. Loc. suffix; none = overhead
     rows.push({ymd,order,hrs,store:sm?sm[1]:""});
   });
   return rows;
@@ -2428,9 +2498,9 @@ function renderTc(rows){
   const {dates,sd,ov}=iw47Agg(rows);
   const stores=[...new Set(rows.filter(r=>r.store).map(r=>r.store))].sort();
   const total=rows.reduce((a,r)=>a+r.hrs,0), neg=rows.filter(r=>r.hrs<0).length;
-  $("tcSummary").innerHTML=`<b>${rows.length}</b> confirmation line${rows.length===1?"":"s"} · <b>${dates.length}</b> day${dates.length===1?"":"s"} (${ymdNice(dates[0])}–${ymdNice(dates[dates.length-1])}) · logged <b>${total.toFixed(2)} hr</b>`+(neg?` · ${neg} reversed entr${neg===1?"y":"ies"} netted out`:"");
+  $("tcSummary").innerHTML=`<b>${rows.length}</b> confirmation line${rows.length===1?"":"s"} Â· <b>${dates.length}</b> day${dates.length===1?"":"s"} (${ymdNice(dates[0])}â${ymdNice(dates[dates.length-1])}) Â· logged <b>${total.toFixed(2)} hr</b>`+(neg?` Â· ${neg} reversed entr${neg===1?"y":"ies"} netted out`:"");
   const head=`<tr><th style="text-align:left;position:sticky;left:0;background:var(--panel)">Store</th>${dates.map(d=>`<th style="text-align:right;padding:0 6px">${ymdNice(d)}</th>`).join("")}<th style="text-align:right;padding:0 6px">Total</th></tr>`;
-  const cellFmt=v=>v?v.toFixed(2):"·";
+  const cellFmt=v=>v?v.toFixed(2):"Â·";
   const body=stores.map(st=>{ let rt=0; const cells=dates.map(d=>{ const v=sd[st+"|"+d]||0; rt+=v; return `<td style="text-align:right;padding:0 6px">${cellFmt(v)}</td>`; }).join(""); return `<tr><td style="position:sticky;left:0;background:var(--panel)">#${st}</td>${cells}<td style="text-align:right;padding:0 6px;font-weight:700">${rt.toFixed(2)}</td></tr>`; }).join("");
   const ovRow=dates.some(d=>ov[d])?`<tr><td style="position:sticky;left:0;background:var(--panel)">Overhead</td>${dates.map(d=>`<td style="text-align:right;padding:0 6px">${cellFmt(ov[d]||0)}</td>`).join("")}<td style="text-align:right;padding:0 6px;font-weight:700">${dates.reduce((a,d)=>a+(ov[d]||0),0).toFixed(2)}</td></tr>`:"";
   const totRow=`<tr style="border-top:2px solid var(--line)"><td style="position:sticky;left:0;background:var(--panel);font-weight:700">Total</td>${dates.map(d=>{ let c=ov[d]||0; stores.forEach(st=>c+=sd[st+"|"+d]||0); return `<td style="text-align:right;padding:0 6px;font-weight:700">${c.toFixed(2)}</td>`; }).join("")}<td style="text-align:right;padding:0 6px;font-weight:700">${total.toFixed(2)}</td></tr>`;
@@ -2446,7 +2516,7 @@ function showTcCode(){
   const n=tcState.codes.length, i=tcState.i, q=RouteQR.make(tcState.codes[i],"L");
   RouteQR.draw($("tcQR"),q,8);
   $("tcQR").style.width = q.version>20 ? "min(620px,92vw,70vh)" : "min(340px,80vw)";
-  $("tcStep").textContent = n>1 ? `Code ${i+1} of ${n} — scan all in order` : "Scan this code";
+  $("tcStep").textContent = n>1 ? `Code ${i+1} of ${n} â scan all in order` : "Scan this code";
   $("tcPrev").style.display=n>1?"":"none"; $("tcNext").style.display=n>1?"":"none";
   $("tcPrev").disabled=i===0; $("tcNext").disabled=i===n-1;
 }
@@ -2539,7 +2609,7 @@ function offerSync(d, packed, fromPaste){
   if(d.ov && d.src==="companion"){   // SAP import from Companion: replace the whole list, no prompt
     const n=d.c?d.c.split("\n").filter(Boolean).length:0;
     $("callsInput").value=d.c||""; $("loadBtn").click();
-    render(); $("savedNote").textContent="Replaced from Companion (SAP)."; toast(`${n} call${n===1?"":"s"} from SAP — your list was replaced.`); return;
+    render(); $("savedNote").textContent="Replaced from Companion (SAP)."; toast(`${n} call${n===1?"":"s"} from SAP â your list was replaced.`); return;
   }
   if(d.a && d.src==="companion" && (d.rt==="reroute"||d.rt==="keep")){ applyNewCall(d); return; }
   if(d.a && d.auto && d.src==="companion"){ applySync(d); $("savedNote").textContent="Added from Companion (new dispatch)."; return; }   // auto-import a new dispatch, no prompt
@@ -2564,7 +2634,7 @@ function offerSync(d, packed, fromPaste){
   $("recvNo").onclick=()=>$("recvDlg").classList.remove("show");
   $("recvYes").onclick=()=>{ $("recvDlg").classList.remove("show"); applySync(d); };
   $("recvCopy").onclick=()=>{
-    const t=SYNC_TAG+packed, done=()=>{ $("recvHint").innerHTML="<b>Copied.</b> Now open <b>Route "+EDITION_CODE+"</b> from your home screen and tap <b>📋 Paste transfer</b>."; };
+    const t=SYNC_TAG+packed, done=()=>{ $("recvHint").innerHTML="<b>Copied.</b> Now open <b>Route "+EDITION_CODE+"</b> from your home screen and tap <b>ð Paste transfer</b>."; };
     if(navigator.clipboard) navigator.clipboard.writeText(t).then(done,()=>fallbackCopy(t,done)); else fallbackCopy(t,done);
   };
 }
@@ -2607,7 +2677,7 @@ async function receiveSync(){
   offerSync(d,packed,false);
 }
 // Direct SAP desktop import: a macro (SAP GUI Scripting) opens this planner with #sap=<base64url rows> and the whole
-// call list is replaced from it — the same rows the "Paste from SAP" box accepts. No deflate, so a macro can build it.
+// call list is replaced from it â the same rows the "Paste from SAP" box accepts. No deflate, so a macro can build it.
 function receiveSap(){
   const m=/^#sap=(.+)$/i.exec(location.hash);
   if(!m) return false;
@@ -2619,7 +2689,7 @@ function receiveSap(){
   if(!n){ toast("No calls in that SAP import."); return true; }
   $("callsInput").value=text; $("loadBtn").click(); render();
   $("savedNote").textContent="Replaced from SAP (desktop import).";
-  toast(`${n} call${n===1?"":"s"} from SAP — your list was replaced.`);
+  toast(`${n} call${n===1?"":"s"} from SAP â your list was replaced.`);
   return true;
 }
 let installPrompt=null;
@@ -2656,10 +2726,10 @@ function setupBookmark(){
 function showInstallHelp(){
   const ua=navigator.userAgent; let html;
   if(/iPhone|iPad|iPod/.test(ua)) html = /CriOS|EdgiOS|FxiOS/.test(ua)
-    ? `<ol><li>Tap the <b>Share</b> button (□↑) in the address bar.</li><li>Choose <b>Add to Home Screen</b>, then tap <b>Add</b>.</li></ol><p class="hint">If you don't see it, open this page in <b>Safari</b> and do the same.</p>`
-    : `<ol><li>Tap the <b>Share</b> button (□↑) at the bottom of Safari.</li><li>Scroll down and tap <b>Add to Home Screen</b>.</li><li>Tap <b>Add</b>. The <b>Route ${EDITION_CODE}</b> icon appears on your home screen.</li></ol>`;
-  else if(/Android/.test(ua)) html=`<ol><li>Tap the <b>⋮</b> menu in the top-right corner.</li><li>Tap <b>Install app</b> or <b>Add to Home screen</b>.</li><li>Tap <b>Install</b>. The <b>Route ${EDITION_CODE}</b> icon appears on your home screen.</li></ol>`;
-  else html=`<ol><li>In Edge or Chrome, click the <b>Install</b> icon at the right end of the address bar (a screen with a ↓ or a +).</li><li>Click <b>Install</b>. Route Planner opens in its own window and appears in your Start menu or taskbar.</li></ol><p class="hint">No icon? Open the browser's <b>⋯</b> menu and look for <b>Apps → Install this site as an app</b> (Edge) or <b>Cast, save, and share → Install page as app</b> (Chrome).</p>`;
+    ? `<ol><li>Tap the <b>Share</b> button (â¡â) in the address bar.</li><li>Choose <b>Add to Home Screen</b>, then tap <b>Add</b>.</li></ol><p class="hint">If you don't see it, open this page in <b>Safari</b> and do the same.</p>`
+    : `<ol><li>Tap the <b>Share</b> button (â¡â) at the bottom of Safari.</li><li>Scroll down and tap <b>Add to Home Screen</b>.</li><li>Tap <b>Add</b>. The <b>Route ${EDITION_CODE}</b> icon appears on your home screen.</li></ol>`;
+  else if(/Android/.test(ua)) html=`<ol><li>Tap the <b>â®</b> menu in the top-right corner.</li><li>Tap <b>Install app</b> or <b>Add to Home screen</b>.</li><li>Tap <b>Install</b>. The <b>Route ${EDITION_CODE}</b> icon appears on your home screen.</li></ol>`;
+  else html=`<ol><li>In Edge or Chrome, click the <b>Install</b> icon at the right end of the address bar (a screen with a â or a +).</li><li>Click <b>Install</b>. Route Planner opens in its own window and appears in your Start menu or taskbar.</li></ol><p class="hint">No icon? Open the browser's <b>â¯</b> menu and look for <b>Apps â Install this site as an app</b> (Edge) or <b>Cast, save, and share â Install page as app</b> (Chrome).</p>`;
   $("bmkTitle").textContent="Install Route Planner";
   $("bmkBody").innerHTML=html+`<p class="hint">It works like an app and opens without signal once installed. Your calls stay on this device.</p>`; $("bmkMsg").textContent="";
   $("bmk").classList.add("show"); $("bmkClose").focus();
@@ -2668,9 +2738,9 @@ function showBookmarkHelp(){
   $("bmkTitle").textContent="Bookmark this planner";
   const ua=navigator.userAgent, mac=/Macintosh|Mac OS X/.test(ua)&&!/iPhone|iPad/.test(ua);
   let html;
-  if(/iPhone|iPad|iPod/.test(ua)) html=`<ol><li>Tap the <b>Share</b> button <span aria-hidden="true">(□↑)</span> at the bottom of Safari.</li><li>Choose <b>Add to Home Screen</b> for an app icon, or <b>Add Bookmark</b>.</li><li>Tap <b>Add</b>.</li></ol>`;
-  else if(/Android/.test(ua)) html=`<ol><li>Tap the <b>⋮</b> menu in the top-right corner of the browser.</li><li>Tap <b>☆</b> to bookmark, or <b>Add to Home screen</b> for an app icon.</li></ol>`;
-  else html=`<p>Press <span class="key">${mac?"⌘":"Ctrl"}</span> + <span class="key">D</span>, then select <b>Done</b>.</p><p class="hint">Tip: in the bookmark window, choose <b>Favorites bar</b> or <b>Bookmarks bar</b> so it's always one click away.</p>`;
+  if(/iPhone|iPad|iPod/.test(ua)) html=`<ol><li>Tap the <b>Share</b> button <span aria-hidden="true">(â¡â)</span> at the bottom of Safari.</li><li>Choose <b>Add to Home Screen</b> for an app icon, or <b>Add Bookmark</b>.</li><li>Tap <b>Add</b>.</li></ol>`;
+  else if(/Android/.test(ua)) html=`<ol><li>Tap the <b>â®</b> menu in the top-right corner of the browser.</li><li>Tap <b>â</b> to bookmark, or <b>Add to Home screen</b> for an app icon.</li></ol>`;
+  else html=`<p>Press <span class="key">${mac?"â":"Ctrl"}</span> + <span class="key">D</span>, then select <b>Done</b>.</p><p class="hint">Tip: in the bookmark window, choose <b>Favorites bar</b> or <b>Bookmarks bar</b> so it's always one click away.</p>`;
   $("bmkBody").innerHTML=html; $("bmkMsg").textContent="";
   $("bmk").classList.add("show"); $("bmkClose").focus();
 }
@@ -2692,7 +2762,7 @@ function liveUpdates(){
         bar.innerHTML=`<span><b>Version ${esc(v)} is ready.</b> You have ${APP_VERSION}.</span><button type="button" id="updGo">Update now</button><span>Your calls and settings stay.</span>`;
         bar.classList.add("show"); $("updGo").onclick=()=>go(v); return;
       }
-      bar.innerHTML=`<span><b>Updating to version ${esc(v)}…</b> Your calls and settings stay.</span>`; bar.classList.add("show");
+      bar.innerHTML=`<span><b>Updating to version ${esc(v)}â¦</b> Your calls and settings stay.</span>`; bar.classList.add("show");
       setTimeout(()=>{ if(!busy()) go(v); else check(); },3000);
     }catch(e){}
   };
@@ -2702,7 +2772,7 @@ function liveUpdates(){
 
 async function checkUpdate(manual){
   const m=$("updMsg"), bar=$("updBar");
-  if(manual) m.textContent="Checking…";
+  if(manual) m.textContent="Checkingâ¦";
   try{
     const r=await fetch(SITE_URL+"version.json?t="+Date.now(),{cache:"no-store"}); if(!r.ok) throw 0;
     const v=(await r.json()).version;
@@ -2735,7 +2805,7 @@ function layoutSummaries(){
   const loaded=S.calls.length>0 && !S.impOpen;
   $("impSum").hidden=!loaded; $("impBox").hidden=loaded; $("sapHelp").hidden=loaded;
   if(loaded && !$("importMsg").classList.contains("err")) $("importMsg").textContent="";
-  if(loaded){ const t=store.get("loadedAt",null); $("impSumText").textContent=`${S.calls.length} call${S.calls.length===1?"":"s"} loaded`+(t?` · ${new Date(t).toLocaleString([], {weekday:"short",hour:"numeric",minute:"2-digit"})}`:""); }
+  if(loaded){ const t=store.get("loadedAt",null); $("impSumText").textContent=`${S.calls.length} call${S.calls.length===1?"":"s"} loaded`+(t?` Â· ${new Date(t).toLocaleString([], {weekday:"short",hour:"numeric",minute:"2-digit"})}`:""); }
   // Filters: one-line summary of what's narrowing the list.
   const parts=[];
   if(S.pastTiers.size||customRange()) parts.push("past due: "+(customRange()?"custom range":TIERS.filter(x=>S.pastTiers.has(x.k)).map(x=>x.label).join(", ")));
@@ -2744,10 +2814,10 @@ function layoutSummaries(){
   if(offG.length) parts.push("groups: "+[...S.fGroups].sort().join(", ")); if(offP.length) parts.push("some priorities"); if(offS.length) parts.push("status: "+[...S.fStatus].join(", "));
   if(S.fDue) parts.push("due by "+S.fDue); if(S.showDone) parts.push("showing completed");
   const vis=visibleCalls().length;
-  $("filterSum").textContent = parts.length ? `Showing ${vis} of ${S.calls.length} · ${parts.join(" · ")}` : (S.calls.length?`Showing all ${S.calls.length} calls · tap to filter`:"Tap to filter");
+  $("filterSum").textContent = parts.length ? `Showing ${vis} of ${S.calls.length} Â· ${parts.join(" Â· ")}` : (S.calls.length?`Showing all ${S.calls.length} calls Â· tap to filter`:"Tap to filter");
   // Route options: one-line summary.
   const ss=$("startSel"), ms=$("modeSel");
-  $("routeSum").textContent=`From: ${ss.options[ss.selectedIndex]?ss.options[ss.selectedIndex].text.replace("…",""):"first stop"} · ${ms.options[ms.selectedIndex].text}${$("roundTrip").checked?" · return to start":""}`;
+  $("routeSum").textContent=`From: ${ss.options[ss.selectedIndex]?ss.options[ss.selectedIndex].text.replace("â¦",""):"first stop"} Â· ${ms.options[ms.selectedIndex].text}${$("roundTrip").checked?" Â· return to start":""}`;
 }
 
 // ---------- init ----------
@@ -2759,7 +2829,7 @@ window.addEventListener("hashchange",()=>{ if(/^#sap=/.test(location.hash)) rece
 $("replanBtn").onclick=replanHere; $("dvReplan").onclick=replanHere;
 $("eodBtn").onclick=openEOD; $("eodClose").onclick=()=>$("eodDlg").classList.remove("show");
 $("eodCopy").onclick=()=>copyText($("eodText").value,"Summary copied.");
-$("eodMail").onclick=()=>outlookCompose(`End of day – ${new Date().toLocaleDateString()}`,$("eodText").value);
+$("eodMail").onclick=()=>outlookCompose(`End of day â ${new Date().toLocaleDateString()}`,$("eodText").value);
 $("eodDlg").onclick=e=>{ if(e.target.id==="eodDlg") $("eodDlg").classList.remove("show"); };
 window.__sapImport = receiveSap();
 if(IS_ONLINE && !window.__sapImport) receiveSync();
@@ -2798,12 +2868,12 @@ $("wnTour").onclick=()=>{ hideWn(); startTour(); };
 $("wnBtn").onclick=()=>showWhatsNew(null,false);
 $("tourBtn").onclick=()=>startTour();
 const TOUR=[
-  ["#menuBtn","☰ Menu","Install app, Bookmark, Download offline copy, Settings, and Feedback all live here. Send to phone, when turned on, has its own button next to the menu."],
+  ["#menuBtn","â° Menu","Install app, Bookmark, Download offline copy, Settings, and Feedback all live here. Send to phone, when turned on, has its own button next to the menu."],
   ["#importCard","Load your calls","Paste your SAP IW49N export (or dispatch texts) and select Load calls. After loading, this shrinks to one line. Select Paste new export to load a fresh list."],
   ["#filterBar","Filters","Tap to filter by days past due, due dates, groups, priority, and status. The line next to Filters shows what's hidden."],
   ["#storeList","Store cards","Each card is one store. Check the box to mark a call done, tap the order number to open it in Edge, tap the store name for address and phone, and uncheck Route to leave a store out."],
   [".panel.route","Your route","Open the route in Google Maps. Route options sets where you start and how stops are ordered. Copy route for team shares it."],
-  ["#menuBtn","Turn on extras","Day view, Send to phone, Hand off, and more are off to keep things simple. Turn them on in ☰ Menu → Settings. You can replay this tour from ☰ Menu → Quick tour."]
+  ["#menuBtn","Turn on extras","Day view, Send to phone, Hand off, and more are off to keep things simple. Turn them on in â° Menu â Settings. You can replay this tour from â° Menu â Quick tour."]
 ];
 let tourI=0, tourSteps=[];
 function startTour(){

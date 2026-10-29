@@ -51,7 +51,7 @@ legend{font-weight:600;font-size:14px;margin-bottom:6px}
 .chip .n{color:var(--muted);font-size:12px}
 .chip.plain{padding-left:10px}
 
-/* Group shield — the one bold element */
+/* Group shield â the one bold element */
 .shield{display:inline-grid;place-items:center;width:30px;height:32px;flex:none;
   color:#fff;font:700 18px/1 var(--sign);padding-top:5px;
   background:linear-gradient(var(--shield-top) 0 8px,var(--shield) 8px);
@@ -77,7 +77,7 @@ legend{font-weight:600;font-size:14px;margin-bottom:6px}
 .calls{table-layout:fixed}
 .calls td:nth-child(2){width:118px}.calls td:nth-child(4){width:150px}.calls td:nth-child(5){width:64px}
 .calls td:nth-child(3){overflow-wrap:anywhere;overflow:hidden}
-/* Phone: each call is two lines: the description across the full width, then priority · past due · status underneath. */
+/* Phone: each call is two lines: the description across the full width, then priority Â· past due Â· status underneath. */
 @media (max-width:600px){
   .calls,.calls tbody{display:block}
   .calls tr{display:grid;grid-template-columns:34px minmax(0,auto) minmax(0,auto) minmax(0,1fr);align-items:center;column-gap:6px;border-bottom:1px solid var(--line)}
@@ -139,7 +139,7 @@ legend{font-weight:600;font-size:14px;margin-bottom:6px}
 details.filters{padding:0}
 details.filters>summary{cursor:pointer;padding:12px 14px;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
 details.filters>summary::-webkit-details-marker{display:none}
-details.filters>summary::before{content:"▸";transition:transform .15s}
+details.filters>summary::before{content:"â¸";transition:transform .15s}
 details.filters[open]>summary::before{transform:rotate(90deg)}
 .fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:4px 18px;padding:0 14px 12px}
 .fgrid fieldset{margin:8px 0 0}
@@ -232,7 +232,7 @@ details.ropts[open]{padding-bottom:10px}
 .tag.soon{background:#DCEBFF;color:#173E70}
 .tag.rep{background:#EFE3FF;color:#4B2A84}
 @media (prefers-color-scheme:dark){.tag.soon{background:#1F3550;color:#CFE3FF}.tag.rep{background:#33264D;color:#E6D9FF}}
-/* call age (days since the call was put in): 0–3 green, 4–5 yellow, 6 orange, 7–8 red, 9+ fire */
+/* call age (days since the call was put in): 0â3 green, 4â5 yellow, 6 orange, 7â8 red, 9+ fire */
 .tag.age{border:1px solid transparent}
 .tag.age.g{background:#DDF3E4;color:#14532D;border-color:#9AD3AE}
 .tag.age.y{background:#FFF4BF;color:#5C4400;border-color:#E9CF55}
@@ -292,7 +292,7 @@ details.ropts[open]{padding-bottom:10px}
 .pastq button .dot{width:12px;height:12px;border-radius:50%;background:var(--muted)}
 .pastq button .n{color:var(--muted);font-size:12px}
 .pastq button.on{border-color:var(--ink);background:var(--soft);font-weight:600}
-.pastq button.on::after{content:"✓";font-weight:700}
+.pastq button.on::after{content:"â";font-weight:700}
 .pastq button .dot.t1,.tier.t1{background:var(--t1)}.pastq button .dot.t2,.tier.t2{background:var(--t2)}.pastq button .dot.t3,.tier.t3{background:var(--t3)}.pastq button .dot.t0{background:transparent;border:2px solid var(--muted)}
 .tier{display:inline-block;color:#fff;border-radius:4px;padding:1px 6px;font-size:12px;font-weight:700;white-space:nowrap}
 .tier.t1{color:#3A2E00}
@@ -369,6 +369,8 @@ details.help kbd{font:12px ui-monospace,Consolas,monospace;border:1px solid var(
 #grpDlg .mapfoot{grid-column:1/-1;font-size:12px;color:var(--muted)}
 @media (max-width:860px){ #grpDlg .box{grid-template-columns:1fr;grid-template-rows:auto 40% minmax(0,1fr) auto} }
 .mv button{padding:0 7px;line-height:1.3;font-size:13px}
+.drag{cursor:grab;touch-action:none;font-size:16px;color:var(--muted);line-height:1;padding:3px 5px;user-select:none;-webkit-user-select:none}
+.stop.dragging .drag{cursor:grabbing}
 .totals{display:flex;gap:18px;margin-top:10px;padding:10px;background:var(--soft);border-radius:8px}
 .totals b{font:700 22px/1 var(--sign);display:block}
 .totals span{font-size:12px;color:var(--muted)}
@@ -398,16 +400,16 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
   <h1><span id="appName">Service Route Planner</span> <span id="verTag" style="font-size:15px;opacity:.8"></span></h1>
   <span class="sub" id="summary">No calls loaded</span>
   <span class="saved" id="savedNote">Saved on this computer</span>
-  <div class="hacts"><button class="hbtn" id="sendBtn" type="button" style="display:none">📱 Send to phone</button>
+  <div class="hacts"><button class="hbtn" id="sendBtn" type="button" style="display:none">ð± Send to phone</button>
   <div class="menuwrap">
-    <button class="hbtn" id="menuBtn" type="button" aria-haspopup="true" aria-expanded="false">☰ Menu</button>
+    <button class="hbtn" id="menuBtn" type="button" aria-haspopup="true" aria-expanded="false">â° Menu</button>
     <div class="menu" id="menu" hidden>
       <span id="modeActions"></span>
-      <button class="hbtn" id="wnBtn" type="button">✨ What's new</button>
-      <button class="hbtn" id="tourBtn" type="button">🧭 Quick tour</button>
-      <button class="hbtn" id="tcBtn" type="button">🕑 SAP time check</button>
-      <button class="hbtn" id="setBtn" type="button">⚙ Settings</button>
-      <button class="hbtn" id="fbBtn" type="button">💬 Feedback</button>
+      <button class="hbtn" id="wnBtn" type="button">â¨ What's new</button>
+      <button class="hbtn" id="tourBtn" type="button">ð§­ Quick tour</button>
+      <button class="hbtn" id="tcBtn" type="button">ð SAP time check</button>
+      <button class="hbtn" id="setBtn" type="button">â Settings</button>
+      <button class="hbtn" id="fbBtn" type="button">ð¬ Feedback</button>
     </div>
   </div></div>
   <div class="modebar">
@@ -451,7 +453,7 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
     <div class="hint" id="fbPHint">Numbers only, 3 to 10 digits. The P is added for you.</div>
     <label class="lbl" for="fbMsg">What happened, or what would you like?</label>
     <textarea id="fbMsg" maxlength="1500" required></textarea>
-    <div class="shot">📷 <b>A screenshot helps a lot.</b> Take one showing the problem, then attach it in Outlook before you tap Send.
+    <div class="shot">ð· <b>A screenshot helps a lot.</b> Take one showing the problem, then attach it in Outlook before you tap Send.
       <span class="hint" id="fbShotHow"></span></div>
     <div class="warn"><b>Keep it general when you can.</b> Broad terms are best. If your report needs proprietary or confidential details, check the box below so it's handled carefully.</div>
     <label class="ack"><input type="checkbox" id="fbProp"> <span><b>This report contains proprietary or confidential information.</b></span></label>
@@ -471,7 +473,7 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
     <p id="sendStep" style="font-weight:700;margin:6px 0 2px"></p>
     <label class="hint" style="display:flex;gap:6px;justify-content:center;align-items:center;margin:4px 0"><input type="checkbox" id="smallCodes"> Smaller codes (easier to scan, but more of them)</label>
     <p class="hint" style="margin:0 0 8px">Point your phone's camera at the code and tap the link. Your calls travel only inside the code, from this screen to your phone. Nothing is uploaded.</p>
-    <div class="row" style="justify-content:center"><button id="sendPrev">◀ Previous</button><button class="primary" id="sendNext">Next code ▶</button><button id="sendClose">Close</button></div>
+    <div class="row" style="justify-content:center"><button id="sendPrev">â Previous</button><button class="primary" id="sendNext">Next code â¶</button><button id="sendClose">Close</button></div>
   </div>
 </div>
 <div class="bmk" id="tcDlg" role="dialog" aria-modal="true" aria-labelledby="tcTitle">
@@ -488,7 +490,7 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
         <p class="hint" style="margin:0 0 4px">Scan this with Companion (Time check) to compare against the time you tracked.</p>
         <canvas id="tcQR" style="width:min(340px,80vw);height:auto;image-rendering:pixelated;border-radius:6px"></canvas>
         <p id="tcStep" style="font-weight:700;margin:6px 0 2px"></p>
-        <div class="row" style="justify-content:center"><button id="tcPrev">◀ Previous</button><button id="tcNext">Next code ▶</button></div>
+        <div class="row" style="justify-content:center"><button id="tcPrev">â Previous</button><button id="tcNext">Next code â¶</button></div>
       </div>
     </div>
     <div class="row" style="justify-content:flex-end;margin-top:8px"><button id="tcClose">Close</button></div>
@@ -561,7 +563,7 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
 
 <details class="settings" id="storeData">
   <summary>Store data and groups</summary>
-  <p class="hint">Edit and save to change store info, groups, or map positions. Saved in this browser only. Mileage is straight-line × 1.25 at 45 mph, so treat it as a rough guide; the Google Maps link gives real directions.</p>
+  <p class="hint">Edit and save to change store info, groups, or map positions. Saved in this browser only. Mileage is straight-line Ã 1.25 at 45 mph, so treat it as a rough guide; the Google Maps link gives real directions.</p>
   <div class="set-grid">
     <div><label for="groupsInput">Store groups (store, group)</label><textarea id="groupsInput"></textarea></div>
     <div><label for="storesInput">Store list (paste with the header row, or load a file)</label><textarea id="storesInput"></textarea>
@@ -583,7 +585,7 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
   <div class="box" style="max-width:560px">
     <h3 id="eodTitle">End-of-day summary</h3>
     <textarea id="eodText" readonly aria-label="Summary"></textarea>
-    <div class="row"><button id="eodClose">Close</button><button id="eodMail">Open in Outlook</button><button class="primary" id="eodCopy">📋 Copy</button></div>
+    <div class="row"><button id="eodClose">Close</button><button id="eodMail">Open in Outlook</button><button class="primary" id="eodCopy">ð Copy</button></div>
   </div>
 </div>
 <div class="bmk" id="handDlg" role="dialog" aria-modal="true" aria-labelledby="handTitle">
@@ -592,16 +594,16 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
     <p class="hint" id="handSum" style="margin:0 0 6px"></p>
     <canvas id="handQR" style="width:min(300px,75vw);height:auto;image-rendering:pixelated;border-radius:6px;display:none"></canvas>
     <p class="hint" id="handHow" style="margin:6px 0"></p>
-    <div class="row" style="justify-content:center"><button class="primary" id="handCopy">📋 Copy for teammate</button><button id="handHide">Hide from my list</button><button id="handClose">Close</button></div>
+    <div class="row" style="justify-content:center"><button class="primary" id="handCopy">ð Copy for teammate</button><button id="handHide">Hide from my list</button><button id="handClose">Close</button></div>
   </div>
 </div>
 <div class="dayv" id="dayView" role="dialog" aria-modal="true" aria-label="Day view">
-  <div class="dv-top"><button id="dvClose" aria-label="Close day view">✕</button><button id="dvReplan" aria-label="Re-plan from here" title="Re-plan from here">📍</button><button id="dvCopy" aria-label="Copy list" style="width:auto;padding:0 12px;font-size:15px;font-weight:700">📋 Copy</button>
+  <div class="dv-top"><button id="dvClose" aria-label="Close day view">â</button><button id="dvReplan" aria-label="Re-plan from here" title="Re-plan from here">ð</button><button id="dvCopy" aria-label="Copy list" style="width:auto;padding:0 12px;font-size:15px;font-weight:700">ð Copy</button>
     <div class="dv-prog"><b id="dvTitle">Today's route</b><div class="dv-bar"><i id="dvBar"></i></div><span id="dvSub"></span></div></div>
   <div class="dv-track" id="dvTrack"></div>
-  <div class="dv-nav"><button id="dvPrev">◀ Prev</button><div class="dv-dots" id="dvDots"></div><button class="primary" id="dvNext">Next ▶</button></div>
+  <div class="dv-nav"><button id="dvPrev">â Prev</button><div class="dv-dots" id="dvDots"></div><button class="primary" id="dvNext">Next â¶</button></div>
 </div>
-<button class="dvfab" id="dvFab" type="button">▶ Day view</button>
+<button class="dvfab" id="dvFab" type="button">â¶ Day view</button>
 <div class="bmk" id="mapDlg" role="dialog" aria-modal="true" aria-labelledby="mapTitle">
   <div class="box">
     <div class="maphead"><h3 id="mapTitle">Route map</h3><span class="hint" id="mapSum"></span><span style="flex:1"></span>
@@ -609,7 +611,7 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
       <button id="mapOpt" type="button" title="Put back the planner's order (your Stop order setting)">Re-optimize</button><button id="mapGo" type="button">Open in Google Maps</button><button class="primary" id="mapClose" type="button">Close</button></div>
     <ol class="stops dnd" id="mapStops"></ol>
     <div id="mapView"></div>
-    <div class="mapfoot">Drag stops in the list to change the order; the map and miles update right away. Click a number on the map to find that stop in the list. Lines are straight between stops, so real driving is a little longer. Only map pictures are loaded from the map service, never your calls. Map © OpenStreetMap contributors.</div>
+    <div class="mapfoot">Drag stops in the list to change the order; the map and miles update right away. Click a number on the map to find that stop in the list. Lines are straight between stops, so real driving is a little longer. Only map pictures are loaded from the map service, never your calls. Map Â© OpenStreetMap contributors.</div>
   </div>
 </div>
 <div class="bmk" id="grpDlg" role="dialog" aria-modal="true" aria-labelledby="grpTitle">
@@ -617,7 +619,7 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
     <div class="maphead"><h3 id="grpTitle">Virginia route groups</h3><span class="hint" id="grpSum"></span><span style="flex:1"></span><button class="primary" id="grpClose" type="button">Close</button></div>
     <div id="grpList"></div>
     <div id="grpMap"></div>
-    <div class="mapfoot">Tap a group to zoom to it; tap a dot for the store. Groups follow your store list (Settings) and any changes you've made there. Map © OpenStreetMap contributors.</div>
+    <div class="mapfoot">Tap a group to zoom to it; tap a dot for the store. Groups follow your store list (Settings) and any changes you've made there. Map Â© OpenStreetMap contributors.</div>
   </div>
 </div>
 <div class="bmk" id="pasteDlg" role="dialog" aria-modal="true" aria-labelledby="pasteTitle">
@@ -654,14 +656,14 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
       <div id="impBox"><h2>Import calls</h2>
     <textarea id="callsInput" placeholder="Paste service call rows from SAP, or paste dispatch text messages"></textarea>
     <div class="row">
-      <button class="primary" id="pasteSapBtn">📋 Paste from SAP</button>
+      <button class="primary" id="pasteSapBtn">ð Paste from SAP</button>
       <button id="loadBtn">Load calls</button>
       <button id="clearBtn">Clear</button>
     </div>
       </div>
     <div class="msg" id="importMsg"></div>
     <div class="chg" id="chgBox" hidden></div>
-    <div class="row" id="pasteRow"><button id="pasteBtn2" type="button">📥 Paste a handoff or transfer</button></div>
+    <div class="row" id="pasteRow"><button id="pasteBtn2" type="button">ð¥ Paste a handoff or transfer</button></div>
     <details class="help" id="sapHelp">
       <summary>How to get your calls from SAP</summary>
       <div class="hb">
@@ -731,7 +733,7 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
           <option value="old">Call start date: oldest first</option>
           <option value="new">Call start date: newest first</option>
         </select>
-        <button id="copyList">📋 Copy list</button>
+        <button id="copyList">ð Copy list</button>
       </div>
     </div>
     <div id="storeList"></div>
@@ -764,17 +766,26 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
       <option value="start">Oldest call start date first</option>
       <option value="manual">Manual (drag or use arrows)</option>
     </select>
-    <label class="incl" style="margin-top:10px"><input type="checkbox" id="roundTrip"> Return to start</label>
-    <div class="row"><button id="allIn">Include all stores</button><button id="allOut">Exclude all</button></div>
+    <label class="hint" for="firstSel" style="display:block;margin-top:10px">First stop</label>
+    <select id="firstSel"><option value="">Auto (best order)</option></select>
+    <label class="hint" for="endSel" style="display:block;margin-top:10px">Finish at</label>
+    <select id="endSel">
+      <option value="">End anywhere (fewest miles)</option>
+      <option value="start">Back to start</option>
+      <option value="store">A storeâ¦</option>
+    </select>
+    <div id="endStoreBox" style="display:none"><input type="text" id="endStore" inputmode="numeric" autocomplete="off" placeholder="Finish store number" style="margin-top:6px"><div class="msg" id="endStoreMsg"></div></div>
+    <input type="checkbox" id="roundTrip" hidden>
+    <div class="row" style="margin-top:10px"><button id="allIn">Include all stores</button><button id="allOut">Exclude all</button></div>
     </details>
 
-    <button class="dvbtn" id="dvBtn" type="button">▶ Day view: go stop by stop</button>
-    <div class="row"><button id="replanBtn" type="button">📍 Re-plan from here</button><button id="eodBtn" type="button">📊 End-of-day summary</button></div>
+    <button class="dvbtn" id="dvBtn" type="button">â¶ Day view: go stop by stop</button>
+    <div class="row"><button id="replanBtn" type="button">ð Re-plan from here</button><button id="eodBtn" type="button">ð End-of-day summary</button></div>
     <div class="totals" id="totals"></div>
-    <button class="mapbtn" id="mapBtn" type="button" style="display:none">🗺 Show route on map</button>
+    <button class="mapbtn" id="mapBtn" type="button" style="display:none">ðº Show route on map</button>
     <div class="links" id="links"></div>
     <ol class="stops" id="stops"></ol>
-    <div class="dndhint" id="dndHint" style="display:none">Drag a stop up or down to change the order.</div>
+    <div class="dndhint" id="dndHint" style="display:none">Drag the â ¿ handle (or use â²â¼) to change the order â you go down the list in order.</div>
     <div class="share">
       <button class="primary" id="copyBtn">Copy route for team</button>
       <div class="opts">
@@ -784,7 +795,7 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
         <label><input type="checkbox" id="optDrive" checked> Total driving time</label>
       </div>
       <div class="row">
-        <button id="shareBtn" hidden>Share…</button>
+        <button id="shareBtn" hidden>Shareâ¦</button>
         <button id="previewBtn">Preview</button>
         <button id="printBtn">Print</button>
       </div>
@@ -808,45 +819,46 @@ const ERRLOG=[];
   window.addEventListener("unhandledrejection",e=>add("Promise: "+((e.reason&&e.reason.message)||e.reason)));
 })();
 // ---------- version ----------
-const APP_VERSION = "4.32";
+const APP_VERSION = "4.33";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const GC_CODE = "";   // GoatCounter site code for anonymous usage counts (blank = nothing is sent)
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["4.33", "Route options: choose where you Finish (back to start or a store) and which store is First, for a tighter route. The stop list is your visit order  drag the ⠿ handle (works on phones) or use the arrows to reorder, then just go down the list."],
   ["4.32", "New dispatch texts can now import on their own: when Companion's Auto-add is on, a new call opens the planner and is added with no tap."],
-  ["4.31", "🕑 SAP time check (☰ Menu): paste your IW47 confirmations, see logged hours per store per day (reversed entries cancel out), and make a barcode that Companion scans to flag time you tracked but didn't log."],
-  ["4.30", "📋 Paste from SAP button on Import calls: copy your active calls in SAP (Ctrl+C), then one tap reads the clipboard and loads them — no pasting into the box."],
+  ["4.31", "ð SAP time check (â° Menu): paste your IW47 confirmations, see logged hours per store per day (reversed entries cancel out), and make a barcode that Companion scans to flag time you tracked but didn't log."],
+  ["4.30", "ð Paste from SAP button on Import calls: copy your active calls in SAP (Ctrl+C), then one tap reads the clipboard and loads them â no pasting into the box."],
   ["4.29", "Desktop SAP import: a SAP GUI macro can push your IW49N list straight into the online planner and replace your whole list, no copy-paste. (Opens the planner with the calls already loaded.)"],
-  ["4.28", "Importing your calls from SAP in Companion now sends them straight here and replaces your whole list — no extra tap, and completed calls drop off."],
+  ["4.28", "Importing your calls from SAP in Companion now sends them straight here and replaces your whole list â no extra tap, and completed calls drop off."],
   ["4.27", "Focused on active calls: the History calendar is removed, and a call's age now comes straight from its due date (exact for Sev 3 and 4), so no past-call log is needed. Importing from SAP replaces your whole call list, so completed calls drop off on their own."],
   ["4.26", "Fix: on very narrow phones the call badges no longer push the page sideways."],
-  ["4.25", "Cleaner look: on phones each call shows its description across the full width with priority, past due and status underneath; 7–8 day old calls use a lighter red so solid red always means past due; the route list drops the extra past-due band; Settings is split into Features, Your data & privacy, and About & store data."],
+  ["4.25", "Cleaner look: on phones each call shows its description across the full width with priority, past due and status underneath; 7â8 day old calls use a lighter red so solid red always means past due; the route list drops the extra past-due band; Settings is split into Features, Your data & privacy, and About & store data."],
   ["4.24", "The route list shows how many days old each stop's oldest call is, with the same colors."],
-  ["4.23", "Route options → Stop order: \"Strictly oldest due first\" (nearly the same as Most past due first) is replaced by Oldest call start date first, which visits stores in the order their calls were put in. The list sort is renamed Call start date."],
+  ["4.23", "Route options â Stop order: \"Strictly oldest due first\" (nearly the same as Most past due first) is replaced by Oldest call start date first, which visits stores in the order their calls were put in. The list sort is renamed Call start date."],
   ["4.22", "Sort the store list by days old: oldest first or newest first (Sort menu above the stores)."],
   ["4.21", "Call age now comes from SAP itself: the due date and severity give the day the call was put in (Sev 1 same day by midnight, Sev 2 next day by 5 PM, Sev 3 72 hours, Sev 4 120 hours). Hover a badge to see the date."],
-  ["4.20", "Call age colors: 0–3 days green, 4–5 yellow, 6 orange, 7–8 red, 9+ days 🔥 fire."],
-  ["4.19", "Call age badge on every call: 📅 days since the call was put in, colored by age. Exact when the dispatch text is known (from Companion), otherwise ≈ estimated. Turn it off in Settings if you don't want it."],
+  ["4.20", "Call age colors: 0â3 days green, 4â5 yellow, 6 orange, 7â8 red, 9+ days ð¥ fire."],
+  ["4.19", "Call age badge on every call: ð days since the call was put in, colored by age. Exact when the dispatch text is known (from Companion), otherwise â estimated. Turn it off in Settings if you don't want it."],
   ["4.18", "Copy route for team can include the total driving time (new Total driving time box under the Copy button, on by default)."],
   ["4.17", "Virginia: group areas on the maps are bolder, so each group is easier to pick out."],
-  ["4.16", "Virginia: the route map shades each route group (A–F) in its own color under your stops. Turn it off with Show groups at the top of the map."],
+  ["4.16", "Virginia: the route map shades each route group (AâF) in its own color under your stops. Turn it off with Show groups at the top of the map."],
   ["4.15", "Maps now use OpenStreetMap's own map pictures: no API key or sign-up needed."],
-  ["4.14", "Route options → Start from → A store: just type the number, no drop-down list, and any Publix store works, in every state, not only the stores in this edition."],
-  ["4.13", "Virginia: ☰ Menu → 🗺 Route groups shows each group (A–F) with its area and store numbers, on a map that shades each area."],
-  ["4.12", "Computer only: 🗺 Show route on map opens a map of your stops in order, next to the stop list. Drag a stop up or down (on the map screen or in the route panel) to change the order; the map, miles and Google Maps links update right away. Re-optimize puts the planner's order back."],
-  ["4.11", "Send to phone moved out of the menu: when it's turned on, it has its own button at the top, next to ☰ Menu. History now keeps every call you load from SAP (IW49), not just the ones you mark Done. To bring in your past dispatch texts on a computer, export them from Companion (Settings → Export all calls for desktop) and choose History → Import Companion file."],
+  ["4.14", "Route options â Start from â A store: just type the number, no drop-down list, and any Publix store works, in every state, not only the stores in this edition."],
+  ["4.13", "Virginia: â° Menu â ðº Route groups shows each group (AâF) with its area and store numbers, on a map that shades each area."],
+  ["4.12", "Computer only: ðº Show route on map opens a map of your stops in order, next to the stop list. Drag a stop up or down (on the map screen or in the route panel) to change the order; the map, miles and Google Maps links update right away. Re-optimize puts the planner's order back."],
+  ["4.11", "Send to phone moved out of the menu: when it's turned on, it has its own button at the top, next to â° Menu. History now keeps every call you load from SAP (IW49), not just the ones you mark Done. To bring in your past dispatch texts on a computer, export them from Companion (Settings â Export all calls for desktop) and choose History â Import Companion file."],
   ["4.10", "How to get your calls from SAP now always starts collapsed; tap it to open."],
   ["4.9", "Automatic updates: an open planner checks for a new version every 30 minutes and when you come back to it, and refreshes itself (never while you're typing or have a window open). Your calls and settings stay."],
   ["4.8", "New dispatch calls from Companion: choose Reroute now (re-plans from where you are) or Keep my route (your stop order stays the same and the new store goes at the end) right from Companion's notification."],
   ["4.7", "Past calls from Companion: after importing past dispatch texts in Companion, send them to Route Planner and they appear in History (by the day the text arrived), and count toward repeat-issue alerts and Your stats."],
-  ["4.6", "Fixes: the ☰ Menu no longer runs off the edge of the screen on phones; dialogs and the tour stay on screen at every phone size. Send feedback now reminds you to attach a screenshot of the problem."],
+  ["4.6", "Fixes: the â° Menu no longer runs off the edge of the screen on phones; dialogs and the tour stay on screen at every phone size. Send feedback now reminds you to attach a screenshot of the problem."],
   ["4.5", "Usage data is only sent from phones and tablets. Nothing is sent when you use the planner on a computer."],
-  ["4.4", "Anonymous user ID: a random code (shown in Settings → Usage data) so one person is counted once across days and devices. It travels with Send to phone, calls from Companion, and backup files (never with a hand-off to a teammate), and can be typed in on another device. It is never linked to your name, P number, or email."],
-  ["4.3", "Usage data and Your stats: ☰ Menu → Settings shows fun facts from your own data (calls completed, stores and cities served, routes opened, busiest day) and explains exactly what anonymous usage data is sent: app version, what you used (by name only), device type, screen size, and general area (country and state). Your calls, store numbers, addresses, GPS location, and names are never sent."],
+  ["4.4", "Anonymous user ID: a random code (shown in Settings â Usage data) so one person is counted once across days and devices. It travels with Send to phone, calls from Companion, and backup files (never with a hand-off to a teammate), and can be typed in on another device. It is never linked to your name, P number, or email."],
+  ["4.3", "Usage data and Your stats: â° Menu â Settings shows fun facts from your own data (calls completed, stores and cities served, routes opened, busiest day) and explains exactly what anonymous usage data is sent: app version, what you used (by name only), device type, screen size, and general area (country and state). Your calls, store numbers, addresses, GPS location, and names are never sent."],
   ["4.2", "Feedback can include device details (browser, screen, planner version, counts of loaded calls and stores, recent errors) to help fix problems. You see exactly what is added before sending and can uncheck it. Your calls, locations and addresses are never included."],
-  ["4.1", "What's new: after an update, a short note shows what changed. Quick tour: a one-minute walk through the screen, offered on first use and any time from ☰ Menu."],
-  ["4.0", "Simpler screen: one ☰ Menu for Install, Send to phone, Bookmark, Download, Settings and Feedback; the paste box shrinks to one line after loading; all filters in one Filters bar with a summary; tighter store cards (tap a store for address and phone); route options folded away with the stop list on top; version history and store data moved into Settings."],
+  ["4.1", "What's new: after an update, a short note shows what changed. Quick tour: a one-minute walk through the screen, offered on first use and any time from â° Menu."],
+  ["4.0", "Simpler screen: one â° Menu for Install, Send to phone, Bookmark, Download, Settings and Feedback; the paste box shrinks to one line after loading; all filters in one Filters bar with a summary; tighter store cards (tap a store for address and phone); route options folded away with the stop list on top; version history and store data moved into Settings."],
   ["3.12", "Optional features now start turned off for a simpler screen: What changed, Repeat-issue alerts, Due soon, Re-plan from here, End-of-day summary, Hand off, Day view, and Send to phone. Turn on the ones you want in Settings."],
   ["3.11", "Send to phone fits a typical day in one QR code: calls are packed tighter and shown as one larger code. Check Smaller codes if your phone has trouble scanning."],
   ["3.10", "Calls sent from the Companion app (or a transfer link) are picked up even when the planner is already open."],
@@ -869,7 +881,7 @@ const CHANGELOG = [
   ["2.5", "Removed links to the Google Drive folder. New versions come from GitHub."],
   ["2.4", "Banner shows Online or Offline version. The online version has a Download button to save an offline copy. The offline version links to the GitHub repository and checks for updates automatically."],
   ["2.3", "Step-by-step help for copying open calls out of SAP (IW49N), with the required column order. The planner now warns when pasted columns are in the wrong order or a date can't be read."],
-  ["2.2", "Past-due color levels: 1–2 days (yellow), 3 days (orange), 4+ days (red); pick more than one. Custom day range only ever shows expired calls. Each store shows all of its other open calls too. Sort the store list by days past due, most or least first. Most past due first switch builds the route oldest-first, then shortest drive."],
+  ["2.2", "Past-due color levels: 1â2 days (yellow), 3 days (orange), 4+ days (red); pick more than one. Custom day range only ever shows expired calls. Each store shows all of its other open calls too. Sort the store list by days past due, most or least first. Most past due first switch builds the route oldest-first, then shortest drive."],
   ["2.1", "Days past due filter with quick buttons (7+, 14+, 30+) and your own day range. Sort stores by most past due. Each call shows how many days it is past due, also in the copied route."],
   ["2.0", "Link to the shared Google Drive folder where the latest version of every edition is kept."],
   ["1.9", "State editions for AL, FL, GA, KY, NC, SC, and TN, alongside the company-wide and VA editions. In state editions, stores without a group are grouped by city. Long group names are shortened to fit."],
@@ -1061,7 +1073,7 @@ function parseDue(d,t){
 // ---------- dispatch texts ----------
 // Reads texts like "801624020 2035 scale printer scale not advancing Sev: 3 P1593 - THE VILLAGE SHOPPING CENTER Retail Stores."
 // (same rules as the Companion app's reader). Texts carry no due date; status SMS marks where the call came from.
-const DISPATCH_RX=/(\d{9,10})\s+([\s\S]+?)\s+Sev\s*:?\s*(\d)\s+P0*(\d{3,5})\s*[-–—]\s*([\s\S]+?)(?=\s+\d{9,10}\s|\s*$)/gi;
+const DISPATCH_RX=/(\d{9,10})\s+([\s\S]+?)\s+Sev\s*:?\s*(\d)\s+P0*(\d{3,5})\s*[-ââ]\s*([\s\S]+?)(?=\s+\d{9,10}\s|\s*$)/gi;
 const SEV_LABEL={"1":"1 - Urgent","2":"2 - High","3":"3 - Standard","4":"4 - Low"};
 function parseDispatch(text){
   const out=[]; let m; DISPATCH_RX.lastIndex=0;
@@ -1088,8 +1100,8 @@ function parseCalls(text){
     const pr=parseInt(c[4])||9;
     calls.push({
       type:c[0], activ:c[1], date:c[2], time:c[3], due:parseDue(c[2],c[3]),
-      prioLabel:c[4]||"—", prio:pr, store:cust||loc, location:loc,
-      serial:c[8], order:c[9], desc:c[10], wc:c[11], status:c[12]||"—", material:c[13]
+      prioLabel:c[4]||"â", prio:pr, store:cust||loc, location:loc,
+      serial:c[8], order:c[9], desc:c[10], wc:c[11], status:c[12]||"â", material:c[13]
     });
   });
   if(badDates) warnings.push(`${badDates} call${badDates>1?"s have":" has"} a due date the planner can't read. Column 3 should be "Basic fin. date" (like 9/20/2026).`);
@@ -1102,7 +1114,7 @@ const esc = s => String(s??"").replace(/[&<>"]/g,ch=>({"&":"&amp;","<":"&lt;",">
 const groupOf = n => S.groups[n] || (S.stores[n] && (S.stores[n].group || S.stores[n].division || (EDITION.groupBy==="city" ? S.stores[n].city : S.stores[n].state))) || "?";
 const shieldHTML = (g, size) => `<span class="shield${size?" "+size:""}${String(g).length>2?" wide":""}" title="Group ${esc(g)}">${esc(g)}</span>`;
 const fullAddr = n => { const s=S.stores[n]; return s && s.addr ? `${s.addr}, ${s.city}, ${s.state} ${s.zip}` : `Store ${n}`; };
-const fmtDue = d => d ? d.toLocaleDateString(undefined,{weekday:"short",month:"numeric",day:"numeric"})+" "+d.toLocaleTimeString([], {hour:"numeric",minute:"2-digit"}) : "—";
+const fmtDue = d => d ? d.toLocaleDateString(undefined,{weekday:"short",month:"numeric",day:"numeric"})+" "+d.toLocaleTimeString([], {hour:"numeric",minute:"2-digit"}) : "â";
 function miles(a,b){
   if(!a||!b) return null;
   const R=3958.8, r=x=>x*Math.PI/180;
@@ -1121,7 +1133,7 @@ function fmtPast(c){
   const n=Math.floor(d); return `${n} day${n>1?"s":""} past due`;
 }
 // Past-due levels: 0 not yet due, 1 = expired under 3 days, 2 = 3 days, 3 = 4+ days.
-const TIERS=[{k:1,label:"1–2 days"},{k:2,label:"3 days"},{k:3,label:"4+ days"},{k:0,label:"Not yet due"}];
+const TIERS=[{k:1,label:"1â2 days"},{k:2,label:"3 days"},{k:3,label:"4+ days"},{k:0,label:"Not yet due"}];
 function tierOf(c){ const d=pastDays(c); if(d===null||d<=0) return 0; const w=Math.floor(d); return w>=4?3:w===3?2:1; }
 const tierLabel = t => (TIERS.find(x=>x.k===t)||{}).label;
 const pastSortMode = () => $("modeSel").value==="pasttier";
@@ -1154,7 +1166,7 @@ function renderDates(){
   host.innerHTML=list.map(o=>{
     const on=S.fDates.has(o.k);
     const top = o.k==="none" ? "No date" : o.k===today ? "Today" : o.k===tmr ? "Tomorrow" : o.d.toLocaleDateString(undefined,{weekday:"short"});
-    const day = o.k==="none" ? "—" : `${o.d.getMonth()+1}/${o.d.getDate()}`;
+    const day = o.k==="none" ? "â" : `${o.d.getMonth()+1}/${o.d.getDate()}`;
     return `<button class="dchip t${o.t}${o.k===today?" today":""}${on?" on":""}" data-date="${o.k}" aria-pressed="${on}" title="${o.n} call${o.n>1?"s":""}"><span>${top}</span><b>${day}</b><span class="n">${o.n} call${o.n>1?"s":""}</span></button>`;
   }).join("");
   host.querySelectorAll(".dchip").forEach(b=>b.onclick=()=>{ const k=b.dataset.date; S.fDates.has(k)?S.fDates.delete(k):S.fDates.add(k); store.set("fDates",[...S.fDates]); render(); });
@@ -1230,7 +1242,7 @@ function addExtras(groups, shown){
 }
 function renderStores(groups){
   const host=$("storeList");
-  if(!Object.keys(S.stores).length){ host.innerHTML='<div class="empty">Your store list is empty. Open <b>☰ Menu → Settings → Store data</b> and load your company store file.</div>'; return; }
+  if(!Object.keys(S.stores).length){ host.innerHTML='<div class="empty">Your store list is empty. Open <b>â° Menu â Settings â Store data</b> and load your company store file.</div>'; return; }
   if(!S.calls.length){ host.innerHTML='<div class="empty">Paste your service call rows above and select <b>Load calls</b>.</div>'; return; }
   if(!groups.length){ host.innerHTML='<div class="empty">No calls match the current filters.</div>'; return; }
   const now=new Date();
@@ -1244,8 +1256,8 @@ function renderStores(groups){
       return `<tr class="${dn?"done":t?"t"+t:""}${extra?" extra":""}">
         <td class="chk"><label class="done-box" title="Mark call done"><input type="checkbox" data-done="${esc(c.order)}" ${dn?"checked":""} aria-label="Done: ${esc(c.desc)}"></label></td>
         <td><span class="pri p${c.prio}">${esc(c.prioLabel)}</span></td>
-        <td><b>${esc(c.desc)}</b> <span class="muted ordl"><a class="ord" href="${ORDER_HREF(c.order)}"${orderTarget()} title="Opens in Microsoft Edge">${esc(c.order)}</a>${dn?" · completed "+new Date(S.done[c.order]).toLocaleDateString():""}${c.serial?` <span class="sn" title="Serial number">· SN ${esc(c.serial)}</span>`:""}${F("handoff")&&!dn?` <button class="hand" type="button" data-hand="${esc(c.order)}">↗ Hand off</button>`:""}</span>${locNote}${callTags(c)}</td>
-        <td class="due">${t&&!dn?`<span class="tier t${t}" title="Due ${esc(fmtDue(c.due))}">${fmtPast(c)}</span>`:`<span class="muted">${c.due?c.due.toLocaleDateString(undefined,{month:"numeric",day:"numeric"}):"—"}</span>`}</td>
+        <td><b>${esc(c.desc)}</b> <span class="muted ordl"><a class="ord" href="${ORDER_HREF(c.order)}"${orderTarget()} title="Opens in Microsoft Edge">${esc(c.order)}</a>${dn?" Â· completed "+new Date(S.done[c.order]).toLocaleDateString():""}${c.serial?` <span class="sn" title="Serial number">Â· SN ${esc(c.serial)}</span>`:""}${F("handoff")&&!dn?` <button class="hand" type="button" data-hand="${esc(c.order)}">â Hand off</button>`:""}</span>${locNote}${callTags(c)}</td>
+        <td class="due">${t&&!dn?`<span class="tier t${t}" title="Due ${esc(fmtDue(c.due))}">${fmtPast(c)}</span>`:`<span class="muted">${c.due?c.due.toLocaleDateString(undefined,{month:"numeric",day:"numeric"}):"â"}</span>`}</td>
         <td><span class="status">${esc(c.status)}</span></td></tr>`;
     };
     const ex=g.extra||[];
@@ -1255,8 +1267,8 @@ function renderStores(groups){
       <div class="store-head">
         ${shieldHTML(groupOf(g.num))}
         <div class="info">
-          <button class="store-name" type="button" data-more="${esc(g.num)}" aria-expanded="false" title="Show address and phone">${esc(g.num)}<small>${esc(s?s.center:"Store not in list")}${s&&s.city?" · "+esc(s.city):""}</small><span class="more">▾</span></button>
-          <div class="addr" hidden>${s?`<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddr(g.num))}" target="_blank" rel="noopener">${esc(fullAddr(g.num))}</a> · <a href="tel:${esc(s.phone)}">${esc(s.phone)}</a>`:"Add this store under Store data to get an address"}</div>
+          <button class="store-name" type="button" data-more="${esc(g.num)}" aria-expanded="false" title="Show address and phone">${esc(g.num)}<small>${esc(s?s.center:"Store not in list")}${s&&s.city?" Â· "+esc(s.city):""}</small><span class="more">â¾</span></button>
+          <div class="addr" hidden>${s?`<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddr(g.num))}" target="_blank" rel="noopener">${esc(fullAddr(g.num))}</a> Â· <a href="tel:${esc(s.phone)}">${esc(s.phone)}</a>`:"Add this store under Store data to get an address"}</div>
           <div class="muted" style="font-size:13px">${storeRepeat(g.num)}${g.calls.length>1?g.calls.length+" calls":""}${ex.length?` + ${ex.length} more open`:""}${(()=>{const o=g.calls.concat(ex).filter(c=>!isDone(c)&&pastDays(c)>0); if(o.length<2 && g.calls.length+ex.length<2) return ""; if(!o.length) return ""; const old=o.reduce((m,c)=>c.due<m.due?c:m); return `<span class="tier t${tierOf(old)} pastbadge">Oldest ${fmtPast(old)}</span>`;})()}</div>
         </div>
         <label class="incl sm" title="Include this store in the route"><input type="checkbox" data-store="${esc(g.num)}" ${inc?"checked":""}> Route</label>
@@ -1288,7 +1300,7 @@ function getStart(){
   if(v==="store"){
     const n=cleanNum($("startStore").value);
     if(!S.stores[n]){ const c=companyStore(n); if(!c||!c.pt) return null;
-      return {label:`Start: store ${n} · ${c.city}${c.state?", "+c.state:""}`, addr:`${c.pt[0]},${c.pt[1]}`, pt:c.pt, num:n}; }
+      return {label:`Start: store ${n} Â· ${c.city}${c.state?", "+c.state:""}`, addr:`${c.pt[0]},${c.pt[1]}`, pt:c.pt, num:n}; }
     return {label:"Start: store "+n, addr:fullAddr(n), pt:S.coords[n]||null, num:n};
   }
   if(v==="custom"){
@@ -1298,34 +1310,40 @@ function getStart(){
   }
   return {label:"Start: store "+v, addr:fullAddr(v), pt:S.coords[v]||null, num:v};
 }
-function pathCost(start, seq, round){
+// end = where the route should finish (a point to end nearest), or null for "end anywhere".
+function pathCost(start, seq, end){
   let d=0, prev=start?start.pt:null;
   for(const s of seq){ if(prev) d+=miles(prev,S.coords[s.num]); prev=S.coords[s.num]; }
-  if(round && start && start.pt && prev) d+=miles(prev,start.pt);
+  if(end && end.pt && prev) d+=miles(prev,end.pt);
   return d;
 }
-function optimize(start, stops, round){
+function optimize(start, stops, end, firstNum){
   if(stops.length<2) return stops.slice();
-  // nearest neighbour
-  let rest=stops.slice(), seq=[], cur=start&&start.pt ? start.pt : null;
-  if(!cur){ seq.push(rest.shift()); cur=S.coords[seq[0].num]; }
+  let rest=stops.slice(), pinned=null;
+  if(firstNum){ const i=rest.findIndex(s=>s.num===firstNum); if(i>=0) pinned=rest.splice(i,1)[0]; }
+  // nearest neighbour (from the pinned first stop if set, else from the start point)
+  let seq=[], cur;
+  if(pinned){ seq.push(pinned); cur=S.coords[pinned.num]; }
+  else cur = start&&start.pt ? start.pt : null;
+  if(!cur && rest.length){ seq.push(rest.shift()); cur=S.coords[seq[seq.length-1].num]; }
   while(rest.length){
     let bi=0,bd=Infinity; rest.forEach((s,i)=>{const d=miles(cur,S.coords[s.num]); if(d<bd){bd=d;bi=i;}});
     const s=rest.splice(bi,1)[0]; seq.push(s); cur=S.coords[s.num];
   }
-  // 2-opt
-  let improved=true, best=pathCost(start,seq,round), guard=0;
+  // 2-opt (never move the pinned first stop)
+  const lock=pinned?1:0;
+  let improved=true, best=pathCost(start,seq,end), guard=0;
   while(improved && guard++<200){
     improved=false;
-    for(let i=0;i<seq.length-1;i++) for(let k=i+1;k<seq.length;k++){
+    for(let i=lock;i<seq.length-1;i++) for(let k=i+1;k<seq.length;k++){
       const cand=seq.slice(0,i).concat(seq.slice(i,k+1).reverse(),seq.slice(k+1));
-      const c=pathCost(start,cand,round);
+      const c=pathCost(start,cand,end);
       if(c<best-0.01){ seq=cand; best=c; improved=true; }
     }
   }
   return seq;
 }
-function orderStops(start, stops, mode, round){
+function orderStops(start, stops, mode, end, firstNum){
   const zipOf=n=>(S.stores[n]&&S.stores[n].zip)||"99999";
   const withPt=stops.filter(s=>S.coords[s.num]);
   const noPt=stops.filter(s=>!S.coords[s.num]).sort((a,b)=>zipOf(a.num).localeCompare(zipOf(b.num)) || a.num.localeCompare(b.num,undefined,{numeric:true}));
@@ -1345,59 +1363,76 @@ function orderStops(start, stops, mode, round){
     const levels=[...new Set(withPt.map(key))].sort((a,b)=>a-b);
     seq=[]; let from=start;
     levels.forEach((lv,idx)=>{
-      const part=optimize(from, withPt.filter(s=>key(s)===lv), round && idx===levels.length-1);
+      const part=optimize(from, withPt.filter(s=>key(s)===lv), idx===levels.length-1?end:null, idx===0?firstNum:"");
       seq=seq.concat(part);
       if(part.length){ const last=part[part.length-1]; from={pt:S.coords[last.num]}; }
     });
     return seq.concat(mode==="pasttier" ? noPt.sort((a,b)=>b.tier-a.tier) : noPt);
   }
-  return optimize(start, withPt, round).concat(noPt);
+  return optimize(start, withPt, end, firstNum).concat(noPt);
+}
+// The finish point, mirroring the start options.
+function getEnd(){
+  const v=$("endSel").value;
+  if(v==="start") return getStart();
+  if(v==="store"){ const n=cleanNum($("endStore").value); if(!n) return null;
+    if(S.stores[n]) return {label:"Finish: store "+n, addr:fullAddr(n), pt:S.coords[n]||null, num:n};
+    const c=companyStore(n); if(c&&c.pt) return {label:`Finish: store ${n} Â· ${c.city}${c.state?", "+c.state:""}`, addr:`${c.pt[0]},${c.pt[1]}`, pt:c.pt, num:n}; return null; }
+  return null;
 }
 // Oldest open call at a stop, as a days-old badge (same colors as on the calls).
 function stopAge(s){
   if(!F("age")) return "";
   let a=null; s.calls.forEach(c=>{ const x=callAge(c); if(x&&(!a||x.t<a.t)) a=x; }); if(!a) return "";
-  return ` <span class="tag age ${a.cls}" title="${esc((s.calls.length>1?"Oldest call here. ":"")+a.title)}">${a.cls==="f"?"🔥":"📅"} ${a.est?"≈":""}${a.days} day${a.days===1?"":"s"} old</span>`;
+  return ` <span class="tag age ${a.cls}" title="${esc((s.calls.length>1?"Oldest call here. ":"")+a.title)}">${a.cls==="f"?"ð¥":"ð"} ${a.est?"â":""}${a.days} day${a.days===1?"":"s"} old</span>`;
 }
 function dvToggle(){ const on=S.lastOrder.length>0 && F("dayview"); $("dvFab").classList.toggle("has",on); $("dvBtn").style.display=on?"":"none"; }
 function renderRoute(groups){
   const stops=groups.filter(g=>!S.excluded.has(g.num));
-  const start=getStart(), mode=$("modeSel").value, round=$("roundTrip").checked;
-  const seq=orderStops(start, stops, mode, round);
+  const start=getStart(), mode=$("modeSel").value;
+  const endMode=$("endSel").value, firstNum=store.get("firstStop","");
+  const end = endMode==="start" ? start : (endMode ? getEnd() : null);
+  const round = endMode==="start"; $("roundTrip").checked=round;   // keep the old flag for the transfer payload
+  const seq=orderStops(start, stops, mode, end, firstNum);
   S.lastOrder=seq.map(s=>s.num);
+  // First-stop picker lists the in-route stores (visit order); keep the saved choice if it's still in the route.
+  { const sel=$("firstSel"), want=store.get("firstStop","");
+    sel.innerHTML=['<option value="">Auto (best order)</option>'].concat(seq.map(s=>`<option value="${esc(s.num)}">#${esc(s.num)}${S.stores[s.num]?" Â· "+esc(S.stores[s.num].city):""}</option>`)).join("");
+    sel.value = seq.some(s=>s.num===want)?want:""; if(sel.value!==want) store.set("firstStop",sel.value); }
   const list=$("stops"); list.innerHTML="";
   let total=0, known=true, prev=start?start.pt:null;
-  if(start) list.insertAdjacentHTML("beforeend",`<li class="stop home"><span class="num">⌂</span><div><div class="t">${esc(start.label)}</div><div class="leg">${esc(start.addr)}</div></div><span></span></li>`);
+  if(start) list.insertAdjacentHTML("beforeend",`<li class="stop home"><span class="num">â</span><div><div class="t">${esc(start.label)}</div><div class="leg">${esc(start.addr)}</div></div><span></span></li>`);
   seq.forEach((s,i)=>{
     const pt=S.coords[s.num]; let leg="";
-    if(prev&&pt){ const d=miles(prev,pt); total+=d; leg=`≈ ${d.toFixed(0)} mi · ${fmtTime(d/45*60)} from previous`; }
+    if(prev&&pt){ const d=miles(prev,pt); total+=d; leg=`â ${d.toFixed(0)} mi Â· ${fmtTime(d/45*60)} from previous`; }
     else if(i>0||start){ known=false; leg="Distance unknown (no map position)"; }
     prev=pt||prev;
     const s0=S.stores[s.num];
     const li=document.createElement("li"); li.className="stop"; li.dataset.i=i; li.dataset.n=s.num;
     li.innerHTML=`<span class="num">${i+1}</span>
-      <div><div class="t">${shieldHTML(groupOf(s.num),"sm")} ${esc(s.num)} ${s0?"· "+esc(s0.city):""}</div>
+      <div><div class="t">${shieldHTML(groupOf(s.num),"sm")} ${esc(s.num)} ${s0?"Â· "+esc(s0.city):""}</div>
       <div class="leg">${s.calls.length} call${s.calls.length>1?"s":""}${s.extra&&s.extra.length?` + ${s.extra.length} more open`:""}, top priority ${esc(s.calls[0].prioLabel)}${stopAge(s)}</div>
       ${leg?`<div class="leg">${leg}</div>`:""}</div>
-      <div class="mv">${mode==="manual"?`<button aria-label="Move up" data-up="${i}">▲</button><button aria-label="Move down" data-down="${i}">▼</button>`:""}</div>`;
+      <div class="mv"><span class="drag" title="Drag to reorder" aria-hidden="true">â ¿</span><button aria-label="Move up" data-up="${i}">â²</button><button aria-label="Move down" data-down="${i}">â¼</button></div>`;
     list.appendChild(li);
   });
-  if(round && start && seq.length){
-    const last=S.coords[seq[seq.length-1].num];
-    let leg="";
-    if(start.pt&&last){ const d=miles(last,start.pt); total+=d; leg=`≈ ${d.toFixed(0)} mi · ${fmtTime(d/45*60)}`; }
-    list.insertAdjacentHTML("beforeend",`<li class="stop home"><span class="num">⌂</span><div><div class="t">Back to start</div><div class="leg">${leg}</div></div><span></span></li>`);
+  if(end && seq.length){
+    const last=S.coords[seq[seq.length-1].num]; let leg="";
+    if(end.pt&&last){ const d=miles(last,end.pt); total+=d; leg=`â ${d.toFixed(0)} mi Â· ${fmtTime(d/45*60)}`; }
+    const txt = endMode==="start" ? "Back to start" : esc(end.label||"Finish");
+    list.insertAdjacentHTML("beforeend",`<li class="stop home"><span class="num">â</span><div><div class="t">${txt}</div><div class="leg">${leg}</div></div><span></span></li>`);
   }
   wireStops(list);
+  if(seq.length && !S._roOpened){ $("routeOpts").open=true; S._roOpened=true; }   // show the visit-order list the first time there are stops
   const desk=isDesk();
-  list.classList.toggle("dnd",desk); $("dndHint").style.display=desk&&seq.length>1?"":"none"; $("mapBtn").style.display=desk&&seq.length?"":"none";
+  list.classList.toggle("dnd",seq.length>1); $("dndHint").style.display=seq.length>1?"":"none"; $("mapBtn").style.display=desk&&seq.length?"":"none";
   const calls=seq.reduce((n,s)=>n+s.calls.length,0);
   S.routeTotals={stops:seq.length, calls, miles:known?total:null, start, round};
   $("totals").innerHTML = seq.length
-    ? `<div><b>${seq.length}</b><span>stops</span></div><div><b>${calls}</b><span>calls</span></div><div><b>${known?"≈ "+total.toFixed(0):"?"}</b><span>miles</span></div><div><b>${known?fmtTime(total/45*60):"?"}</b><span>driving</span></div>`
+    ? `<div><b>${seq.length}</b><span>stops</span></div><div><b>${calls}</b><span>calls</span></div><div><b>${known?"â "+total.toFixed(0):"?"}</b><span>miles</span></div><div><b>${known?fmtTime(total/45*60):"?"}</b><span>driving</span></div>`
     : `<span class="hint">No stops selected. Check "In route" on a store to add it.</span>`;
   // Google Maps links (max 10 places per link)
-  const pts=[]; if(start) pts.push(start.addr); seq.forEach(s=>pts.push(fullAddr(s.num))); if(round&&start) pts.push(start.addr);
+  const pts=[]; if(start) pts.push(start.addr); seq.forEach(s=>pts.push(fullAddr(s.num))); if(end) pts.push(end.addr);
   const links=$("links"); links.innerHTML=""; S.mapLinks=[];
   if(pts.length>=2){
     const chunks=[]; for(let i=0;i<pts.length-1;i+=9) chunks.push(pts.slice(i,i+10));
@@ -1424,6 +1459,7 @@ function wireStops(list){
     if(j<0||j>=S.lastOrder.length) return;
     const o=S.lastOrder.slice(); [o[i],o[j]]=[o[j],o[i]]; setOrder(o);
   });
+  wireDragHandles(list);
   if(!isDesk()) return;
   const items=[...list.querySelectorAll("li.stop[data-i]")];
   const clear=()=>items.forEach(x=>x.classList.remove("over","over-end"));
@@ -1437,6 +1473,33 @@ function wireStops(list){
     li.ondrop=e=>{ e.preventDefault(); const from=S.dragFrom; S.dragFrom=null; clear(); if(from==null) return;
       let to=+li.dataset.i+(li.dataset.after?1:0); const o=S.lastOrder.slice(); const [n]=o.splice(from,1); if(to>from) to--;
       if(to===from) return; o.splice(to,0,n); setOrder(o); };
+  });
+}
+// Touch/pointer drag-to-reorder via the â ¿ handle (works on phones). Desktop mouse keeps the native drag on the row.
+function wireDragHandles(list){
+  list.querySelectorAll(".drag").forEach(h=>{
+    h.style.touchAction="none";
+    h.onpointerdown=ev=>{
+      if(ev.pointerType==="mouse" && isDesk()) return;   // desktop mouse uses the native row drag below
+      ev.preventDefault();
+      const li=h.closest("li.stop"); if(!li) return;
+      const all=[...list.querySelectorAll("li.stop[data-i]")];
+      li.classList.add("dragging"); try{ h.setPointerCapture(ev.pointerId); }catch(_){}
+      let to=null;
+      const move=e=>{
+        const y=e.clientY; let tgt=null, after=false;
+        all.forEach(x=>{ if(x===li) return; const r=x.getBoundingClientRect(); if(y>=r.top&&y<=r.bottom){ tgt=x; after=y>r.top+r.height/2; } });
+        all.forEach(x=>x.classList.remove("over","over-end"));
+        if(tgt){ tgt.classList.add(after?"over-end":"over"); to=(+tgt.dataset.i)+(after?1:0); } else to=null;
+      };
+      const up=()=>{
+        document.removeEventListener("pointermove",move); document.removeEventListener("pointerup",up); document.removeEventListener("pointercancel",up);
+        li.classList.remove("dragging"); all.forEach(x=>x.classList.remove("over","over-end"));
+        const from=+li.dataset.i;
+        if(to!=null && to!==from && to!==from+1){ const o=S.lastOrder.slice(); const [n]=o.splice(from,1); let t=to; if(t>from) t--; o.splice(t,0,n); setOrder(o); }
+      };
+      document.addEventListener("pointermove",move); document.addEventListener("pointerup",up); document.addEventListener("pointercancel",up);
+    };
   });
 }
 let MAP=null, MAPL=null;
@@ -1473,7 +1536,7 @@ async function openMap(){
 function syncMap(fit){
   const t=S.routeTotals||{}, ml=$("mapStops");
   ml.innerHTML=$("stops").innerHTML; wireStops(ml);
-  $("mapSum").textContent = t.stops ? `${t.stops} stop${t.stops>1?"s":""} · ${t.calls} call${t.calls>1?"s":""}`+(t.miles!=null?` · ≈ ${t.miles.toFixed(0)} mi · ${fmtTime(t.miles/45*60)} driving`:"")+($("modeSel").value==="manual"?" · your order":"") : "No stops in your route";
+  $("mapSum").textContent = t.stops ? `${t.stops} stop${t.stops>1?"s":""} Â· ${t.calls} call${t.calls>1?"s":""}`+(t.miles!=null?` Â· â ${t.miles.toFixed(0)} mi Â· ${fmtTime(t.miles/45*60)} driving`:"")+($("modeSel").value==="manual"?" Â· your order":"") : "No stops in your route";
   $("mapOpt").disabled = $("modeSel").value!=="manual";
   $("mapGo").disabled = !S.mapLinks || !S.mapLinks.length;
   drawMap(fit);
@@ -1487,9 +1550,9 @@ function drawGroupsOverlay(){
 function drawMap(fit){
   if(!MAP) return; MAPL.clearLayers();
   const t=S.routeTotals||{}, st=t.start, pts=[], icon=(h,c)=>L.divIcon({className:"mk"+(c?" "+c:""),html:h,iconSize:[28,28],iconAnchor:[14,14]});
-  if(st&&st.pt){ pts.push(st.pt); L.marker(st.pt,{icon:icon("⌂","home"),keyboard:false}).bindTooltip(esc(st.label)).addTo(MAPL); }
+  if(st&&st.pt){ pts.push(st.pt); L.marker(st.pt,{icon:icon("â","home"),keyboard:false}).bindTooltip(esc(st.label)).addTo(MAPL); }
   S.lastOrder.forEach((n,i)=>{ const p=S.coords[n]; if(!p) return; pts.push(p); const s0=S.stores[n]||{};
-    L.marker(p,{icon:icon(String(i+1)),title:`Stop ${i+1}: store ${n}`}).bindTooltip(`${i+1}. Store ${esc(n)}${s0.city?" · "+esc(s0.city):""}`)
+    L.marker(p,{icon:icon(String(i+1)),title:`Stop ${i+1}: store ${n}`}).bindTooltip(`${i+1}. Store ${esc(n)}${s0.city?" Â· "+esc(s0.city):""}`)
       .on("click",()=>{ const li=$("mapStops").querySelector(`li[data-i="${i}"]`); if(li){ li.scrollIntoView({block:"center",behavior:"smooth"}); li.classList.add("flash"); setTimeout(()=>li.classList.remove("flash"),1200); } }).addTo(MAPL); });
   if(t.round&&st&&st.pt&&pts.length>1) pts.push(st.pt);
   if(pts.length>1) L.polyline(pts,{color:"#1F6B4F",weight:3,opacity:.85,dashArray:"7 6"}).addTo(MAPL);
@@ -1522,12 +1585,12 @@ function hull(pts){   // convex hull, [lat,lng] points
 }
 async function openGroups(focus){
   const g=vaGroups(), keys=Object.keys(g).sort(), col=k=>GRP_COLORS[k]||"#666";
-  $("grpSum").textContent=`${keys.length} groups · ${Object.keys(S.stores).length} stores`;
+  $("grpSum").textContent=`${keys.length} groups Â· ${Object.keys(S.stores).length} stores`;
   $("grpList").innerHTML=keys.map(k=>{
     const cities={}; g[k].forEach(n=>{ const c=(S.stores[n]||{}).city||""; cities[c]=(cities[c]||0)+1; });
     const area=GRP_AREAS[k]||Object.keys(cities).sort((a,b)=>cities[b]-cities[a]).slice(0,4).join(", ");
     return `<div class="gcard" data-g="${esc(k)}" style="--gc:${col(k)}" tabindex="0" role="button" aria-label="Group ${esc(k)}">
-      <div class="gh">${shieldHTML(k,"sm")} Group ${esc(k)} <span class="hint" style="font-weight:400">· ${g[k].length} store${g[k].length>1?"s":""}</span></div>
+      <div class="gh">${shieldHTML(k,"sm")} Group ${esc(k)} <span class="hint" style="font-weight:400">Â· ${g[k].length} store${g[k].length>1?"s":""}</span></div>
       <div class="ga">${esc(area)}</div>
       <div class="gs">${g[k].map(n=>`<span><b>${esc(n)}</b> ${esc((S.stores[n]||{}).city||"")}</span>`).join("")}</div></div>`; }).join("");
   $("grpList").querySelectorAll(".gcard").forEach(c=>c.onclick=c.onkeydown=e=>{ if(e.type==="keydown"&&e.key!=="Enter") return; zoomGroup(c.dataset.g); });
@@ -1552,7 +1615,7 @@ function groupAreas(dots){
     const h=hull(pts); if(h.length>=3) L.polygon(h,{color:c,weight:3.5,opacity:.95,fillColor:c,fillOpacity:.32,interactive:false}).addTo(layer);
     else if(h.length===2) L.polyline(h,{color:c,weight:14,opacity:.45,interactive:false}).addTo(layer);
     if(dots) g[k].forEach(n=>{ const p=S.coords[n]; if(!p) return; const s0=S.stores[n]||{};
-      L.marker(p,{icon:L.divIcon({className:"gwrap",html:`<div class="gdot" style="--gc:${c}"></div>`,iconSize:[12,12],iconAnchor:[6,6]}),title:`Store ${n}`}).bindTooltip(`Group ${esc(k)} · Store ${esc(n)}${s0.city?" · "+esc(s0.city):""}`).addTo(layer); });
+      L.marker(p,{icon:L.divIcon({className:"gwrap",html:`<div class="gdot" style="--gc:${c}"></div>`,iconSize:[12,12],iconAnchor:[6,6]}),title:`Store ${n}`}).bindTooltip(`Group ${esc(k)} Â· Store ${esc(n)}${s0.city?" Â· "+esc(s0.city):""}`).addTo(layer); });
     L.marker(bounds[k].getCenter(),{icon:L.divIcon({className:"gwrap",html:`<div class="glabel" style="--gc:${c}">${esc(k)}</div>`,iconSize:[26,26],iconAnchor:[13,-8]}),keyboard:false,interactive:false}).addTo(layer);
   });
   return {layer,bounds,all};
@@ -1563,7 +1626,7 @@ function zoomGroup(k){
 }
 $("grpClose").onclick=()=>$("grpDlg").classList.remove("show");
 if(EDITION.id==="local"){   // the Virginia edition
-  $("setBtn").insertAdjacentHTML("beforebegin",`<button class="hbtn" id="grpBtn" type="button">🗺 Route groups</button>`);
+  $("setBtn").insertAdjacentHTML("beforebegin",`<button class="hbtn" id="grpBtn" type="button">ðº Route groups</button>`);
   $("grpBtn").onclick=()=>{ const m=$("menu"); if(m){ m.hidden=true; $("menuBtn").setAttribute("aria-expanded","false"); } openGroups(); };
 }
 
@@ -1590,19 +1653,19 @@ function render(){
   $("doneMsg").textContent = doneN ? `${doneN} completed call${doneN>1?"s":""}${S.showDone?" shown, crossed off":" hidden"}.` : "Check Done on a call to cross it off.";
   const over=S.calls.filter(c=>!isDone(c)&&c.due&&c.due<new Date()).length;
   $("summary").textContent = S.calls.length
-    ? `${S.calls.filter(c=>!isDone(c)).length} open of ${S.calls.length} calls at ${new Set(S.calls.map(c=>c.store)).size} stores · showing ${vis.length}${over?` · ${over} overdue`:""}`
+    ? `${S.calls.filter(c=>!isDone(c)).length} open of ${S.calls.length} calls at ${new Set(S.calls.map(c=>c.store)).size} stores Â· showing ${vis.length}${over?` Â· ${over} overdue`:""}`
     : "No calls loaded";
 }
 function fillStartSelect(){
   const sel=$("startSel");
   let cur=store.get("start","");
   if(/^\d+$/.test(cur)){ store.set("startStore",cur); cur="store"; store.set("start",cur); }
-  sel.innerHTML=`<option value="">First stop (no fixed start)</option><option value="gps">My current location</option><option value="store">A store…</option><option value="custom">Custom address…</option>`;
+  sel.innerHTML=`<option value="">First stop (no fixed start)</option><option value="gps">My current location</option><option value="store">A storeâ¦</option><option value="custom">Custom addressâ¦</option>`;
   sel.value=["","gps","store","custom"].includes(cur)?cur:"";
   $("startStore").value=store.get("startStore","");
   showStartExtras(sel.value); storeStartStatus();
 }
-// Every company store (any edition can start from any store): "num|lat|lng|city|ST;…"
+// Every company store (any edition can start from any store): "num|lat|lng|city|ST;â¦"
 const ALL_STORES="4|28.98|-82.0072|The Villages|FL;6|28.1846|-82.3507|Wesley Chapel|FL;10|25.7713|-80.3318|Miami|FL;12|26.0137|-80.2518|Pembroke Pines|FL;15|28.5658|-81.7414|Clermont|FL;17|34.097|-81.1576|Irmo|SC;19|30.4855|-81.6049|Jacksonville|FL;21|26.1391|-80.4206|Weston|FL;22|27.2658|-82.4679|Sarasota|FL;23|26.649|-80.1478|Greenacres|FL;24|25.6724|-80.443|Miami|FL;26|34.164|-84.1145|Cumming|GA;27|28.5485|-81.6811|Clermont|FL;28|27.7691|-82.6363|Saint Petersburg|FL;31|25.8129|-80.3554|Doral|FL;32|26.106|-81.75|Naples|FL;33|34.0386|-84.4631|Marietta|GA;35|34.8043|-82.2273|Simpsonville|SC;42|34.2368|-84.2907|Canton|GA;44|25.736|-80.3224|Miami|FL;45|34.5651|-87.0131|Decatur|AL;49|34.2581|-84.0711|Cumming|GA;50|26.6745|-80.0619|West Palm Beach|FL;51|25.7573|-80.2556|Coral Gables|FL;53|26.0346|-80.1972|Hollywood|FL;54|25.7675|-80.1994|Miami|FL;55|26.6386|-80.0868|Palm Springs|FL;56|26.2763|-80.0959|Lighthouse Point|FL;61|29.1944|-82.0883|Ocala|FL;62|28.6994|-81.2642|Winter Springs|FL;67|33.9872|-81.0032|Columbia|SC;69|25.6839|-80.4192|Miami|FL;70|26.1697|-80.1177|Fort Lauderdale|FL;73|25.8839|-80.1238|Surfside|FL;74|33.8831|-84.1638|Lilburn|GA;75|33.2631|-87.5133|Tuscaloosa|AL;84|25.748|-80.2612|Coral Gables|FL;86|34.0285|-84.4212|Roswell|GA;91|25.7946|-80.1402|Miami Beach|FL;92|33.5551|-84.2323|Stockbridge|GA;94|25.7081|-80.2822|Coral Gables|FL;95|27.8702|-82.7598|Seminole|FL;97|27.9586|-81.6208|Lake Wales|FL;99|29.866|-81.3278|Saint Augustine|FL;102|28.2984|-82.6701|New Port Richey|FL;103|27.9827|-82.299|Seffner|FL;108|34.1029|-83.8121|Braselton|GA;111|27.8414|-82.7402|Pinellas Park|FL;114|26.1655|-80.148|Wilton Manors|FL;118|27.2106|-80.8317|Okeechobee|FL;119|36.3103|-86.6052|Hendersonville|TN;122|33.9034|-84.607|Marietta|GA;123|36.0784|-86.9455|Nashville|TN;126|26.4077|-80.2001|Boca Raton|FL;127|25.7489|-80.239|Miami|FL;128|30.1934|-81.8256|Jacksonville|FL;129|27.9587|-82.2791|Brandon|FL;133|28.4907|-81.5106|Orlando|FL;139|27.7224|-82.7389|St Pete Beach|FL;140|27.8932|-82.6622|Saint Petersburg|FL;142|35.9635|-86.8022|Brentwood|TN;144|28.1437|-82.7428|Tarpon Springs|FL;146|34.0618|-84.5905|Kennesaw|GA;148|27.3396|-82.4623|Sarasota|FL;153|30.3283|-86.126|Santa Rosa Beach|FL;155|33.9774|-84.4144|Marietta|GA;157|26.4628|-81.8331|Fort Myers|FL;160|35.9646|-86.883|Franklin|TN;162|26.6183|-81.7651|Lehigh Acres|FL;165|33.4653|-86.8196|Homewood|AL;167|25.9811|-80.2252|Miramar|FL;176|35.9125|-86.8283|Franklin|TN;179|26.8451|-80.0595|Palm Beach Gardens|FL;180|26.6189|-80.1685|Lake Worth|FL;181|26.4438|-80.0705|Delray Beach|FL;182|36.2172|-86.5934|Hermitage|TN;184|26.5689|-80.1874|Lake Worth|FL;188|25.9439|-80.3412|Hialeah|FL;205|34.82|-82.5848|Easley|SC;209|34.6228|-86.5385|Huntsville|AL;212|26.8394|-80.1064|Palm Beach Gardens|FL;215|28.0323|-80.6198|Palm Bay|FL;222|25.7133|-80.4185|Miami|FL;223|25.6339|-80.3366|Palmetto Bay|FL;226|34.0182|-84.1876|Johns Creek|GA;227|28.6715|-81.4513|Apopka|FL;228|26.9325|-80.131|Jupiter|FL;229|29.0267|-80.8947|New Smyrna Beach|FL;235|28.2509|-81.317|Saint Cloud|FL;238|25.7418|-80.4309|Miami|FL;239|26.1708|-80.2868|Sunrise|FL;240|27.6246|-80.3909|Vero Beach|FL;242|26.2272|-80.2712|Tamarac|FL;246|26.3018|-80.1351|Deerfield Beach|FL;252|26.1007|-80.2667|Davie|FL;261|25.6909|-80.3877|Miami|FL;262|25.9411|-80.309|Hialeah|FL;263|30.2469|-81.7752|Jacksonville|FL;266|26.9191|-82.0466|Punta Gorda|FL;269|33.6797|-84.2316|Decatur|GA;279|26.4713|-80.1456|West Delray Beach|FL;280|33.9763|-84.4784|Marietta|GA;282|33.8352|-84.3838|Atlanta|GA;284|27.6404|-80.445|Vero Beach|FL;287|27.8385|-80.487|Sebastian|FL;293|25.6274|-80.4157|Miami|FL;294|26.2123|-80.2058|North Lauderdale|FL;302|26.1969|-80.2554|Tamarac|FL;303|26.0059|-80.3143|Pembroke Pines|FL;305|27.8226|-82.7515|Saint Petersburg|FL;306|29.6639|-82.4251|Gainesville|FL;313|26.8944|-80.0617|Jupiter|FL;324|26.3348|-80.2043|Boca Raton|FL;327|25.7598|-80.4202|Miami|FL;328|25.577|-80.3366|Cutler Bay|FL;331|28.4954|-81.4611|Orlando|FL;340|27.3004|-80.3025|Port Saint Lucie|FL;343|25.8756|-80.3321|Hialeah|FL;348|26.3158|-80.1538|Deerfield Beach|FL;353|28.0183|-82.7621|Dunedin|FL;356|27.9784|-81.9559|Lakeland|FL;360|34.5309|-82.6365|Anderson|SC;361|27.2974|-82.4541|Sarasota|FL;368|25.9822|-80.2777|Miramar|FL;369|26.4157|-80.0762|Boca Raton|FL;371|26.7201|-80.1125|West Palm Beach|FL;372|26.1165|-80.3327|Davie|FL;374|27.9181|-82.735|Clearwater|FL;375|25.7552|-80.3666|Miami|FL;379|28.6787|-81.334|Casselberry|FL;383|30.4266|-86.6446|Fort Walton Beach|FL;385|27.5879|-80.3767|Vero Beach|FL;386|27.98|-82.7108|Clearwater|FL;388|26.4555|-80.1614|Delray Beach|FL;393|30.1729|-81.6063|Jacksonville|FL;395|27.867|-82.6461|Saint Petersburg|FL;396|26.0598|-80.3481|Davie|FL;398|28.0873|-82.5026|Tampa|FL;399|28.0245|-82.5601|Tampa|FL;400|26.9369|-82.3388|Englewood|FL;401|26.9332|-80.0774|Jupiter|FL;402|25.9846|-80.1336|Hallandale Beach|FL;405|28.5533|-81.5061|Ocoee|FL;406|26.3111|-80.2002|Coconut Creek|FL;409|27.2284|-82.4914|Sarasota|FL;410|26.1556|-81.7221|Naples|FL;413|26.619|-80.2017|Lake Worth|FL;414|26.274|-81.8002|Naples|FL;415|28.0752|-82.7373|Palm Harbor|FL;418|26.5609|-82.008|Cape Coral|FL;420|28.1791|-82.6971|New Port Richey|FL;421|26.3648|-80.201|Boca Raton|FL;422|28.9151|-81.2965|Orange City|FL;424|27.9969|-80.6362|Palm Bay|FL;425|28.0056|-81.7767|Winter Haven|FL;426|26.5951|-81.8852|Fort Myers|FL;427|28.3616|-81.4243|Orlando|FL;428|26.3955|-80.1471|Boca Raton|FL;429|28.9486|-80.8857|Edgewater|FL;430|30.8457|-83.3228|Valdosta|GA;431|31.2132|-81.4823|Brunswick|GA;432|26.0145|-80.1737|Hollywood|FL;433|30.2855|-81.4365|Jacksonville|FL;434|26.806|-80.101|Palm Beach Gardens|FL;435|29.702|-82.3906|Gainesville|FL;436|28.5101|-81.3732|Orlando|FL;442|28.6454|-81.4116|Altamonte Springs|FL;446|29.2556|-81.1116|Ormond Beach|FL;447|28.9396|-81.948|Lady Lake|FL;448|27.9872|-81.6859|Winter Haven|FL;449|32.8136|-79.868|Mount Pleasant|SC;450|31.6212|-84.2233|Albany|GA;451|33.9407|-83.4556|Athens|GA;452|26.6485|-81.9768|Cape Coral|FL;453|26.2133|-81.7285|Naples|FL;454|25.9507|-80.1433|Aventura|FL;455|30.7844|-81.6337|Kingsland|GA;456|32.0139|-80.9873|Savannah|GA;457|28.494|-82.5997|Spring Hill|FL;458|28.6133|-81.2061|Oviedo|FL;459|33.0066|-80.0426|Goose Creek|SC;461|33.5617|-84.325|Morrow|GA;463|34.1268|-84.5711|Woodstock|GA;464|33.8329|-84.5742|Mableton|GA;467|28.2293|-80.6975|Melbourne|FL;468|33.9351|-84.3778|Sandy Springs|GA;469|34.0232|-84.2675|Johns Creek|GA;470|33.396|-84.7641|Newnan|GA;472|32.8146|-79.9953|Charleston|SC;473|32.2103|-80.7253|Hilton Head Island|SC;474|32.5344|-84.9669|Columbus|GA;475|28.9019|-82.4461|Hernando|FL;478|25.5741|-80.373|Miami|FL;480|33.9794|-83.7141|Winder|GA;481|30.1917|-85.6694|Panama City|FL;483|32.9668|-80.166|Summerville|SC;484|26.5295|-80.1499|Boynton Beach|FL;485|33.7144|-84.766|Douglasville|GA;486|33.4959|-81.9624|North Augusta|SC;487|28.3575|-82.6646|Hudson|FL;488|26.2105|-81.7717|Naples|FL;491|27.4416|-82.4646|Bradenton|FL;493|28.6694|-81.2258|Oviedo|FL;494|33.7857|-84.1002|Stone Mountain|GA;495|33.9697|-84.0239|Lawrenceville|GA;496|33.9422|-84.7036|Powder Springs|GA;497|28.1024|-82.6926|Palm Harbor|FL;499|28.0155|-80.5349|Melbourne Beach|FL;500|24.5695|-81.7638|Key West|FL;501|28.7073|-81.5076|Apopka|FL;502|30.1041|-81.7113|Fleming Island|FL;503|33.7249|-84.5082|Atlanta|GA;504|28.1993|-82.7378|Holiday|FL;505|33.9439|-84.1282|Duluth|GA;506|33.5113|-81.7164|Aiken|SC;507|28.8742|-81.6894|Eustis|FL;508|33.8771|-84.015|Snellville|GA;509|26.1442|-80.3155|Sunrise|FL;510|25.4783|-80.4626|Homestead|FL;511|28.0021|-82.4506|Tampa|FL;512|33.9999|-81.2198|Lexington|SC;514|33.994|-84.3492|Sandy Springs|GA;515|34.0622|-84.2132|Johns Creek|GA;516|26.0667|-81.7013|Naples|FL;518|28.8047|-82.5789|Homosassa|FL;519|34.1867|-84.1388|Cumming|GA;521|32.0416|-81.007|Savannah|GA;522|32.0244|-81.1085|Savannah|GA;523|28.4862|-80.7738|Cocoa|FL;524|28.1295|-82.504|Lutz|FL;525|33.5079|-82.0312|Augusta|GA;526|33.5335|-82.1277|Evans|GA;527|29.6019|-82.4206|Gainesville|FL;528|26.0094|-80.3915|Pembroke Pines|FL;529|25.6981|-80.4479|Miami|FL;530|34.8182|-82.2717|Greenville|SC;531|34.8714|-82.2561|Greer|SC;532|27.9355|-82.2975|Brandon|FL;533|30.5628|-84.2133|Tallahassee|FL;534|33.5302|-82.073|Martinez|GA;536|33.8626|-84.4787|Atlanta|GA;537|29.6873|-82.3406|Gainesville|FL;538|34.0363|-83.9902|Lawrenceville|GA;539|33.8025|-84.0408|Snellville|GA;540|33.0508|-85.0242|LaGrange|GA;541|33.9053|-84.4274|Sandy Springs|GA;542|28.5322|-81.5396|Ocoee|FL;543|34.8885|-82.0672|Duncan|SC;546|33.4236|-84.5568|Peachtree City|GA;547|33.5105|-84.22|Stockbridge|GA;548|34.0167|-84.5493|Marietta|GA;549|26.248|-80.2812|Coral Springs|FL;550|25.6844|-80.366|Miami|FL;551|28.3492|-81.6142|Kissimmee|FL;552|30.2536|-81.3922|Jacksonville Beach|FL;553|26.3533|-80.1119|Boca Raton|FL;554|34.1733|-84.7841|Cartersville|GA;555|27.2998|-82.5324|Sarasota|FL;556|34.0732|-84.2938|Alpharetta|GA;557|27.8927|-81.5891|Lake Wales|FL;559|34.0235|-84.6236|Kennesaw|GA;560|33.9521|-84.2322|Peachtree Corners|GA;561|33.9484|-84.6256|Marietta|GA;562|32.5196|-84.8939|Columbus|GA;563|34.5536|-82.6853|Anderson|SC;564|33.8707|-84.0929|Lilburn|GA;565|34.0844|-84.1592|Suwanee|GA;566|33.9975|-84.708|Acworth|GA;567|27.4229|-80.3283|Fort Pierce|FL;568|26.2883|-80.2699|Coral Springs|FL;569|34.074|-83.9153|Dacula|GA;571|27.0609|-80.1395|Hobe Sound|FL;573|34.6589|-86.481|Owens Cross Roads|AL;574|34.6928|-86.566|Huntsville|AL;575|24.7146|-81.0762|Marathon|FL;577|27.1709|-80.2908|Palm City|FL;578|26.5174|-81.9418|Fort Myers|FL;579|33.4784|-84.4385|Fayetteville|GA;581|25.7612|-80.1967|Miami|FL;582|27.9947|-82.4874|Tampa|FL;583|26.1181|-80.3916|Weston|FL;584|28.1453|-82.3552|Tampa|FL;585|34.007|-84.1302|Duluth|GA;586|25.8963|-80.3498|Hialeah|FL;587|34.1145|-80.8846|Columbia|SC;588|25.7268|-80.441|Miami|FL;589|30.351|-81.5488|Jacksonville|FL;590|25.6188|-80.3474|Miami|FL;591|26.1974|-80.0972|Sea Ranch Lakes|FL;593|34.0746|-84.6518|Acworth|GA;596|34.1189|-84.075|Sugar Hill|GA;597|34.0166|-80.965|Columbia|SC;598|34.6917|-86.7184|Madison|AL;599|33.7991|-84.3718|Atlanta|GA;600|26.3404|-80.0876|Boca Raton|FL;601|33.8905|-84.3245|Brookhaven|GA;602|34.8362|-82.3645|Greenville|SC;603|33.8393|-83.9081|Loganville|GA;604|26.3818|-81.8098|Bonita Springs|FL;605|28.4878|-81.4151|Orlando|FL;606|26.3471|-80.2323|Boca Raton|FL;607|28.5259|-81.1939|Orlando|FL;608|33.5608|-85.0749|Carrollton|GA;610|30.3733|-84.2916|Tallahassee|FL;611|27.9308|-82.5073|Tampa|FL;612|33.9538|-84.0552|Lawrenceville|GA;614|26.4298|-81.8079|Estero|FL;615|34.0498|-84.0886|Suwanee|GA;616|34.1596|-84.2396|Alpharetta|GA;617|33.8712|-83.4411|Watkinsville|GA;618|28.2357|-82.347|Wesley Chapel|FL;619|26.031|-80.3577|Southwest Ranches|FL;620|26.6836|-80.2453|Royal Palm Beach|FL;621|25.7951|-80.1433|Miami Beach|FL;622|25.9542|-81.7222|Marco Island|FL;624|34.253|-84.4757|Canton|GA;626|34.0611|-84.3861|Roswell|GA;627|28.0571|-82.6248|Tampa|FL;628|27.9422|-82.4604|Tampa|FL;629|25.9583|-80.2033|Miami Gardens|FL;630|28.4801|-82.4866|Spring Hill|FL;631|30.28|-81.7177|Jacksonville|FL;632|34.9022|-82.3372|Taylors|SC;633|32.7536|-79.971|Charleston|SC;634|34.218|-83.8633|Flowery Branch|GA;635|26.2752|-81.7458|Naples|FL;636|34.0897|-84.484|Woodstock|GA;637|26.2973|-80.1882|Coconut Creek|FL;638|26.9391|-80.1924|Jupiter|FL;639|27.2167|-80.1782|Stuart|FL;640|27.8064|-82.635|Saint Petersburg|FL;641|28.813|-81.3535|Sanford|FL;643|28.2374|-82.6681|New Port Richey|FL;644|30.2859|-81.487|Jacksonville|FL;645|26.1491|-80.259|Plantation|FL;646|33.961|-84.3638|Sandy Springs|GA;647|33.9201|-84.3527|Sandy Springs|GA;648|26.4916|-81.9727|Fort Myers|FL;649|30.1945|-81.744|Jacksonville|FL;650|32.5577|-84.9047|Columbus|GA;651|26.8101|-80.1989|West Palm Beach|FL;652|25.9913|-80.2944|Miramar|FL;653|26.7106|-80.1839|West Palm Beach|FL;654|28.3887|-81.4024|Orlando|FL;655|25.8275|-80.3711|Doral|FL;656|34.068|-81.1622|Columbia|SC;657|25.6826|-80.4647|Miami|FL;658|25.6863|-80.3154|Miami|FL;659|28.57|-81.3884|Orlando|FL;660|29.4013|-81.148|Ormond Beach|FL;662|28.5527|-81.3615|Orlando|FL;663|27.9214|-82.3237|Brandon|FL;664|33.851|-84.3598|Atlanta|GA;665|33.8114|-84.2747|Decatur|GA;667|28.8678|-81.252|Deltona|FL;668|30.1632|-81.7489|Orange Park|FL;669|25.9446|-80.1659|North Miami Beach|FL;670|33.8644|-84.6741|Powder Springs|GA;671|27.9518|-81.925|Lakeland|FL;672|33.9937|-84.5095|Marietta|GA;673|25.9805|-80.3375|Miramar|FL;674|25.98|-80.3927|Miramar|FL;675|28.6611|-81.1784|Oviedo|FL;676|26.242|-81.7675|Naples|FL;677|30.3905|-86.4302|Destin|FL;678|26.3052|-80.2807|Coral Springs|FL;679|26.0258|-80.2265|Hollywood|FL;680|29.6251|-82.3792|Gainesville|FL;681|27.4957|-82.7083|Holmes Beach|FL;682|27.2579|-80.2778|Jensen Beach|FL;683|26.5587|-81.905|Fort Myers|FL;684|28.3486|-81.6656|Clermont|FL;685|28.0339|-82.3948|Temple Terrace|FL;686|30.4281|-81.6638|Jacksonville|FL;687|34.9673|-81.8906|Spartanburg|SC;688|27.8454|-82.6437|Saint Petersburg|FL;690|29.6555|-82.4948|Newberry|FL;691|33.8474|-84.2573|Atlanta|GA;692|28.5215|-81.3303|Orlando|FL;693|26.2251|-80.1245|Pompano Beach|FL;694|34.179|-84.5489|Canton|GA;695|28.0377|-80.6691|West Melbourne|FL;696|27.2614|-82.519|Sarasota|FL;697|26.8531|-82.2894|Placida|FL;698|28.7377|-81.3042|Lake Mary|FL;699|26.8046|-80.0585|Lake Park|FL;700|32.1579|-80.7661|Hilton Head Island|SC;701|26.6534|-81.9131|North Fort Myers|FL;702|28.0793|-81.9923|Lakeland|FL;703|26.1223|-80.2391|Plantation|FL;704|28.0865|-80.62|Melbourne|FL;705|27.9152|-82.7978|Largo|FL;706|34.1421|-83.9506|Buford|GA;707|28.3088|-81.4182|Kissimmee|FL;708|30.214|-81.518|Jacksonville|FL;709|27.3906|-82.4434|Bradenton|FL;710|28.7492|-81.879|Leesburg|FL;711|34.178|-84.4182|Canton|GA;712|27.8522|-82.3041|Riverview|FL;713|30.2542|-81.4649|Jacksonville|FL;714|25.8204|-80.1882|Miami|FL;715|26.0616|-80.185|Dania Beach|FL;716|30.1194|-81.627|Saint Johns|FL;717|34.3191|-83.8303|Gainesville|GA;718|33.871|-84.3789|Atlanta|GA;719|33.8209|-84.3867|Atlanta|GA;720|33.8483|-84.428|Atlanta|GA;721|34.0573|-84.2351|Alpharetta|GA;722|33.9686|-84.2607|Norcross|GA;723|33.7898|-84.3044|Decatur|GA;724|33.7729|-84.3544|Atlanta|GA;725|33.9229|-84.4668|Marietta|GA;726|33.9878|-84.1685|Duluth|GA;727|29.6456|-81.6716|Palatka|FL;728|26.2619|-80.0975|Lighthouse Point|FL;730|33.7353|-84.6689|Lithia Springs|GA;732|27.7144|-82.3366|Sun City Center|FL;733|29.1163|-82.0277|Ocala|FL;734|27.0983|-82.4148|Venice|FL;735|29.6918|-82.4401|Gainesville|FL;736|30.0654|-81.8718|Middleburg|FL;737|26.9631|-82.3516|Englewood|FL;738|28.1734|-80.6741|Melbourne|FL;739|26.4711|-80.0676|Delray Beach|FL;740|26.4372|-81.9202|Fort Myers Beach|FL;741|28.4487|-81.4865|Orlando|FL;742|28.662|-81.3743|Altamonte Springs|FL;743|26.0307|-80.4077|Fort Lauderdale|FL;744|33.5766|-83.965|Covington|GA;746|27.4977|-82.499|Bradenton|FL;747|26.1168|-80.3158|Plantation|FL;748|26.2153|-80.1715|Pompano Beach|FL;749|27.1912|-80.2565|Stuart|FL;750|26.191|-80.1344|Oakland Park|FL;751|27.8576|-82.8299|Seminole|FL;752|33.6986|-84.1746|Lithonia|GA;753|33.8435|-84.5045|Smyrna|GA;754|28.0806|-82.5764|Tampa|FL;755|26.9665|-82.0806|Port Charlotte|FL;756|26.8843|-80.1062|Jupiter|FL;757|28.3555|-80.6977|Merritt Island|FL;758|28.1484|-81.4515|Poinciana|FL;759|26.0983|-80.3809|Weston|FL;760|28.3952|-80.7649|Cocoa|FL;761|28.5752|-81.5161|Ocoee|FL;762|34.1168|-84.2714|Alpharetta|GA;763|28.5012|-81.7167|Clermont|FL;764|34.0552|-84.5537|Kennesaw|GA;765|33.9506|-84.3381|Dunwoody|GA;766|30.4048|-86.6032|Fort Walton Beach|FL;767|28.2827|-82.6983|Port Richey|FL;768|29.1652|-81.0014|South Daytona|FL;769|33.9939|-84.5994|Kennesaw|GA;770|28.2631|-81.6192|Champions Gate|FL;772|27.7695|-80.4473|Sebastian|FL;773|33.8135|-84.3113|Atlanta|GA;774|26.1607|-80.1325|Wilton Manors|FL;775|26.515|-81.9006|Fort Myers|FL;776|33.7704|-84.3811|Atlanta|GA;777|26.1924|-80.2743|Sunrise|FL;778|26.9317|-82.2235|Port Charlotte|FL;779|27.9515|-80.6581|Palm Bay|FL;780|27.4945|-82.6008|Bradenton|FL;781|26.2714|-81.6911|Naples|FL;782|30.4455|-84.3188|Tallahassee|FL;783|33.7387|-84.3131|Atlanta|GA;784|28.2935|-80.7238|Rockledge|FL;785|26.3869|-80.0781|Boca Raton|FL;786|33.4107|-84.6877|Newnan|GA;787|26.1884|-80.2058|Tamarac|FL;788|26.0513|-80.1365|Dania Beach|FL;789|33.879|-83.9384|Loganville|GA;791|27.9367|-81.9881|Mulberry|FL;792|27.0693|-82.2105|North Port|FL;793|28.0239|-82.1504|Plant City|FL;794|25.8587|-80.1844|Miami Shores|FL;795|29.664|-82.3258|Gainesville|FL;796|28.6464|-81.2699|Winter Springs|FL;797|28.8894|-82.549|Crystal River|FL;798|27.4833|-82.4316|Bradenton|FL;799|33.3427|-84.537|Peachtree City|GA;800|33.8622|-84.2878|Atlanta|GA;801|30.7379|-86.5667|Crestview|FL;802|27.0921|-82.4425|Venice|FL;803|34.0034|-83.9126|Dacula|GA;805|26.2462|-80.1886|Coconut Creek|FL;810|28.2734|-82.6277|New Port Richey|FL;811|26.1104|-81.6887|Naples|FL;812|28.3871|-81.4855|Orlando|FL;813|28.4914|-82.54|Spring Hill|FL;814|29.2624|-81.0285|Daytona Beach|FL;815|28.8192|-81.8891|Leesburg|FL;816|33.437|-84.1213|McDonough|GA;817|26.5888|-80.0672|Lantana|FL;818|26.551|-80.1495|Boynton Beach|FL;819|27.3549|-80.3582|Port Saint Lucie|FL;820|26.0327|-80.2669|Cooper City|FL;821|26.7374|-80.1197|West Palm Beach|FL;822|26.2062|-80.2369|North Lauderdale|FL;823|30.2231|-85.6515|Lynn Haven|FL;824|32.913|-80.1098|North Charleston|SC;825|34.0657|-84.423|Roswell|GA;826|26.6184|-81.9393|Cape Coral|FL;827|29.2618|-81.0519|Holly Hill|FL;828|27.3909|-82.5115|Sarasota|FL;829|34.1533|-80.9133|Columbia|SC;830|28.4819|-81.3294|Orlando|FL;831|28.1565|-82.4811|Lutz|FL;832|25.869|-80.314|Hialeah|FL;833|28.781|-81.3454|Lake Mary|FL;834|28.1061|-82.4593|Lutz|FL;835|25.6554|-80.4011|Miami|FL;836|28.0349|-81.7344|Winter Haven|FL;837|26.0873|-80.2307|Davie|FL;838|33.3859|-86.7406|Hoover|AL;839|33.3558|-86.8427|Hoover|AL;840|28.0408|-82.5038|Tampa|FL;841|33.347|-86.7974|Birmingham|AL;842|33.4447|-86.7934|Vestavia Hills|AL;843|26.3294|-81.7397|Bonita Springs|FL;844|34.1766|-83.9123|Flowery Branch|GA;845|32.2778|-80.8772|Bluffton|SC;847|26.4389|-81.7693|Estero|FL;848|26.7108|-80.0575|West Palm Beach|FL;849|30.3112|-81.682|Jacksonville|FL;850|26.1142|-80.1438|Fort Lauderdale|FL;851|26.7811|-80.2923|Loxahatchee|FL;852|30.4627|-84.2848|Tallahassee|FL;853|33.4558|-83.2446|Greensboro|GA;854|26.6068|-81.9759|Cape Coral|FL;855|27.329|-80.3196|Port Saint Lucie|FL;856|29.1252|-82.2081|Ocala|FL;857|30.48|-84.1671|Tallahassee|FL;859|33.9215|-84.0184|Lawrenceville|GA;861|26.3151|-80.0883|Deerfield Beach|FL;862|28.824|-81.7044|Eustis|FL;863|33.9985|-84.0682|Lawrenceville|GA;864|26.5453|-81.8056|Fort Myers|FL;865|28.7065|-81.4445|Longwood|FL;866|27.9402|-82.7738|Clearwater|FL;867|27.9592|-82.7991|Clearwater|FL;871|26.0474|-80.2257|Davie|FL;872|26.3162|-80.1879|Coconut Creek|FL;873|28.2039|-82.6641|Trinity|FL;874|34.8679|-82.3471|Greenville|SC;876|28.1456|-82.2835|Tampa|FL;877|28.1883|-82.439|Land O Lakes|FL;878|27.893|-82.2413|Valrico|FL;879|28.3112|-81.67|Davenport|FL;880|34.1302|-84.4995|Woodstock|GA;881|28.549|-81.5894|Winter Garden|FL;882|33.4089|-86.6685|Hoover|AL;883|34.0979|-81.2208|Columbia|SC;884|30.268|-81.5607|Jacksonville|FL;885|30.3796|-86.3112|Sandestin|FL;886|28.4127|-81.2409|Orlando|FL;887|30.404|-84.2378|Tallahassee|FL;889|25.7148|-80.4485|Miami|FL;890|27.8915|-82.3178|Riverview|FL;891|28.0502|-82.7357|Palm Harbor|FL;892|33.4883|-84.5872|Tyrone|GA;893|28.3892|-80.7016|Merritt Island|FL;894|26.7059|-80.1508|West Palm Beach|FL;895|26.606|-80.1155|Greenacres|FL;896|30.404|-86.8783|Navarre|FL;897|28.5625|-81.1309|Orlando|FL;898|27.5859|-80.429|Vero Beach|FL;1003|25.8935|-80.1851|North Miami|FL;1004|27.4982|-82.6337|Bradenton|FL;1005|30.2663|-85.9729|Panama City Beach|FL;1006|26.8418|-80.1334|Palm Beach Gardens|FL;1007|26.6395|-82.0377|Cape Coral|FL;1008|32.5472|-83.6921|Kathleen|GA;1009|25.7649|-80.1948|Miami|FL;1010|33.7928|-84.398|Atlanta|GA;1011|28.0951|-82.7716|Palm Harbor|FL;1012|34.7769|-82.3102|Mauldin|SC;1013|27.01|-82.132|Port Charlotte|FL;1014|27.1626|-80.2713|Palm City|FL;1015|28.4705|-81.2662|Orlando|FL;1016|35.9798|-86.5549|Smyrna|TN;1017|25.9114|-80.1557|North Miami Beach|FL;1018|26.4375|-80.1451|Delray Beach|FL;1019|34.0793|-84.3574|Alpharetta|GA;1020|28.2341|-82.7306|New Port Richey|FL;1021|36.0369|-86.7988|Brentwood|TN;1022|30.1665|-81.6336|Jacksonville|FL;1023|27.3454|-82.5455|Sarasota|FL;1024|32.3812|-86.1716|Montgomery|AL;1025|32.3836|-86.2418|Montgomery|AL;1026|32.3368|-86.1828|Montgomery|AL;1027|32.3556|-86.2659|Montgomery|AL;1028|30.1507|-81.3755|Ponte Vedra|FL;1029|25.4983|-80.4146|Homestead|FL;1030|27.2683|-80.4313|Port Saint Lucie|FL;1031|35.9248|-86.7957|Franklin|TN;1032|27.7936|-82.3331|Riverview|FL;1033|36.3596|-86.4957|Gallatin|TN;1034|27.8966|-82.7836|Largo|FL;1035|27.7658|-80.5099|Sebastian|FL;1036|26.2127|-80.1078|Pompano Beach|FL;1037|30.297|-81.7756|Jacksonville|FL;1038|29.605|-82.3728|Gainesville|FL;1039|26.6989|-81.7613|Fort Myers|FL;1040|26.1273|-80.2615|Plantation|FL;1041|26.5515|-80.0743|Boynton Beach|FL;1042|29.6013|-81.1967|Palm Coast|FL;1043|34.0179|-84.32|Roswell|GA;1044|33.8186|-84.349|Atlanta|GA;1045|28.2476|-81.2424|Saint Cloud|FL;1046|26.6755|-80.2056|Royal Palm Beach|FL;1047|35.7751|-86.9184|Spring Hill|TN;1048|28.5668|-81.3272|Orlando|FL;1049|26.9673|-80.0885|Tequesta|FL;1050|26.9119|-80.1018|Jupiter|FL;1051|30.4424|-84.2478|Tallahassee|FL;1052|33.3658|-84.1814|Locust Grove|GA;1054|33.4137|-84.2026|McDonough|GA;1055|32.7916|-79.8543|Mount Pleasant|SC;1056|33.6564|-84.5108|Atlanta|GA;1057|35.9971|-86.6918|Brentwood|TN;1058|28.1406|-80.5975|Indian Harbour Beach|FL;1059|33.5211|-86.7311|Birmingham|AL;1060|34.1674|-84.3308|Alpharetta|GA;1061|33.7804|-84.3888|Atlanta|GA;1062|25.6266|-80.4486|Miami|FL;1063|33.9588|-84.7876|Dallas|GA;1064|34.192|-84.5114|Canton|GA;1065|33.4533|-86.9783|Hueytown|AL;1066|30.187|-81.6297|Jacksonville|FL;1067|26.4917|-80.166|Boynton Beach|FL;1068|26.0095|-80.3557|Pembroke Pines|FL;1069|33.6559|-86.647|Pinson|AL;1070|28.6289|-81.3622|Maitland|FL;1071|33.6172|-84.0814|Conyers|GA;1072|25.8235|-80.2767|Hialeah|FL;1073|33.2127|-86.8257|Alabaster|AL;1074|33.28|-86.8541|Helena|AL;1075|33.2419|-87.5778|Northport|AL;1076|28.1053|-81.6384|Haines City|FL;1077|34.0496|-84.6101|Kennesaw|GA;1078|33.9347|-83.9563|Lawrenceville|GA;1079|26.065|-80.3646|Weston|FL;1080|28.9296|-82.0142|The Villages|FL;1081|32.8741|-79.7793|Mount Pleasant|SC;1082|33.6414|-86.5799|Trussville|AL;1083|33.2121|-87.5536|Tuscaloosa|AL;1084|30.1128|-81.5901|Saint Johns|FL;1085|33.4657|-86.7328|Mountain Brook|AL;1086|32.5214|-85.0282|Phenix City|AL;1087|33.4308|-84.4545|Fayetteville|GA;1088|28.0358|-82.6465|Tampa|FL;1089|34.0932|-84.2064|Alpharetta|GA;1090|25.78|-80.2892|Miami|FL;1091|34.0572|-84.1289|Suwanee|GA;1092|28.5143|-81.1543|Orlando|FL;1093|27.1256|-80.2539|Stuart|FL;1094|26.1385|-80.1292|Fort Lauderdale|FL;1095|33.9983|-81.0445|Columbia|SC;1096|34.064|-84.7266|Acworth|GA;1097|26.0972|-80.1302|Fort Lauderdale|FL;1098|28.3697|-80.6075|Cocoa Beach|FL;1099|30.0572|-81.5314|Saint Johns|FL;1101|28.3626|-81.3673|Orlando|FL;1103|28.052|-81.775|Auburndale|FL;1104|26.6644|-80.1106|West Palm Beach|FL;1105|30.1404|-81.5496|Jacksonville|FL;1106|28.4765|-81.5837|Windermere|FL;1107|26.6517|-80.2354|Wellington|FL;1108|25.5797|-80.3955|Miami|FL;1109|26.1661|-80.2302|Lauderhill|FL;1110|34.2966|-83.8597|Gainesville|GA;1111|29.6293|-82.4363|Gainesville|FL;1112|33.8057|-84.5254|Mableton|GA;1113|27.7714|-82.3922|Apollo Beach|FL;1114|26.2718|-80.281|Coral Springs|FL;1115|30.139|-81.7748|Orange Park|FL;1116|36.041|-86.7414|Nashville|TN;1117|28.013|-82.7113|Clearwater|FL;1118|33.6841|-83.9979|Conyers|GA;1119|33.8103|-84.4147|Atlanta|GA;1120|33.0117|-80.2349|Summerville|SC;1121|26.2724|-80.2098|Coral Springs|FL;1122|28.5377|-81.2739|Orlando|FL;1123|28.8799|-81.177|Deltona|FL;1124|26.1041|-80.1933|Fort Lauderdale|FL;1125|30.2642|-81.5264|Jacksonville|FL;1126|34.8162|-86.4896|Huntsville|AL;1127|28.7542|-81.3497|Lake Mary|FL;1128|27.2097|-80.3264|Port Saint Lucie|FL;1129|25.9106|-80.3064|Miami Lakes|FL;1130|34.1744|-84.1872|Cumming|GA;1131|28.542|-81.3726|Orlando|FL;1132|28.5405|-82.4086|Brooksville|FL;1133|36.0472|-86.9523|Nashville|TN;1135|27.8533|-82.205|Lithia|FL;1136|25.4752|-80.4341|Homestead|FL;1137|26.3297|-80.2525|Parkland|FL;1138|29.4878|-81.2198|Palm Coast|FL;1139|33.6891|-84.7149|Douglasville|GA;1140|30.2876|-81.3932|Jacksonville Beach|FL;1141|36.3315|-86.6992|Goodlettsville|TN;1142|28.2718|-82.4791|Land O Lakes|FL;1143|33.3743|-84.7524|Newnan|GA;1144|26.5907|-80.1451|Lake Worth|FL;1145|32.8051|-80.1115|Johns Island|SC;1146|33.9246|-83.3422|Athens|GA;1147|26.6977|-81.94|Cape Coral|FL;1148|34.8479|-82.3952|Greenville|SC;1149|27.766|-82.7675|Treasure Island|FL;1150|27.6384|-80.383|Vero Beach|FL;1151|25.746|-80.335|Miami|FL;1152|27.5567|-82.4469|Parrish|FL;1153|27.4345|-82.4304|Bradenton|FL;1154|31.9095|-81.2787|Richmond Hill|GA;1155|28.867|-81.9552|The Villages|FL;1156|26.6379|-81.8768|Fort Myers|FL;1158|28.5163|-81.6187|Winter Garden|FL;1159|26.362|-80.1358|Boca Raton|FL;1160|27.9595|-82.7445|Clearwater|FL;1163|35.8133|-86.3685|Murfreesboro|TN;1164|35.9121|-86.386|Murfreesboro|TN;1165|34.9992|-85.134|Chattanooga|TN;1166|35.1473|-85.2074|Hixson|TN;1167|28.1787|-81.6378|Davenport|FL;1168|28.56|-81.8214|Groveland|FL;1169|30.1615|-81.8359|Orange Park|FL;1170|28.0843|-82.5431|Tampa|FL;1171|27.9698|-81.8834|Lakeland|FL;1172|35.842|-86.4718|Murfreesboro|TN;1173|30.1603|-85.7522|Panama City Beach|FL;1174|28.6045|-81.5494|Ocoee|FL;1175|36.2235|-86.3452|Lebanon|TN;1176|30.2616|-81.6291|Jacksonville|FL;1177|30.3536|-81.5791|Jacksonville|FL;1178|34.031|-83.887|Dacula|GA;1179|28.262|-81.4382|Kissimmee|FL;1180|27.0669|-82.1589|North Port|FL;1181|28.1811|-81.4386|Kissimmee|FL;1182|27.9415|-82.4847|Tampa|FL;1183|33.6124|-84.6099|Fairburn|GA;1184|34.0296|-84.7788|Dallas|GA;1185|34.7302|-86.7882|Madison|AL;1186|31.9813|-81.1521|Savannah|GA;1187|28.9268|-81.1877|Deltona|FL;1188|34.1068|-83.7037|Hoschton|GA;1189|30.3599|-87.1641|Gulf Breeze|FL;1191|28.4273|-81.4447|Orlando|FL;1192|30.1815|-82.6643|Lake City|FL;1193|28.7233|-82.5512|Homosassa|FL;1194|28.3392|-81.4323|Kissimmee|FL;1195|28.2578|-81.5918|Davenport|FL;1196|28.222|-82.2485|Zephyrhills|FL;1198|28.5703|-82.5599|Weeki Wachee|FL;1199|27.7862|-82.7296|Saint Petersburg|FL;1200|33.3352|-86.9934|Bessemer|AL;1201|29.0842|-82.2546|Ocala|FL;1202|33.2747|-86.7924|Pelham|AL;1203|34.7838|-86.9298|Athens|AL;1204|28.0027|-81.7161|Winter Haven|FL;1205|32.2703|-80.9168|Bluffton|SC;1206|33.6512|-86.8222|Gardendale|AL;1207|33.4036|-86.8084|Hoover|AL;1208|26.2107|-81.6889|Naples|FL;1209|25.7751|-80.1402|Miami Beach|FL;1210|30.07|-81.7061|Fleming Island|FL;1211|36.1268|-86.8475|Nashville|TN;1212|27.9909|-82.1199|Plant City|FL;1213|30.2718|-87.588|Orange Beach|AL;1214|28.1857|-80.5945|Satellite Beach|FL;1215|27.0974|-82.3861|Venice|FL;1216|28.1965|-81.295|Saint Cloud|FL;1217|33.8091|-84.8862|Dallas|GA;1218|34.8465|-86.7103|Harvest|AL;1219|28.1951|-82.5029|Lutz|FL;1220|36.233|-86.5144|Mount Juliet|TN;1221|26.5255|-80.1853|Boynton Beach|FL;1223|30.3047|-81.6524|Jacksonville|FL;1225|30.6009|-87.1244|Pace|FL;1226|33.8196|-84.4508|Atlanta|GA;1227|34.1107|-84.1544|Suwanee|GA;1228|32.4614|-86.3983|Prattville|AL;1229|25.4471|-80.4599|Homestead|FL;1230|25.7702|-80.2305|Miami|FL;1231|29.9176|-81.2928|Saint Augustine|FL;1233|32.4729|-83.706|Perry|GA;1234|35.8127|-86.4577|Murfreesboro|TN;1235|36.0534|-86.6149|Antioch|TN;1236|25.8942|-80.1637|North Miami|FL;1237|27.2235|-80.2624|Stuart|FL;1238|35.9415|-86.5275|Smyrna|TN;1239|29.961|-81.4912|Saint Augustine|FL;1241|30.197|-85.8099|Panama City Beach|FL;1243|30.1105|-81.4196|Ponte Vedra|FL;1244|35.0906|-85.0643|Ooltewah|TN;1245|28.2715|-82.1861|Zephyrhills|FL;1246|26.5146|-80.1497|Boynton Beach|FL;1247|25.5504|-80.3736|Homestead|FL;1248|34.2712|-84.5033|Canton|GA;1250|33.8817|-84.5121|Smyrna|GA;1251|33.9437|-83.7543|Bethlehem|GA;1252|26.3363|-81.4346|Ave Maria|FL;1253|33.1231|-87.5527|Tuscaloosa|AL;1256|32.2214|-81.1936|Port Wentworth|GA;1257|29.4788|-81.1477|Flagler Beach|FL;1258|30.3752|-86.2131|Santa Rosa Beach|FL;1259|29.1269|-81.0022|Port Orange|FL;1260|27.7377|-82.4305|Apollo Beach|FL;1262|26.4924|-81.8493|Fort Myers|FL;1263|32.9245|-83.7356|Macon|GA;1264|25.8519|-80.2776|Hialeah|FL;1265|30.5557|-87.8909|Fairhope|AL;1266|33.1063|-80.1252|Summerville|SC;1267|27.297|-82.4016|Sarasota|FL;1268|36.1613|-86.5126|Mount Juliet|TN;1269|28.8262|-81.6423|Mount Dora|FL;1270|28.0148|-81.9585|Lakeland|FL;1271|28.331|-82.5708|Hudson|FL;1273|25.5971|-80.4313|Miami|FL;1274|26.4552|-80.1914|Delray Beach|FL;1275|28.7798|-81.6226|Mount Dora|FL;1277|27.9364|-82.2538|Valrico|FL;1278|29.9146|-81.3623|Saint Augustine|FL;1279|34.1109|-83.8771|Flowery Branch|GA;1280|26.6041|-81.8086|Fort Myers|FL;1281|33.1555|-86.7484|Calera|AL;1282|28.4355|-82.492|Spring Hill|FL;1283|30.3123|-81.6017|Jacksonville|FL;1284|27.2476|-80.3759|Port Saint Lucie|FL;1285|28.6273|-81.3194|Casselberry|FL;1286|33.5735|-82.1933|Evans|GA;1287|27.0379|-82.2148|North Port|FL;1288|25.7713|-80.255|Coral Gables|FL;1289|29.1655|-82.0943|Ocala|FL;1290|29.3236|-81.057|Ormond Beach|FL;1291|32.6124|-83.7145|Byron|GA;1292|30.2987|-87.6814|Gulf Shores|AL;1294|32.5854|-85.4364|Auburn|AL;1295|28.6206|-81.2609|Oviedo|FL;1296|30.3181|-87.4265|Pensacola|FL;1297|26.1388|-80.1121|Fort Lauderdale|FL;1298|36.1402|-86.883|Nashville|TN;1300|27.9905|-82.7428|Clearwater|FL;1301|26.0629|-80.2815|Cooper City|FL;1302|26.5477|-81.8844|Fort Myers|FL;1303|30.4416|-86.6005|Fort Walton Beach|FL;1304|28.7878|-81.3572|Lake Mary|FL;1305|27.5435|-82.473|Parrish|FL;1306|30.5085|-84.2463|Tallahassee|FL;1309|27.9157|-82.8161|Belleair Bluffs|FL;1311|26.2585|-80.248|Coral Springs|FL;1312|29.6219|-82.3821|Gainesville|FL;1316|30.4727|-87.2147|Pensacola|FL;1317|30.5296|-87.2226|Pensacola|FL;1318|30.4598|-87.2986|Pensacola|FL;1320|27.8437|-82.7963|Seminole|FL;1321|27.7181|-82.6739|Saint Petersburg|FL;1324|27.9978|-82.5839|Tampa|FL;1325|26.3483|-81.805|Bonita Springs|FL;1326|27.4613|-82.6071|Bradenton|FL;1327|26.5633|-81.976|Cape Coral|FL;1328|26.6712|-81.9378|Cape Coral|FL;1330|28.9094|-81.2663|Deltona|FL;1333|26.9327|-80.092|Jupiter|FL;1335|27.9152|-82.7473|Largo|FL;1337|26.2489|-81.803|Naples|FL;1338|28.5084|-81.238|Orlando|FL;1339|29.5514|-81.2356|Palm Coast|FL;1340|28.0942|-82.7383|Palm Harbor|FL;1341|28.0621|-82.709|Palm Harbor|FL;1342|27.5229|-82.5736|Palmetto|FL;1343|30.536|-87.3123|Pensacola|FL;1344|27.8404|-82.6985|Pinellas Park|FL;1345|26.1066|-80.2515|Plantation|FL;1347|27.5163|-81.4936|Sebring|FL;1348|27.7601|-82.7372|South Pasadena|FL;1349|31.6555|-84.1752|Leesburg|GA;1350|27.2414|-80.2276|Jensen Beach|FL;1351|30.4878|-86.1244|Freeport|FL;1352|26.7001|-81.8476|North Fort Myers|FL;1353|28.0775|-80.66|West Melbourne|FL;1354|32.3084|-80.9733|Hardeeville|SC;1355|32.6382|-85.4802|Auburn|AL;1356|35.2096|-84.8607|Cleveland|TN;1357|28.3822|-81.6866|Clermont|FL;1358|28.6173|-80.8431|Titusville|FL;1359|26.7838|-80.0504|Riviera Beach|FL;1360|35.9735|-87.1311|Fairview|TN;1361|26.3474|-80.1574|Boca Raton|FL;1362|30.6309|-87.9126|Daphne|AL;1363|33.8704|-84.3345|Brookhaven|GA;1364|32.1351|-81.2511|Pooler|GA;1365|29.2157|-82.1996|Ocala|FL;1366|27.9711|-82.0555|Lakeland|FL;1367|30.3227|-81.4043|Neptune Beach|FL;1368|26.8654|-80.0972|Palm Beach Gardens|FL;1369|31.2484|-85.429|Dothan|AL;1370|33.3532|-86.6088|Chelsea|AL;1371|27.9131|-82.35|Riverview|FL;1372|27.328|-82.5297|Sarasota|FL;1373|28.1002|-82.399|Tampa|FL;1374|27.6881|-80.4099|Vero Beach|FL;1375|31.1975|-85.3745|Dothan|AL;1376|29.672|-82.3873|Gainesville|FL;1377|31.2394|-85.4621|Dothan|AL;1378|27.273|-80.3163|Port Saint Lucie|FL;1379|34.6857|-82.8174|Clemson|SC;1381|28.6026|-81.3221|Winter Park|FL;1382|25.8532|-80.1208|Miami Beach|FL;1383|33.9911|-81.3063|Lexington|SC;1384|26.6186|-80.0569|Lake Worth|FL;1385|27.2974|-82.4962|Sarasota|FL;1386|25.8837|-80.3095|Hialeah|FL;1387|28.5986|-81.2888|Winter Park|FL;1388|28.5916|-81.3664|Winter Park|FL;1389|25.6705|-80.3855|Miami|FL;1390|32.4827|-84.9444|Columbus|GA;1391|33.5638|-86.2677|Pell City|AL;1392|36.5156|-87.3132|Clarksville|TN;1393|26.2331|-80.0984|Pompano Beach|FL;1394|27.7887|-82.6809|Saint Petersburg|FL;1395|26.7197|-80.0396|Palm Beach|FL;1396|28.4464|-81.5613|Windermere|FL;1397|25.7931|-80.1894|Miami|FL;1398|28.268|-80.7389|Rockledge|FL;1399|27.9026|-81.8418|Bartow|FL;1400|30.6741|-87.848|Spanish Fort|AL;1401|30.4623|-84.2259|Tallahassee|FL;1402|31.326|-85.8383|Enterprise|AL;1403|34.2618|-85.1777|Rome|GA;1404|30.6767|-88.1677|Mobile|AL;1405|26.5127|-80.0615|Boynton Beach|FL;1406|30.6279|-81.5455|Yulee|FL;1407|26.7242|-81.9042|North Fort Myers|FL;1408|28.2795|-81.3479|Kissimmee|FL;1409|34.8372|-87.6294|Florence|AL;1410|28.1293|-81.9721|Lakeland|FL;1411|33.6345|-84.0169|Conyers|GA;1412|34.9562|-80.8498|Indian Land|SC;1413|28.05|-82.7786|Dunedin|FL;1414|27.137|-82.4592|Nokomis|FL;1415|35.8935|-84.17|Knoxville|TN;1416|35.8606|-84.0765|Knoxville|TN;1418|35.9499|-83.9397|Knoxville|TN;1419|35.0627|-80.9644|Fort Mill|SC;1420|33.6076|-85.7884|Oxford|AL;1421|28.5592|-80.8259|Titusville|FL;1422|31.4627|-83.5286|Tifton|GA;1423|25.6461|-80.3312|Pinecrest|FL;1424|26.5712|-80.0874|Boynton Beach|FL;1425|36.6252|-87.3726|Clarksville|TN;1426|36.1708|-86.6839|Nashville|TN;1427|30.48|-84.2346|Tallahassee|FL;1428|28.6883|-81.4039|Longwood|FL;1429|25.7154|-80.3474|Miami|FL;1430|28.3647|-81.2468|Orlando|FL;1431|28.3312|-81.5266|Celebration|FL;1432|27.3675|-82.6245|Longboat Key|FL;1433|27.1359|-82.4197|North Venice|FL;1434|26.1706|-81.801|Naples|FL;1435|30.881|-83.2851|Valdosta|GA;1436|30.6418|-88.1923|Mobile|AL;1437|30.2055|-81.3827|Ponte Vedra Beach|FL;1438|27.016|-82.0569|Port Charlotte|FL;1439|28.4535|-81.4902|Orlando|FL;1440|28.5678|-81.1963|Orlando|FL;1441|28.0669|-82.5069|Tampa|FL;1442|35.0426|-80.8496|Charlotte|NC;1443|26.6095|-81.6506|Lehigh Acres|FL;1444|29.0565|-81.3009|DeLand|FL;1445|24.566|-81.7705|Key West|FL;1447|27.444|-82.5077|Bradenton|FL;1448|28.8374|-82.3434|Inverness|FL;1449|26.332|-81.8085|Bonita Springs|FL;1450|29.1061|-81.0339|Port Orange|FL;1451|34.7234|-86.5839|Huntsville|AL;1452|26.5263|-80.092|Boynton Beach|FL;1453|35.2067|-80.8625|Charlotte|NC;1454|26.0323|-80.1402|Hollywood|FL;1455|29.167|-80.9791|Daytona Beach Shores|FL;1456|27.8058|-82.64|Saint Petersburg|FL;1457|27.8103|-82.7927|Madeira Beach|FL;1458|26.1371|-81.7486|Naples|FL;1459|26.3686|-80.0763|Boca Raton|FL;1460|35.0651|-85.3084|Chattanooga|TN;1461|30.5145|-86.4495|Niceville|FL;1462|34.3338|-86.3164|Guntersville|AL;1463|32.4122|-80.6511|Beaufort|SC;1464|34.2063|-82.186|Greenwood|SC;1465|25.5727|-80.3426|Cutler Bay|FL;1466|35.7932|-78.8448|Cary|NC;1467|25.7699|-80.3577|Miami|FL;1468|30.362|-81.5012|Jacksonville|FL;1469|26.1043|-80.3631|Weston|FL;1470|35.1709|-80.6595|Mint Hill|NC;1471|27.8821|-82.8341|Largo|FL;1472|27.2953|-80.4242|Port Saint Lucie|FL;1473|35.5049|-82.5224|Asheville|NC;1474|35.4754|-80.8889|Cornelius|NC;1475|36.0948|-80.2758|Winston-Salem|NC;1476|33.9552|-86.0439|Rainbow City|AL;1477|29.1475|-82.1675|Ocala|FL;1478|33.4383|-79.1319|Pawleys Island|SC;1479|33.8424|-78.6582|North Myrtle Beach|SC;1480|35.146|-80.9298|Charlotte|NC;1481|35.4085|-80.8643|Huntersville|NC;1482|34.9506|-81.0638|Rock Hill|SC;1483|35.1048|-80.988|Charlotte|NC;1484|35.0822|-80.7299|Matthews|NC;1485|34.9648|-80.997|Rock Hill|SC;1486|35.1202|-81.0811|Lake Wylie|SC;1487|28.8447|-82.0278|The Villages|FL;1488|28.6009|-81.3629|Winter Park|FL;1489|31.9402|-81.0505|Savannah|GA;1490|35.3962|-80.6613|Concord|NC;1491|26.6895|-80.0565|West Palm Beach|FL;1492|25.8421|-80.3684|Doral|FL;1493|29.5579|-81.2099|Palm Coast|FL;1494|25.7566|-80.2884|West Miami|FL;1495|24.9339|-80.6177|Islamorada|FL;1496|28.3298|-82.1858|Dade City|FL;1497|26.7141|-80.1021|West Palm Beach|FL;1498|30.8377|-83.9467|Thomasville|GA;1499|28.8502|-81.5533|Eustis|FL;1500|28.9864|-81.2972|DeLand|FL;1501|28.5031|-81.3116|Orlando|FL;1502|28.3202|-81.3371|Kissimmee|FL;1503|34.1815|-86.8492|Cullman|AL;1505|29.8055|-82.5217|Alachua|FL;1506|27.907|-82.5027|Tampa|FL;1507|28.8254|-81.9663|The Villages|FL;1508|33.5701|-86.5176|Moody|AL;1509|35.3748|-80.7886|Charlotte|NC;1510|33.7586|-78.9588|Myrtle Beach|SC;1511|34.1644|-81.3517|Chapin|SC;1512|33.51|-86.8034|Birmingham|AL;1513|28.1892|-82.6085|Odessa|FL;1514|35.9459|-78.5079|Wake Forest|NC;1515|35.8026|-83.5763|Pigeon Forge|TN;1516|34.1807|-77.8932|Wilmington|NC;1517|27.4735|-81.4444|Sebring|FL;1518|35.1778|-80.7994|Charlotte|NC;1519|35.5818|-80.8747|Mooresville|NC;1520|35.705|-78.797|Cary|NC;1521|35.2254|-81.1326|Gastonia|NC;1522|30.4241|-87.2039|Pensacola|FL;1523|27.8335|-82.3268|Riverview|FL;1524|33.751|-78.8159|Myrtle Beach|SC;1525|31.7805|-85.9547|Troy|AL;1526|26.0468|-80.311|Cooper City|FL;1527|26.2782|-81.597|Naples|FL;1528|27.2067|-81.8338|Arcadia|FL;1529|35.8637|-86.8431|Franklin|TN;1530|29.8136|-81.3246|Saint Augustine|FL;1531|27.7707|-82.6445|Saint Petersburg|FL;1532|34.7313|-87.6698|Muscle Shoals|AL;1533|35.1003|-77.1005|New Bern|NC;1534|28.0597|-82.5439|Tampa|FL;1535|28.7843|-81.7509|Tavares|FL;1536|25.9464|-80.1221|Sunny Isles Beach|FL;1537|30.3885|-87.0616|Gulf Breeze|FL;1538|26.6846|-80.2923|Loxahatchee Groves|FL;1539|35.8183|-80.8784|Statesville|NC;1540|31.1866|-83.7592|Moultrie|GA;1541|27.7205|-82.6805|Saint Petersburg|FL;1542|34.3521|-84.0448|Dawsonville|GA;1543|36.1802|-82.7824|Greeneville|TN;1544|35.7375|-78.8934|Apex|NC;1545|33.4294|-86.7376|Vestavia Hills|AL;1546|35.7059|-82.5688|Weaverville|NC;1547|27.3029|-81.3602|Lake Placid|FL;1548|36.1992|-81.6614|Boone|NC;1549|27.9521|-82.4487|Tampa|FL;1550|35.7693|-81.3282|Hickory|NC;1551|35.9057|-78.7272|Raleigh|NC;1552|35.8252|-78.9032|Cary|NC;1553|27.4336|-82.3938|Bradenton|FL;1554|26.0127|-80.1415|Hollywood|FL;1555|35.3204|-80.6458|Harrisburg|NC;1556|35.048|-80.6422|Monroe|NC;1557|26.8903|-82.0262|Punta Gorda|FL;1558|25.9596|-80.1411|Aventura|FL;1559|28.6461|-81.1392|Oviedo|FL;1560|29.6534|-82.3388|Gainesville|FL;1561|25.7854|-80.2199|Miami|FL;1562|27.9789|-82.8173|Clearwater|FL;1563|28.3448|-80.6104|Cocoa Beach|FL;1564|26.5557|-81.7478|Fort Myers|FL;1566|37.684|-77.5866|Glen Allen|VA;1567|28.4726|-81.6297|Winter Garden|FL;1568|33.5859|-79.0547|Murrells Inlet|SC;1569|35.5883|-77.3701|Greenville|NC;1570|26.0215|-80.2983|Pembroke Pines|FL;1571|25.822|-80.3349|Doral|FL;1572|30.64|-87.1801|Pace|FL;1573|30.435|-84.2919|Tallahassee|FL;1574|36.0402|-80.3891|Clemmons|NC;1575|35.0469|-78.9315|Fayetteville|NC;1576|26.4591|-80.1194|Delray Beach|FL;1578|28.0534|-82.397|Temple Terrace|FL;1579|27.8817|-82.819|Largo|FL;1580|34.271|-77.8195|Wilmington|NC;1581|28.9524|-81.9609|The Villages|FL;1582|35.9814|-80.0249|High Point|NC;1583|35.5847|-80.9893|Sherrills Ford|NC;1584|32.0795|-81.2847|Pooler|GA;1585|27.1031|-80.1566|Hobe Sound|FL;1586|35.3056|-82.4593|Hendersonville|NC;1587|37.649|-77.6158|Henrico|VA;1588|37.5569|-77.4881|Richmond|VA;1589|37.6569|-77.5259|Glen Allen|VA;1590|37.6225|-77.624|Henrico|VA;1591|37.6751|-77.4631|Glen Allen|VA;1592|37.4103|-77.6561|Midlothian|VA;1593|37.591|-77.5327|Richmond|VA;1594|37.2689|-77.4105|Colonial Heights|VA;1595|37.64|-77.5632|Glen Allen|VA;1596|37.5256|-77.3518|Richmond|VA;1597|28.3326|-82.6681|Hudson|FL;1598|26.0067|-80.2862|Pembroke Pines|FL;1599|32.7862|-79.9564|Charleston|SC;1600|27.3882|-82.3961|Lakewood Ranch|FL;1601|26.5829|-80.0405|Manalapan|FL;1602|30.7937|-86.5557|Crestview|FL;1603|35.4482|-80.9933|Denver|NC;1604|30.6924|-88.099|Mobile|AL;1606|26.0625|-80.2536|Davie|FL;1607|28.3462|-81.4833|Kissimmee|FL;1608|34.7029|-82.2597|Simpsonville|SC;1609|34.5427|-86.9204|Decatur|AL;1610|28.407|-81.4485|Orlando|FL;1611|28.1966|-82.5906|Odessa|FL;1612|34.7584|-86.6803|Huntsville|AL;1613|35.3802|-86.2265|Tullahoma|TN;1614|25.7801|-80.1974|Miami|FL;1615|36.0273|-75.6711|Kill Devil Hills|NC;1616|29.0592|-82.4564|Dunnellon|FL;1617|30.012|-81.3897|Saint Augustine|FL;1618|26.881|-80.118|Palm Beach Gardens|FL;1619|34.4518|-77.5646|Hampstead|NC;1621|35.0438|-85.1501|Chattanooga|TN;1622|32.5465|-83.5952|Bonaire|GA;1623|34.6623|-77.0517|Emerald Isle|NC;1625|28.365|-81.3122|Orlando|FL;1626|37.6109|-77.3358|Mechanicsville|VA;1627|33.423|-86.8887|Birmingham|AL;1628|27.8041|-82.6989|Saint Petersburg|FL;1629|34.6478|-86.7197|Huntsville|AL;1630|28.0684|-82.412|Tampa|FL;1631|33.904|-78.4387|Ocean Isle Beach|NC;1632|38.2191|-77.5066|Fredericksburg|VA;1633|36.3131|-82.3891|Johnson City|TN;1634|36.1385|-85.5076|Cookeville|TN;1635|37.2725|-76.7584|Williamsburg|VA;1636|37.5344|-77.5246|Richmond|VA;1637|33.9066|-81.2207|Lexington|SC;1638|34.7082|-86.7438|Madison|AL;1639|27.1771|-82.4821|Osprey|FL;1640|35.5042|-82.994|Waynesville|NC;1641|34.9381|-85.2041|Ringgold|GA;1642|34.7932|-86.7467|Madison|AL;1643|37.4015|-77.7087|Chesterfield|VA;1644|27.2685|-82.5011|Sarasota|FL;1645|32.7145|-79.9669|Charleston|SC;1646|32.9216|-79.8713|Charleston|SC;1647|33.7459|-84.3577|Atlanta|GA;1648|36.5227|-87.2344|Clarksville|TN;1649|29.012|-80.9455|New Smyrna Beach|FL;1650|30.8056|-88.1106|Saraland|AL;1651|28.0233|-81.9262|Lakeland|FL;1652|35.7884|-78.6445|Raleigh|NC;1653|27.9443|-82.5267|Tampa|FL;1655|25.9318|-81.6994|Marco Island|FL;1656|30.5309|-84.3634|Tallahassee|FL;1657|25.6489|-80.3395|Miami|FL;1658|36.0001|-79.906|Greensboro|NC;1659|27.9791|-81.9596|Lakeland|FL;1660|34.796|-77.4082|Jacksonville|NC;1661|28.6655|-81.3731|Altamonte Springs|FL;1662|26.1879|-80.135|Oakland Park|FL;1663|27.8936|-82.7809|Largo|FL;1664|29.2159|-81.1185|Daytona Beach|FL;1665|36.1288|-86.7786|Nashville|TN;1666|27.5991|-82.4999|Palmetto|FL;1667|30.0543|-81.6136|Saint Johns|FL;1668|28.7137|-81.3575|Longwood|FL;1669|27.3391|-82.4989|Sarasota|FL;1670|27.8527|-82.2566|Lithia|FL;1671|34.7027|-82.9389|Seneca|SC;1672|30.2701|-87.6865|Gulf Shores|AL;1673|30.3772|-87.6863|Foley|AL;1674|26.367|-80.1751|Boca Raton|FL;1675|33.4266|-86.7744|Vestavia Hills|AL;1676|33.4863|-86.773|Mountain Brook|AL;1677|34.044|-77.8952|Carolina Beach|NC;1678|34.1033|-83.9755|Buford|GA;1679|37.5199|-77.6128|North Chesterfield|VA;1680|36.1633|-86.7897|Nashville|TN;1681|27.891|-82.2702|Brandon|FL;1682|27.4689|-80.3351|Fort Pierce|FL;1683|27.0471|-82.3219|Venice|FL;1684|30.1016|-81.5228|Saint Johns|FL;1685|34.0098|-83.7063|Winder|GA;1686|28.2397|-81.5592|Davenport|FL;1687|33.42|-86.6677|Hoover|AL;1688|28.0964|-80.5691|Indialantic|FL;1690|34.2999|-84.1508|Cumming|GA;1691|33.3032|-87.5703|Northport|AL;1692|33.4727|-86.7033|Vestavia Hills|AL;1693|25.9941|-80.1191|Hollywood|FL;1694|37.5051|-77.659|Midlothian|VA;1695|25.597|-80.3512|Cutler Bay|FL;1696|26.12|-80.141|Fort Lauderdale|FL;1698|28.7554|-81.5613|Apopka|FL;1699|25.9805|-80.3154|Miramar|FL;1700|32.8359|-83.7438|Macon|GA;1701|30.1101|-81.4157|Ponte Vedra|FL;1702|28.1887|-82.5512|Odessa|FL;1703|33.9114|-78.1128|Oak Island|NC;1704|34.987|-80.7717|Marvin|NC;1705|28.8683|-82.0069|Wildwood|FL;1706|36.0806|-79.4832|Burlington|NC;1707|28.1119|-81.9451|Lakeland|FL;1708|26.4102|-80.124|Boca Raton|FL;1709|30.3203|-82.9711|Live Oak|FL;1711|27.769|-82.3366|Wimauma|FL;1712|29.2827|-81.0838|Ormond Beach|FL;1713|35.8829|-83.5741|Sevierville|TN;1714|32.2427|-80.9783|Bluffton|SC;1715|25.9267|-80.1837|North Miami Beach|FL;1716|32.4397|-80.7034|Beaufort|SC;1717|34.7248|-82.2949|Simpsonville|SC;1718|33.7015|-84.5786|Atlanta|GA;1719|26.2855|-80.2356|Coral Springs|FL;1720|38.426|-77.434|Stafford|VA;1721|27.9433|-82.4497|Tampa|FL;1722|27.8949|-82.5166|Tampa|FL;1723|27.4833|-82.4105|Bradenton|FL;1724|33.7777|-84.2782|Decatur|GA;1725|33.4377|-84.0395|McDonough|GA;1726|34.7528|-86.7614|Madison|AL;1727|35.6522|-78.3519|Clayton|NC;1728|33.3088|-86.9036|Hoover|AL;1729|29.9645|-81.4882|Saint Augustine|FL;1730|26.0332|-81.6539|Naples|FL;1731|35.015|-85.3254|Chattanooga|TN;1732|36.1898|-86.7449|Nashville|TN;1733|32.4158|-81.7997|Statesboro|GA;1734|28.1364|-82.0243|Lakeland|FL;1735|26.7093|-81.7204|Fort Myers|FL;1736|33.8072|-83.7256|Monroe|GA;1737|27.3177|-80.3918|Port Saint Lucie|FL;1738|28.273|-81.6603|Davenport|FL;1739|36.3646|-86.4422|Gallatin|TN;1741|28.801|-82.0066|The Villages|FL;1742|28.3275|-82.2958|San Antonio|FL;1744|35.7766|-78.4351|Wendell|NC;1745|33.9865|-84.4258|Marietta|GA;1746|30.5341|-87.3789|Pensacola|FL;1747|29.0713|-82.0713|Belleview|FL;1748|25.7345|-80.3809|Miami|FL;1749|26.5108|-80.1221|Golf|FL;1750|29.2241|-82.1009|Ocala|FL;1751|28.549|-81.7249|Clermont|FL;1752|26.1196|-81.7571|Naples|FL;1753|30.3231|-81.4026|Neptune Beach|FL;1754|28.5081|-81.3746|Orlando|FL;1755|29.2906|-81.0451|Ormond Beach|FL;1756|32.3464|-86.0932|Pike Road|AL;1758|33.9321|-84.3389|Dunwoody|GA;1759|28.5918|-81.7217|Minneola|FL;1760|30.2988|-86.0233|Inlet Beach|FL;1761|33.2953|-84.5449|Senoia|GA;1762|28.8238|-81.781|Leesburg|FL;1763|26.7759|-81.7589|Babcock Ranch|FL;1764|26.6146|-82.1119|Bokeelia|FL;1765|35.4542|-80.8032|Huntersville|NC;1766|30.0796|-81.4769|Saint Johns|FL;1767|34.9106|-82.4278|Greenville|SC;1768|34.1064|-83.8146|Braselton|GA;1769|27.0509|-82.394|Venice|FL;1770|25.7083|-80.2838|Coral Gables|FL;1771|30.4627|-81.5771|Jacksonville|FL;1772|33.8501|-84.1997|Tucker|GA;1773|34.2391|-84.2255|Cumming|GA;1774|27.1629|-80.2284|Stuart|FL;1775|33.0911|-80.0329|Moncks Corner|SC;1776|26.1349|-80.2838|Plantation|FL;1777|33.9005|-84.3025|Chamblee|GA;1778|35.8609|-86.509|Murfreesboro|TN;1779|35.7444|-83.9944|Maryville|TN;1780|36.3823|-86.5489|Gallatin|TN;1781|27.2842|-82.5326|Sarasota|FL;1782|26.2034|-81.8027|Naples|FL;1783|27.1332|-80.2039|Stuart|FL;1784|29.6509|-82.3711|Gainesville|FL;1785|34.6481|-86.5677|Huntsville|AL;1786|33.5484|-84.137|McDonough|GA;1787|26.7538|-80.3087|Westlake|FL;1788|28.1456|-81.8005|Auburndale|FL;1789|28.599|-81.2428|Orlando|FL;1790|34.8049|-86.9508|Athens|AL;1792|30.6214|-81.6395|Yulee|FL;1793|28.6843|-81.4168|Altamonte Springs|FL;1794|33.1728|-86.2833|Sylacauga|AL;1795|26.0056|-80.3602|Pembroke Pines|FL;1796|30.6403|-88.2581|Mobile|AL;1797|27.2231|-82.4591|Sarasota|FL;1798|30.2054|-84.3662|Crawfordville|FL;1799|30.5487|-87.8558|Fairhope|AL;1800|26.814|-80.2372|Palm Beach Gardens|FL;1801|36.1927|-86.4101|Lebanon|TN;1802|36.5771|-87.3154|Clarksville|TN;1803|25.6649|-80.4067|Miami|FL;1804|25.9006|-80.3579|Hialeah|FL;1805|28.3284|-80.7185|Rockledge|FL;1806|33.6643|-78.9694|Myrtle Beach|SC;1807|30.6468|-87.0546|Milton|FL;1808|27.8951|-82.5032|Tampa|FL;1809|30.4883|-87.8875|Fairhope|AL;1810|28.4053|-81.501|Orlando|FL;1811|33.6227|-83.8389|Covington|GA;1812|33.7531|-78.8702|Myrtle Beach|SC;1813|25.1126|-80.4211|Key Largo|FL;1816|33.4503|-84.7031|Newnan|GA;1817|35.9408|-78.8543|Durham|NC;1818|26.1653|-80.1012|Fort Lauderdale|FL;1820|29.0835|-82.2198|Ocala|FL;1821|28.1694|-82.4259|Lutz|FL;1822|32.6057|-85.4802|Auburn|AL;1824|35.0991|-80.7776|Charlotte|NC;1825|33.7377|-84.3874|Atlanta|GA;1826|26.4488|-81.6402|Estero|FL;1827|34.1244|-83.6043|Jefferson|GA;1828|28.1476|-80.6744|Melbourne|FL;1829|29.8405|-81.3617|Saint Augustine|FL;1830|34.6657|-86.0154|Scottsboro|AL;1831|33.5356|-86.6746|Irondale|AL;1832|28.222|-80.732|Melbourne|FL;1834|26.246|-80.2515|Coral Springs|FL;1835|30.4107|-86.8|Navarre|FL;1836|30.5849|-84.2501|Tallahassee|FL;1837|29.1711|-81.0418|Daytona Beach|FL;1838|33.9925|-83.4385|Athens|GA;1840|26.5541|-80.1222|Boynton Beach|FL;1841|30.2194|-81.5531|Jacksonville|FL;1842|30.1683|-81.504|Jacksonville|FL;1843|28.4118|-81.6364|Winter Garden|FL;1844|29.1734|-82.1326|Ocala|FL;1845|28.5722|-81.4055|Orlando|FL;1846|38.2726|-85.4984|Louisville|KY;1847|38.3171|-85.5604|Louisville|KY;1848|27.5921|-82.4381|Parrish|FL;1849|28.3016|-81.5666|Kissimmee|FL;1850|28.3338|-81.2274|Saint Cloud|FL;1851|26.7077|-80.227|Royal Palm Beach|FL;1852|28.4274|-81.2247|Orlando|FL;1853|26.4954|-81.9448|Fort Myers|FL;1854|27.998|-81.9721|Lakeland|FL;1855|35.9065|-78.4801|Rolesville|NC;1856|35.0622|-81.9973|Boiling Springs|SC;1858|36.1205|-80.3693|Winston-Salem|NC;1859|30.2693|-81.8506|Jacksonville|FL;1861|27.9511|-82.786|Clearwater|FL;1862|26.65|-80.2157|Wellington|FL;1863|34.9997|-85.0946|Ooltewah|TN;1864|28.7855|-81.2096|Sanford|FL;1865|30.7855|-81.6394|Kingsland|GA;1866|33.0603|-80.1538|Summerville|SC;1867|33.8456|-84.3745|Atlanta|GA;1868|32.5456|-84.8748|Columbus|GA;1870|31.4898|-82.8529|Douglas|GA;1871|28.4556|-82.6271|Spring Hill|FL;1872|35.5613|-80.7899|Mooresville|NC;1873|33.0355|-85.0603|Lagrange|GA;1875|30.2318|-85.587|Panama City|FL;1876|27.7908|-82.3736|Apollo Beach|FL;1877|28.2704|-82.2865|Wesley Chapel|FL;1878|32.9149|-85.9534|Alexander City|AL;1879|30.4053|-87.3454|Pensacola|FL;1880|32.5661|-84.934|Columbus|GA;1881|35.2251|-80.6364|Charlotte|NC;1882|27.3365|-82.4359|Sarasota|FL;1883|36.7862|-76.5907|Suffolk|VA;1884|27.9575|-82.4695|Tampa|FL;1885|38.2914|-77.5794|Fredericksburg|VA;1886|35.8441|-78.5153|Raleigh|NC;1887|38.0035|-84.574|Lexington|KY;1888|36.0782|-78.9301|Durham|NC;1889|28.6505|-81.2052|Oviedo|FL;1890|33.3977|-84.6275|Sharpsburg|GA;1891|33.4653|-84.2338|Hampton|GA;1892|34.0879|-83.7559|Hoschton|GA;1893|33.9689|-83.887|Dacula|GA;1894|26.6605|-80.2656|Wellington|FL;1895|26.234|-80.2226|Margate|FL;1896|30.3186|-81.4613|Jacksonville|FL;1897|27.4343|-82.5773|Bradenton|FL;1898|27.8987|-80.6201|Palm Bay|FL;1899|27.9995|-80.7388|Palm Bay|FL;2001|34.1134|-80.8446|Columbia|SC;2002|32.4936|-86.4028|Millbrook|AL;2003|33.1484|-83.2717|Milledgeville|GA;2005|26.1498|-80.1194|Fort Lauderdale|FL;2006|34.3136|-83.8007|Gainesville|GA;2007|26.2734|-80.0995|Pompano Beach|FL;2008|26.3859|-80.205|Boca Raton|FL;2009|35.9499|-86.6649|Nolensville|TN;2010|32.5145|-86.2142|Wetumpka|AL;2011|33.7352|-84.9062|Villa Rica|GA;2012|29.6535|-82.5968|Newberry|FL;2013|26.5449|-81.8422|Fort Myers|FL;2014|29.9255|-81.4226|Saint Augustine|FL;2016|31.8554|-81.5724|Hinesville|GA;2017|35.0872|-80.8448|Charlotte|NC;2018|26.2949|-81.5727|Naples|FL;2020|36.4673|-86.664|White House|TN;2021|26.8226|-80.083|Palm Beach Gardens|FL;2022|28.5149|-81.4835|Orlando|FL;2023|30.3925|-86.4855|Destin|FL;2024|34.4713|-83.9699|Dahlonega|GA;2025|36.9432|-76.5345|Carrollton|VA;2027|30.7325|-88.2279|Semmes|AL;2029|33.9085|-78.5864|Calabash|NC;2030|36.7646|-76.0129|Virginia Beach|VA;2031|35.5916|-78.5973|Garner|NC;2032|36.7282|-76.2999|Chesapeake|VA;2034|30.2062|-85.6738|Panama City|FL;2035|28.0519|-81.7691|Winter Haven|FL;2036|35.732|-86.89|Spring Hill|TN;2037|26.1224|-80.201|Plantation|FL;2038|33.0635|-80.0944|Summerville|SC;2039|33.8945|-84.3303|Brookhaven|GA;2040|33.4955|-81.75|Aiken|SC;2041|28.1154|-81.5888|Haines City|FL;2042|34.871|-86.5693|Meridianville|AL;2043|27.9784|-81.9559|Lakeland|FL;2045|34.3769|-83.8754|Gainesville|GA;2047|34.4593|-84.4528|Jasper|GA;2050|38.2361|-85.4455|Louisville|KY;2051|38.0956|-84.5125|Lexington|KY;2052|38.9134|-84.6365|Walton|KY;2053|37.7675|-87.0625|Owensboro|KY;2055|38.9672|-84.6733|Florence|KY;2057|39.0018|-84.4217|Cold Spring|KY;2058|38.9286|-84.5441|Independence|KY;2059|37.7357|-85.8606|Elizabethtown|KY;2088|28.2133|-81.6422|Davenport|FL;2090|32.8637|-79.9036|Charleston|SC;2091|26.9369|-82.3388|Englewood|FL;2092|27.2374|-80.4337|Port Saint Lucie|FL;2094|27.8076|-82.7297|Saint Petersburg|FL;2095|28.4356|-82.547|Spring Hill|FL;2096|29.8295|-81.272|Saint Augustine Beach|FL;2098|30.3688|-87.6555|Foley|AL;2099|27.461|-82.6378|Bradenton|FL;2100|34.7457|-82.3529|Mauldin|SC;2101|34.9805|-79.0165|Fayetteville|NC;2102|33.3348|-84.0918|Locust Grove|GA;2103|30.109|-81.4471|Jacksonville|FL;2105|35.4026|-82.5677|Mills River|NC;2106|35.8628|-84.2235|Farragut|TN;2107|28.0244|-81.6632|Winter Haven|FL;2108|27.4746|-82.3708|Bradenton|FL;2109|30.8839|-84.5644|Bainbridge|GA;2112|30.6418|-81.4538|Fernandina Beach|FL;2113|30.0024|-81.5045|Saint Augustine|FL;2117|27.9608|-81.6682|Winter Haven|FL;2120|34.9992|-80.6924|Wesley Chapel|NC;2121|28.6393|-81.5413|Apopka|FL;2141|27.7366|-82.3924|Ruskin|FL;2145|34.7646|-86.8765|Athens|AL;3210|28.0643|-82.4209|Tampa|FL;3211|28.0612|-81.9534|Lakeland|FL;3212|28.4553|-81.4059|Orlando|FL;3213|28.4486|-81.4065|Orlando|FL;3214|28.0483|-82.4174|Tampa|FL;3215|25.7415|-80.2951|Miami|FL;3217|30.3132|-81.6629|Jacksonville|FL;3219|27.9516|-82.8036|Clearwater|FL;3221|27.9819|-82.4915|Tampa|FL;3646|38.2726|-85.4984|Louisville|KY;3647|||Louisville|KY;3650|||Not Available|;3651|38.0956|-84.5125|Lexington|KY;3652|38.9134|-84.6365|Walton|KY;3687|38.0035|-84.574|Lexington|KY";
 let ALL_IDX=null;
 function companyStore(n){
@@ -1626,7 +1689,7 @@ function showStartExtras(v){
 function locate(){
   const m=$("gpsMsg");
   if(!navigator.geolocation){ m.className="msg err"; m.textContent="This browser can't share your location. Use a custom address instead."; return; }
-  m.className="msg"; m.textContent="Finding your location…";
+  m.className="msg"; m.textContent="Finding your locationâ¦";
   navigator.geolocation.getCurrentPosition(pos=>{
     S.gps={lat:pos.coords.latitude,lng:pos.coords.longitude,acc:pos.coords.accuracy,at:Date.now()};
     store.set("gps",S.gps); gpsStatus(); render();
@@ -1640,7 +1703,7 @@ function gpsStatus(){
   const m=$("gpsMsg"); m.className="msg";
   if(!S.gps){ m.textContent="Location not found yet."; return; }
   const near=Object.keys(S.coords).map(n=>[n,miles([S.gps.lat,S.gps.lng],S.coords[n])]).sort((a,b)=>a[1]-b[1])[0];
-  m.textContent=`Located at ${new Date(S.gps.at).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}`+(near?` · about ${near[1].toFixed(0)} mi from store ${near[0]}`:"");
+  m.textContent=`Located at ${new Date(S.gps.at).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}`+(near?` Â· about ${near[1].toFixed(0)} mi from store ${near[0]}`:"");
 }
 function loadSettings(){
   const pick=(k,d)=>{ const v=store.get(k,null); return (typeof v==="string" && v.trim()) ? v : d; };
@@ -1711,7 +1774,7 @@ $("pasteSapBtn").onclick=async()=>{
   const m=$("importMsg");
   try{
     const t=await navigator.clipboard.readText();
-    if(!t||!t.trim()){ m.className="msg err"; m.textContent="Clipboard is empty — in SAP, select your calls and copy (Ctrl+C) first, then tap Paste from SAP."; return; }
+    if(!t||!t.trim()){ m.className="msg err"; m.textContent="Clipboard is empty â in SAP, select your calls and copy (Ctrl+C) first, then tap Paste from SAP."; return; }
     $("callsInput").value=t; $("loadBtn").click();
   }catch(e){
     m.className="msg err"; m.textContent="Couldn't read the clipboard. Click in the box above, paste with Ctrl+V, then select Load calls. (Your browser may ask to allow clipboard access.)";
@@ -1763,29 +1826,36 @@ $("modeSel").onchange=e=>{
   store.set("mode",e.target.value); render();
 };
 $("roundTrip").checked=store.get("round",false);
-$("roundTrip").onchange=e=>{ store.set("round",e.target.checked); render(); };
+// Finish point + first stop
+function showEndExtras(v){ $("endStoreBox").style.display = v==="store"?"":"none"; }
+$("endSel").value = store.get("end", store.get("round",false)?"start":"");   // migrate the old "Return to start"
+$("endStore").value = store.get("endStore","");
+showEndExtras($("endSel").value);
+$("endSel").onchange=e=>{ store.set("end",e.target.value); store.set("round",e.target.value==="start"); showEndExtras(e.target.value); render(); };
+$("endStore").oninput=e=>{ store.set("endStore",e.target.value.trim()); render(); };
+$("firstSel").onchange=e=>{ store.set("firstStop",e.target.value); render(); };
 function buildShareText(){
   const withCalls=$("optCalls").checked, withLinks=$("optLinks").checked, withMaps=$("optMaps").checked, withDrive=$("optDrive").checked;
   const t=S.routeTotals||{stops:0,calls:0};
   if(!t.stops) return "";
   const vis=visibleCalls();
   const day=new Date().toLocaleDateString(undefined,{weekday:"short",month:"numeric",day:"numeric"});
-  let out=`Route ${day}: ${t.stops} stop${t.stops>1?"s":""}, ${t.calls} call${t.calls>1?"s":""}`+(t.miles!=null?`, ≈ ${t.miles.toFixed(0)} mi`:"");
-  if(withDrive) out+= t.miles!=null ? `\nTotal driving time: ≈ ${fmtTime(t.miles/45*60)}${t.round&&t.start?" (including the drive back)":""}` : `\nTotal driving time: unknown (a stop has no map position)`;
+  let out=`Route ${day}: ${t.stops} stop${t.stops>1?"s":""}, ${t.calls} call${t.calls>1?"s":""}`+(t.miles!=null?`, â ${t.miles.toFixed(0)} mi`:"");
+  if(withDrive) out+= t.miles!=null ? `\nTotal driving time: â ${fmtTime(t.miles/45*60)}${t.round&&t.start?" (including the drive back)":""}` : `\nTotal driving time: unknown (a stop has no map position)`;
   if(t.start) out+=`\nStarting from ${t.start.num?"store "+t.start.num:t.start.label.replace("Start: ","")}`;
   S.lastOrder.forEach((n,i)=>{
     const s=S.stores[n];
-    out+=`\n\n${i+1}. Store ${n}${s?" – "+s.city:""} (group ${groupOf(n)})`;
+    out+=`\n\n${i+1}. Store ${n}${s?" â "+s.city:""} (group ${groupOf(n)})`;
     if(withMaps) out+=`\n   Map: ${navLink(n)}`;
     if(withCalls){
       S.calls.filter(c=>c.store===n && !isDone(c) && vis.includes(c)).forEach(c=>{
-        out+=`\n   • ${c.prioLabel.replace(/^\d\s*-\s*/,"")}: ${c.desc} (#${c.order})${fmtPast(c)?" – "+fmtPast(c):F("soon")&&fmtSoon(c)?" – "+fmtSoon(c):""}`;
+        out+=`\n   â¢ ${c.prioLabel.replace(/^\d\s*-\s*/,"")}: ${c.desc} (#${c.order})${fmtPast(c)?" â "+fmtPast(c):F("soon")&&fmtSoon(c)?" â "+fmtSoon(c):""}`;
         if(withLinks) out+=`\n     ${ORDER_URL(c.order)}`;
       });
       const ex=S.calls.filter(c=>c.store===n && !isDone(c) && !S.handed[c.order] && !vis.includes(c));
       if(ex.length){
         out+=`\n   Also open here:`;
-        ex.forEach(c=>{ out+=`\n   ◦ ${c.prioLabel.replace(/^\d\s*-\s*/,"")}: ${c.desc} (#${c.order})${fmtPast(c)?" – "+fmtPast(c):""}`; if(withLinks) out+=`\n     ${ORDER_URL(c.order)}`; });
+        ex.forEach(c=>{ out+=`\n   â¦ ${c.prioLabel.replace(/^\d\s*-\s*/,"")}: ${c.desc} (#${c.order})${fmtPast(c)?" â "+fmtPast(c):""}`; if(withLinks) out+=`\n     ${ORDER_URL(c.order)}`; });
       }
     }
   });
@@ -1795,7 +1865,7 @@ $("copyBtn").onclick=()=>{
   const text=buildShareText(), m=$("routeMsg");
   if(!text){ m.textContent="Add at least one stop to the route first."; return; }
   const done=()=>{ m.textContent="Copied. Paste it into Teams, a text, or an email."; };
-  const fail=()=>{ openPreview(); $("sharePreview").select(); m.textContent="Copy was blocked. The text is selected below: press Ctrl+C (or ⌘C)."; };
+  const fail=()=>{ openPreview(); $("sharePreview").select(); m.textContent="Copy was blocked. The text is selected below: press Ctrl+C (or âC)."; };
   if(navigator.clipboard && window.isSecureContext!==false) navigator.clipboard.writeText(text).then(done,()=>fallbackCopy(text,done,fail));
   else fallbackCopy(text,done,fail);
 };
@@ -1825,9 +1895,9 @@ function buildDayText(){
   let out=`Route ${day}: ${DV.stops.length} stop${DV.stops.length>1?"s":""}, ${done} of ${calls} calls done`;
   DV.stops.forEach((n,i)=>{
     const s=S.stores[n], cs=dvCallsAt(n), all=cs.length&&cs.every(isDone);
-    out+=`\n\n${i+1}. ${all?"✅ ":""}Store ${n}${s?" – "+s.city:""} (group ${groupOf(n)})`;
+    out+=`\n\n${i+1}. ${all?"â ":""}Store ${n}${s?" â "+s.city:""} (group ${groupOf(n)})`;
     if(withMaps) out+=`\n   Map: ${navLink(n)}`;
-    cs.forEach(c=>{ out+=`\n   ${isDone(c)?"☑":"☐"} ${c.prioLabel.replace(/^\d\s*-\s*/,"")}: ${c.desc} (#${c.order})${!isDone(c)&&fmtPast(c)?" – "+fmtPast(c):""}`;
+    cs.forEach(c=>{ out+=`\n   ${isDone(c)?"â":"â"} ${c.prioLabel.replace(/^\d\s*-\s*/,"")}: ${c.desc} (#${c.order})${!isDone(c)&&fmtPast(c)?" â "+fmtPast(c):""}`;
       if(withLinks) out+=`\n     ${ORDER_URL(c.order)}`; });
   });
   return out;
@@ -1901,7 +1971,7 @@ function setupMode(){
   if(IS_ONLINE){
     badge.className="modebadge online"; badge.textContent="Online version";
     liveUpdates();
-    act.innerHTML=`<button class="hbtn" id="pasteBtn" hidden>📋 Paste transfer</button> <button class="hbtn" id="instBtn">📲 Install app</button> <button class="hbtn" id="bmkBtn">☆ Bookmark</button> <button class="hbtn" id="dlSelf">Download offline copy</button>`;
+    act.innerHTML=`<button class="hbtn" id="pasteBtn" hidden>ð Paste transfer</button> <button class="hbtn" id="instBtn">ð² Install app</button> <button class="hbtn" id="bmkBtn">â Bookmark</button> <button class="hbtn" id="dlSelf">Download offline copy</button>`;
     setupSend();
     setupBookmark();
     $("dlSelf").onclick=async()=>{
@@ -1928,7 +1998,7 @@ function setupMode(){
 const FEATURES=[
   ["changes","What changed","After each import, tag new calls and list calls no longer in SAP."],
   ["repeats","Repeat-issue alerts","Flag devices and stores with several calls in 30 days."],
-  ["age","Call age","Color badge for how many days since each call was put in: 0–3 green, 4–5 yellow, 6 orange, 7–8 red, 9+ 🔥."],
+  ["age","Call age","Color badge for how many days since each call was put in: 0â3 green, 4â5 yellow, 6 orange, 7â8 red, 9+ ð¥."],
   ["soon","Due soon","Show countdowns like \"due in 3 hrs\" for calls not yet past due."],
   ["replan","Re-plan from here","Reorder the remaining stops from where you are now."],
   ["eod","End-of-day summary","One-tap summary of the day to copy or email."],
@@ -1943,7 +2013,7 @@ function applyFeatures(){
   const show=(id,on)=>{ const e=$(id); if(e) e.style.display=on?"":"none"; };
   show("replanBtn",F("replan")); show("dvReplan",F("replan")); show("eodBtn",F("eod"));
   show("pasteRow",F("handoff")); if(!F("changes")) $("chgBox").hidden=true;
-  show("sendBtn", IS_ONLINE && F("send") && !/iPhone|iPad|iPod|Android/.test(navigator.userAgent));   // its own button next to ☰ Menu
+  show("sendBtn", IS_ONLINE && F("send") && !/iPhone|iPad|iPod|Android/.test(navigator.userAgent));   // its own button next to â° Menu
   if(!F("dayview")){ show("dvBtn",false); $("dvFab").classList.remove("has"); }
   // The installed phone app always keeps Paste transfer (Send to phone from a computer lands in Safari on iPhone).
   if($("pasteBtn")) $("pasteBtn").hidden = !(IS_APP || ((F("handoff")||F("send")) && /iPhone|iPad|iPod|Android/.test(navigator.userAgent)));
@@ -1983,7 +2053,7 @@ function callAge(c){
   const days=Math.max(0,Math.round((dayStart(Date.now())-dayStart(t))/864e5));
   const cls=days<=3?"g":days<=5?"y":days===6?"o":days<=8?"r":"f";
   const when=new Date(t).toLocaleDateString(undefined,{weekday:"short",month:"numeric",day:"numeric"})+(exact?" "+new Date(t).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"}):"");
-  return {days,est:false,cls,t,title:`Put in ${when}: ${how}. 0–3 days green, 4–5 yellow, 6 orange, 7–8 red, 9+ fire.`};
+  return {days,est:false,cls,t,title:`Put in ${when}: ${how}. 0â3 days green, 4â5 yellow, 6 orange, 7â8 red, 9+ fire.`};
 }
 function fmtSoon(c){
   const d=pastDays(c); if(d===null||d>0) return "";
@@ -2000,14 +2070,14 @@ function repeatCount(c){
 function storeRepeat(n){
   if(!F("repeats")) return "";
   const k=new Set(S.calls.filter(c=>c.store===n).map(c=>c.order));
-  return k.size>=5 ? `<span class="tag rep">🏪 ${k.size} open calls here</span> ` : "";
+  return k.size>=5 ? `<span class="tag rep">ðª ${k.size} open calls here</span> ` : "";
 }
 function callTags(c){
   let t="";
   if(F("changes")&&S.newOrders.has(c.order)) t+=`<span class="tag new">NEW</span>`;
-  if(F("age")&&!isDone(c)){ const a=callAge(c); if(a) t+=`<span class="tag age ${a.cls}" title="${esc(a.title)}">${a.cls==="f"?"🔥":"📅"} ${a.est?"≈":""}${a.days} day${a.days===1?"":"s"} old</span>`; }
-  if(F("soon")){ const s=fmtSoon(c); if(s) t+=`<span class="tag soon">⏱ ${s}</span>`; }
-  if(F("repeats")){ const r=repeatCount(c); if(r) t+=`<span class="tag rep">🔁 device: ${r+1}${r+1===2?"nd":r+1===3?"rd":"th"} call in 30 days</span>`; }
+  if(F("age")&&!isDone(c)){ const a=callAge(c); if(a) t+=`<span class="tag age ${a.cls}" title="${esc(a.title)}">${a.cls==="f"?"ð¥":"ð"} ${a.est?"â":""}${a.days} day${a.days===1?"":"s"} old</span>`; }
+  if(F("soon")){ const s=fmtSoon(c); if(s) t+=`<span class="tag soon">â± ${s}</span>`; }
+  if(F("repeats")){ const r=repeatCount(c); if(r) t+=`<span class="tag rep">ð device: ${r+1}${r+1===2?"nd":r+1===3?"rd":"th"} call in 30 days</span>`; }
   return t?`<div>${t}</div>`:"";
 }
 
@@ -2037,7 +2107,7 @@ function renderChanges(){
 // ---------- re-plan from here ----------
 function replanHere(){
   if(!navigator.geolocation){ toast("This device can't share its location."); return; }
-  toast("Finding your location…");
+  toast("Finding your locationâ¦");
   navigator.geolocation.getCurrentPosition(pos=>{
     S.gps={lat:pos.coords.latitude,lng:pos.coords.longitude,acc:pos.coords.accuracy,at:Date.now()}; store.set("gps",S.gps);
     $("startSel").value="gps"; store.set("start","gps"); showStartExtras("gps"); gpsStatus();
@@ -2056,14 +2126,14 @@ function buildEOD(){
   const tiers=[0,0,0,0]; open.forEach(c=>tiers[tierOf(c)]++);
   const handed=S.calls.filter(c=>S.handed[c.order]&&dateKey(new Date(S.handed[c.order]))===today);
   const stores=new Set(done.map(x=>x.s));
-  let t=`End of day – ${dayTxt}\n\nCompleted today: ${done.length} call${done.length===1?"":"s"} at ${stores.size} store${stores.size===1?"":"s"}`;
-  done.forEach(x=>{ t+=`\n  ✔ ${new Date(x.at).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}  Store ${x.s}${x.city?" – "+x.city:""}: ${x.d} (#${x.o})`; });
+  let t=`End of day â ${dayTxt}\n\nCompleted today: ${done.length} call${done.length===1?"":"s"} at ${stores.size} store${stores.size===1?"":"s"}`;
+  done.forEach(x=>{ t+=`\n  â ${new Date(x.at).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}  Store ${x.s}${x.city?" â "+x.city:""}: ${x.d} (#${x.o})`; });
   t+=`\n\nStill open: ${open.length} call${open.length===1?"":"s"}`;
   const past=tiers[1]+tiers[2]+tiers[3];
-  if(past) t+=`\n  Past due: ${past} (4+ days: ${tiers[3]} · 3 days: ${tiers[2]} · 1–2 days: ${tiers[1]})`;
+  if(past) t+=`\n  Past due: ${past} (4+ days: ${tiers[3]} Â· 3 days: ${tiers[2]} Â· 1â2 days: ${tiers[1]})`;
   const soon=open.filter(c=>fmtSoon(c)); if(soon.length) t+=`\n  Due in the next 2 days: ${soon.length}`;
-  if(handed.length){ t+=`\n\nHanded off today: ${handed.length}`; handed.forEach(c=>{ t+=`\n  ↗ Store ${c.store}: ${c.desc} (#${c.order})`; }); }
-  const rt=S.routeTotals; if(rt&&rt.stops) t+=`\n\nRemaining route: ${rt.stops} stop${rt.stops>1?"s":""}${rt.miles!=null?`, ≈ ${rt.miles.toFixed(0)} mi`:""}`;
+  if(handed.length){ t+=`\n\nHanded off today: ${handed.length}`; handed.forEach(c=>{ t+=`\n  â Store ${c.store}: ${c.desc} (#${c.order})`; }); }
+  const rt=S.routeTotals; if(rt&&rt.stops) t+=`\n\nRemaining route: ${rt.stops} stop${rt.stops>1?"s":""}${rt.miles!=null?`, â ${rt.miles.toFixed(0)} mi`:""}`;
   return t;
 }
 function openEOD(){ $("eodText").value=buildEOD(); $("eodDlg").classList.add("show"); }
@@ -2076,14 +2146,14 @@ function outlookCompose(subject, body){
 // ---------- hand off a call or a stop ----------
 let handCalls=[];
 async function packCalls(calls, add){
-  const rows=calls.map(c=>["","",c.date,c.time,c.prioLabel,"P"+c.store,"","",c.serial||"",c.order,c.desc,c.wc||"",c.status==="—"?"":c.status,"",c.location||""].join("\t"));
+  const rows=calls.map(c=>["","",c.date,c.time,c.prioLabel,"P"+c.store,"","",c.serial||"",c.order,c.desc,c.wc||"",c.status==="â"?"":c.status,"",c.location||""].join("\t"));
   return zip(JSON.stringify({v:1,a:add?1:0,c:rows.join("\n")}));   // hand-offs go to a teammate: no ID
 }
 async function openHandoff(calls){
   handCalls=calls.filter(c=>!isDone(c)); if(!handCalls.length) return;
   const n=handCalls.length, st=handCalls[0].store;
   $("handTitle").textContent = n>1 ? `Hand off store ${st}` : "Hand off this call";
-  $("handSum").textContent = `${n} call${n>1?"s":""} at store ${st}${S.stores[st]?" – "+S.stores[st].city:""}.`;
+  $("handSum").textContent = `${n} call${n>1?"s":""} at store ${st}${S.stores[st]?" â "+S.stores[st].city:""}.`;
   const packed=await packCalls(handCalls,true); handCalls.packed=packed;
   const qr=$("handQR"); qr.style.display="none";
   $("handHow").textContent="Copy and send it to your teammate in Teams, a text, or email. They paste the whole message into Import calls and select Load calls.";
@@ -2099,8 +2169,8 @@ async function openHandoff(calls){
 }
 function handoffText(){
   const c0=handCalls[0], s=S.stores[c0.store];
-  let t=`Handing off ${handCalls.length} call${handCalls.length>1?"s":""} – Store ${c0.store}${s?" – "+fullAddr(c0.store):""}`;
-  handCalls.forEach(c=>{ t+=`\n• ${c.prioLabel.replace(/^\d\s*-\s*/,"")}: ${c.desc} (#${c.order})${fmtPast(c)?" – "+fmtPast(c):""}\n  ${ORDER_URL(c.order)}`; });
+  let t=`Handing off ${handCalls.length} call${handCalls.length>1?"s":""} â Store ${c0.store}${s?" â "+fullAddr(c0.store):""}`;
+  handCalls.forEach(c=>{ t+=`\nâ¢ ${c.prioLabel.replace(/^\d\s*-\s*/,"")}: ${c.desc} (#${c.order})${fmtPast(c)?" â "+fmtPast(c):""}\n  ${ORDER_URL(c.order)}`; });
   t+=`\n\nTo add these to Route Planner, copy this whole message, paste it into Import calls, and select Load calls.\n${SYNC_TAG}${handCalls.packed}`;
   return t;
 }
@@ -2146,23 +2216,23 @@ function dvCard(n,i){
   const tel=(s.phone||"").replace(/[^0-9+]/g,"");
   const rows=cs.map(c=>{ const dn=isDone(c), t=tierOf(c);
     return `<label class="dv-call${dn?" isdone":""}"><input type="checkbox" data-dv="${esc(c.order)}" ${dn?"checked":""}>
-      <span class="d"><b>${esc(c.desc)}</b>${dn?"":callTags(c)}<span class="m"><span class="pri p${c.prio}">${esc(c.prioLabel)}</span> ${t&&!dn?`<span class="tier t${t}">${fmtPast(c)}</span> `:""}Order <a class="ord" href="${ORDER_HREF(c.order)}"${orderTarget()} onclick="event.stopPropagation()">${esc(c.order)}</a>${c.serial?" · SN "+esc(c.serial):""}</span></span></label>`; }).join("");
+      <span class="d"><b>${esc(c.desc)}</b>${dn?"":callTags(c)}<span class="m"><span class="pri p${c.prio}">${esc(c.prioLabel)}</span> ${t&&!dn?`<span class="tier t${t}">${fmtPast(c)}</span> `:""}Order <a class="ord" href="${ORDER_HREF(c.order)}"${orderTarget()} onclick="event.stopPropagation()">${esc(c.order)}</a>${c.serial?" Â· SN "+esc(c.serial):""}</span></span></label>`; }).join("");
   return `<section class="dv-card" data-i="${i}"><div class="dv-inner${allDone?" done":""}">
     <div class="dv-step">Stop ${i+1} of ${DV.stops.length}</div>
     <div class="dv-store">${shieldHTML(groupOf(n))}<b>${esc(n)}</b><span class="dv-addr">${esc(s.center||"")}</span></div>
     <div class="dv-addr">${esc(fullAddr(n))}</div>
-    <div class="dv-acts"><a class="go" href="${navLink(n)}" target="_blank" rel="noopener">🧭 Navigate</a>${/iPhone|iPad|iPod/.test(navigator.userAgent)?`<a href="maps://?daddr=${encodeURIComponent(fullAddr(n))}&dirflg=d">Apple Maps</a>`:""}${tel?`<a href="tel:${esc(tel)}">📞 Call store</a>`:""}</div>
+    <div class="dv-acts"><a class="go" href="${navLink(n)}" target="_blank" rel="noopener">ð§­ Navigate</a>${/iPhone|iPad|iPod/.test(navigator.userAgent)?`<a href="maps://?daddr=${encodeURIComponent(fullAddr(n))}&dirflg=d">Apple Maps</a>`:""}${tel?`<a href="tel:${esc(tel)}">ð Call store</a>`:""}</div>
     ${rows||'<p class="hint">No open calls here anymore.</p>'}
     ${storeRepeat(n)?`<div class="hint" style="margin-top:8px">${storeRepeat(n)}</div>`:""}
-    ${F("handoff")&&cs.some(c=>!isDone(c))?`<button class="hand" type="button" data-handstop="${esc(n)}" style="margin:10px 0 0">↗ Hand off this stop</button>`:""}
-    <div class="dv-ok">✓ All calls at this stop are done</div>
+    ${F("handoff")&&cs.some(c=>!isDone(c))?`<button class="hand" type="button" data-handstop="${esc(n)}" style="margin:10px 0 0">â Hand off this stop</button>`:""}
+    <div class="dv-ok">â All calls at this stop are done</div>
   </div></section>`;
 }
 function dvProgress(){
   let calls=0, done=0, stopsDone=0;
   DV.stops.forEach(n=>{ const cs=dvCallsAt(n); calls+=cs.length; const d=cs.filter(isDone).length; done+=d; if(cs.length&&d===cs.length) stopsDone++; });
   $("dvBar").style.width=(calls?Math.round(done/calls*100):0)+"%";
-  $("dvSub").textContent=`${done} of ${calls} calls done · ${stopsDone} of ${DV.stops.length} stops`;
+  $("dvSub").textContent=`${done} of ${calls} calls done Â· ${stopsDone} of ${DV.stops.length} stops`;
   $("dvDots").innerHTML=DV.stops.map((n,i)=>{ const cs=dvCallsAt(n); return `<i class="${cs.length&&cs.every(isDone)?"d":""}${i===DV.idx?" c":""}"></i>`; }).join("");
   $("dvPrev").disabled=DV.idx===0; $("dvNext").disabled=DV.idx===DV.stops.length-1;
 }
@@ -2235,10 +2305,10 @@ function dailyUsage(){
   if(shared.get("uidDay","")!==today){ shared.set("uidDay",today); track("user/"+getUid().i); }
 }
 function renderUsage(){
-  $("usageEd").textContent=`${EDITION.name.replace(/^Service Route Planner\s*[–-]\s*/,"")} v${APP_VERSION}`;
+  $("usageEd").textContent=`${EDITION.name.replace(/^Service Route Planner\s*[â-]\s*/,"")} v${APP_VERSION}`;
   const log=shared.get("sentLog",[]).slice().reverse();
   $("uidShow").textContent=getUid().i;
-  $("sentLog").innerHTML = log.length ? log.map(x=>`${esc(new Date(x.t).toLocaleString())} – <b>${esc(x.e.startsWith("users/")?"daily user count, ID "+x.e.slice(6):x.e.split("/").pop())}</b> (${esc(x.e.startsWith("users/")?"":x.e.split("/")[1]+" ")}v${esc(x.v)}, screen ${screen.width}×${screen.height})${x.s?"":IS_MOBILE?" – not sent: offline or counting not set up yet":" – not sent: computers never send usage data"}`).join("<br>") : "Nothing yet.";
+  $("sentLog").innerHTML = log.length ? log.map(x=>`${esc(new Date(x.t).toLocaleString())} â <b>${esc(x.e.startsWith("users/")?"daily user count, ID "+x.e.slice(6):x.e.split("/").pop())}</b> (${esc(x.e.startsWith("users/")?"":x.e.split("/")[1]+" ")}v${esc(x.v)}, screen ${screen.width}Ã${screen.height})${x.s?"":IS_MOBILE?" â not sent: offline or counting not set up yet":" â not sent: computers never send usage data"}`).join("<br>") : "Nothing yet.";
   // Completed calls from every version used on this device (each keeps its own list).
   const all={}; try{ for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(/^(rp|rpc|rp-[A-Z]{2})\.history$/.test(k)) Object.assign(all,JSON.parse(localStorage.getItem(k)||"{}")); } }catch(e){}
   const h=Object.values(all), cnt=(arr)=>{ const m={}; arr.forEach(k=>m[k]=(m[k]||0)+1); return Object.entries(m).sort((a,b)=>b[1]-a[1]); };
@@ -2248,8 +2318,8 @@ function renderUsage(){
     [USAGE.days, `day${USAGE.days===1?"":"s"} used since ${new Date(USAGE.first).toLocaleDateString()}`],
     [h.length, "calls completed"], [month, "completed this month"],
     [byStore.length, "stores served"], [cities.size, `cit${cities.size===1?"y":"ies"} visited`],
-    [byStore[0]?byStore[0][0]:"—", byStore[0]?`your most-served store (${byStore[0][1]} calls)`:"most-served store"],
-    [byDay[0]?byDay[0][1]:"—", byDay[0]?`calls on your busiest day (${new Date(byDay[0][0]).toLocaleDateString()})`:"busiest day"],
+    [byStore[0]?byStore[0][0]:"â", byStore[0]?`your most-served store (${byStore[0][1]} calls)`:"most-served store"],
+    [byDay[0]?byDay[0][1]:"â", byDay[0]?`calls on your busiest day (${new Date(byDay[0][0]).toLocaleDateString()})`:"busiest day"],
     [USAGE.routes, "routes opened in Google Maps"], [USAGE.imports, "call lists loaded"]];
   $("facts").innerHTML=facts.map(([n,l])=>`<div class="fact"><b>${esc(String(n))}</b><span>${esc(l)}</span></div>`).join("");
 }
@@ -2264,16 +2334,16 @@ function deviceDetails(){
   let bytes=0; try{ for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k.startsWith(EDITION.key)) bytes+=k.length+(localStorage.getItem(k)||"").length; } }catch(e){}
   const loaded=store.get("loadedAt",0), on=FEATURES.filter(f=>F(f[0])).map(f=>f[1]);
   const lines=[
-    `Planner: ${EDITION.name} v${APP_VERSION} · ${how}`,
+    `Planner: ${EDITION.name} v${APP_VERSION} Â· ${how}`,
     `Browser: ${browser} on ${os}`,
-    `Screen: ${screen.width}×${screen.height} · window ${innerWidth}×${innerHeight} · zoom/pixel ratio ${devicePixelRatio} · ${matchMedia("(pointer:coarse)").matches?"touch":"mouse"} · ${matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"} mode`,
+    `Screen: ${screen.width}Ã${screen.height} Â· window ${innerWidth}Ã${innerHeight} Â· zoom/pixel ratio ${devicePixelRatio} Â· ${matchMedia("(pointer:coarse)").matches?"touch":"mouse"} Â· ${matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"} mode`,
     `Language / time zone: ${navigator.language} / ${Intl.DateTimeFormat().resolvedOptions().timeZone}`,
-    `Internet: ${navigator.onLine?"online":"offline"} · offline cache: ${"serviceWorker" in navigator?(navigator.serviceWorker.controller?"active":"not active"):"not supported"}`,
+    `Internet: ${navigator.onLine?"online":"offline"} Â· offline cache: ${"serviceWorker" in navigator?(navigator.serviceWorker.controller?"active":"not active"):"not supported"}`,
     `Data (counts only): ${S.calls.length} calls loaded, ${Object.keys(S.stores).length} stores, ${Object.keys(S.done||{}).length} marked done${loaded?", last import "+new Date(loaded).toLocaleString():""}`,
     `Saved data size: ${(bytes/1024).toFixed(0)} KB`,
     `Optional features on: ${on.length?on.join(", "):"none"}`,
     `Recent errors: ${ERRLOG.length?"":"none"}`,
-    ...ERRLOG.slice(-5).map(e=>`  ${new Date(e.t).toLocaleString()} – ${e.m}`)
+    ...ERRLOG.slice(-5).map(e=>`  ${new Date(e.t).toLocaleString()} â ${e.m}`)
   ];
   return lines.join("\n");
 }
@@ -2299,10 +2369,10 @@ function setupFeedback(){
     if(msg.length<5){ err.textContent="Describe the bug, error, or suggestion."; $("fbMsg").focus(); return; }
     const prop=$("fbProp").checked;
     err.textContent=""; store.set("fbName",name); store.set("fbP",pn);
-    const subject=`[Route2 Feedback]${prop?" [PROPRIETARY]":""} ${type} – ${name} (P${pn})`;
-    const body=[...(prop?["🚩 RED FLAG: The sender marked this report as containing PROPRIETARY or CONFIDENTIAL information. Review before sharing it anywhere else.",""]:[]),`Type: ${type}`,`Name: ${name}`,`P Number: P${pn}`,"",msg,"",...(type!=="Suggestion"?["📷 Screenshot: please attach a screenshot of the problem before sending.",""]:[]),"---",
+    const subject=`[Route2 Feedback]${prop?" [PROPRIETARY]":""} ${type} â ${name} (P${pn})`;
+    const body=[...(prop?["ð© RED FLAG: The sender marked this report as containing PROPRIETARY or CONFIDENTIAL information. Review before sharing it anywhere else.",""]:[]),`Type: ${type}`,`Name: ${name}`,`P Number: P${pn}`,"",msg,"",...(type!=="Suggestion"?["ð· Screenshot: please attach a screenshot of the problem before sending.",""]:[]),"---",
       `Planner: ${EDITION.name} v${APP_VERSION} (${IS_ONLINE?"online":"offline"})`,
-      `Sent: ${new Date().toLocaleString()}`,`Proprietary information: ${prop?"YES – flagged by sender":"No"}`,
+      `Sent: ${new Date().toLocaleString()}`,`Proprietary information: ${prop?"YES â flagged by sender":"No"}`,
       ...($("fbDevOn").checked?["","Device details (included with the sender's permission):",deviceDetails()]:["","Device details: not included (sender unchecked it)"])].join("\n");
     const q=`to=${encodeURIComponent(FEEDBACK_TO)}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     const mobile=/iPhone|iPad|iPod|Android/.test(navigator.userAgent);
@@ -2345,7 +2415,7 @@ const DAY0=Date.UTC(2020,0,1);
 function packRow(c, w){
   const m=/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(c.date||""), day=m?Math.round((Date.UTC(+m[3],+m[1]-1,+m[2])-DAY0)/864e5):"";
   const tt=/^(\d{1,2}):(\d{2})/.exec(c.time||""), mins=tt?(+tt[1])*60+(+tt[2]):"";
-  const r=[c.order, c.store, day, mins, PRIO_CODE[c.prioLabel]||c.prioLabel||"", c.desc, c.serial||"", c.status==="DISP"?0:(c.status==="—"?"":c.status), (c.wc||"")===w?0:(c.wc||""), c.location&&c.location!==c.store?c.location:""];
+  const r=[c.order, c.store, day, mins, PRIO_CODE[c.prioLabel]||c.prioLabel||"", c.desc, c.serial||"", c.status==="DISP"?0:(c.status==="â"?"":c.status), (c.wc||"")===w?0:(c.wc||""), c.location&&c.location!==c.store?c.location:""];
   const dflt=["","","","","","","",0,0,""];
   while(r.length>6 && r[r.length-1]===dflt[r.length-1]) r.pop();
   return r;
@@ -2380,7 +2450,7 @@ async function buildSend(){
   sendState={links:[],i:0};
   for(let i=0;i<n;i++) sendState.links.push(`${SITE_URL}planners/${dest}.html#sync=${id}.${i+1}.${n}.${data.slice(i*CH,(i+1)*CH)}`);
   const away=S.calls.filter(c=>!isDone(c)&&EDITION_CODE==="ALL"&&(S.stores[c.store]||{}).state&&(S.stores[c.store]||{}).state!==dest&&!(dest==="VA"&&c.store==="1615")).length;
-  $("sendSummary").textContent=`${p.n} open call${p.n>1?"s":""} and your route settings → ${STATE_NAMES[dest]} planner.`+(away?` ${away} call${away>1?"s are":" is"} at stores outside ${STATE_NAMES[dest]} and will show without an address.`:"");
+  $("sendSummary").textContent=`${p.n} open call${p.n>1?"s":""} and your route settings â ${STATE_NAMES[dest]} planner.`+(away?` ${away} call${away>1?"s are":" is"} at stores outside ${STATE_NAMES[dest]} and will show without an address.`:"");
   $("sendQR").style.display=""; showSendCode();
 }
 function showSendCode(){
@@ -2400,9 +2470,9 @@ function parseIW47(text){
     const order=(line.match(/\b(80\d{7})\b/)||[])[1]; if(!order) return;                 // skip totals / blank lines
     const dm=line.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/); if(!dm) return;                  // posting/created date
     const ymd=dm[3]+String(dm[1]).padStart(2,"0")+String(dm[2]).padStart(2,"0");
-    const hm=line.match(/(\d+(?:\.\d+)?)(-)?[ \s]+HR\b/i); if(!hm) return;            // Actual work; trailing "-" = reversal
+    const hm=line.match(/(\d+(?:\.\d+)?)(-)?[â\s]+HR\b/i); if(!hm) return;            // Actual work; trailing "-" = reversal
     let hrs=parseFloat(hm[1]); if(hm[2]==="-") hrs=-hrs;
-    const sm=line.match(/-(\d{3,5})(?=[ \s]|$)/);                                     // store = Func. Loc. suffix; none = overhead
+    const sm=line.match(/-(\d{3,5})(?=[â\s]|$)/);                                     // store = Func. Loc. suffix; none = overhead
     rows.push({ymd,order,hrs,store:sm?sm[1]:""});
   });
   return rows;
@@ -2417,9 +2487,9 @@ function renderTc(rows){
   const {dates,sd,ov}=iw47Agg(rows);
   const stores=[...new Set(rows.filter(r=>r.store).map(r=>r.store))].sort();
   const total=rows.reduce((a,r)=>a+r.hrs,0), neg=rows.filter(r=>r.hrs<0).length;
-  $("tcSummary").innerHTML=`<b>${rows.length}</b> confirmation line${rows.length===1?"":"s"} · <b>${dates.length}</b> day${dates.length===1?"":"s"} (${ymdNice(dates[0])}–${ymdNice(dates[dates.length-1])}) · logged <b>${total.toFixed(2)} hr</b>`+(neg?` · ${neg} reversed entr${neg===1?"y":"ies"} netted out`:"");
+  $("tcSummary").innerHTML=`<b>${rows.length}</b> confirmation line${rows.length===1?"":"s"} Â· <b>${dates.length}</b> day${dates.length===1?"":"s"} (${ymdNice(dates[0])}â${ymdNice(dates[dates.length-1])}) Â· logged <b>${total.toFixed(2)} hr</b>`+(neg?` Â· ${neg} reversed entr${neg===1?"y":"ies"} netted out`:"");
   const head=`<tr><th style="text-align:left;position:sticky;left:0;background:var(--panel)">Store</th>${dates.map(d=>`<th style="text-align:right;padding:0 6px">${ymdNice(d)}</th>`).join("")}<th style="text-align:right;padding:0 6px">Total</th></tr>`;
-  const cellFmt=v=>v?v.toFixed(2):"·";
+  const cellFmt=v=>v?v.toFixed(2):"Â·";
   const body=stores.map(st=>{ let rt=0; const cells=dates.map(d=>{ const v=sd[st+"|"+d]||0; rt+=v; return `<td style="text-align:right;padding:0 6px">${cellFmt(v)}</td>`; }).join(""); return `<tr><td style="position:sticky;left:0;background:var(--panel)">#${st}</td>${cells}<td style="text-align:right;padding:0 6px;font-weight:700">${rt.toFixed(2)}</td></tr>`; }).join("");
   const ovRow=dates.some(d=>ov[d])?`<tr><td style="position:sticky;left:0;background:var(--panel)">Overhead</td>${dates.map(d=>`<td style="text-align:right;padding:0 6px">${cellFmt(ov[d]||0)}</td>`).join("")}<td style="text-align:right;padding:0 6px;font-weight:700">${dates.reduce((a,d)=>a+(ov[d]||0),0).toFixed(2)}</td></tr>`:"";
   const totRow=`<tr style="border-top:2px solid var(--line)"><td style="position:sticky;left:0;background:var(--panel);font-weight:700">Total</td>${dates.map(d=>{ let c=ov[d]||0; stores.forEach(st=>c+=sd[st+"|"+d]||0); return `<td style="text-align:right;padding:0 6px;font-weight:700">${c.toFixed(2)}</td>`; }).join("")}<td style="text-align:right;padding:0 6px;font-weight:700">${total.toFixed(2)}</td></tr>`;
@@ -2435,7 +2505,7 @@ function showTcCode(){
   const n=tcState.codes.length, i=tcState.i, q=RouteQR.make(tcState.codes[i],"L");
   RouteQR.draw($("tcQR"),q,8);
   $("tcQR").style.width = q.version>20 ? "min(620px,92vw,70vh)" : "min(340px,80vw)";
-  $("tcStep").textContent = n>1 ? `Code ${i+1} of ${n} — scan all in order` : "Scan this code";
+  $("tcStep").textContent = n>1 ? `Code ${i+1} of ${n} â scan all in order` : "Scan this code";
   $("tcPrev").style.display=n>1?"":"none"; $("tcNext").style.display=n>1?"":"none";
   $("tcPrev").disabled=i===0; $("tcNext").disabled=i===n-1;
 }
@@ -2528,7 +2598,7 @@ function offerSync(d, packed, fromPaste){
   if(d.ov && d.src==="companion"){   // SAP import from Companion: replace the whole list, no prompt
     const n=d.c?d.c.split("\n").filter(Boolean).length:0;
     $("callsInput").value=d.c||""; $("loadBtn").click();
-    render(); $("savedNote").textContent="Replaced from Companion (SAP)."; toast(`${n} call${n===1?"":"s"} from SAP — your list was replaced.`); return;
+    render(); $("savedNote").textContent="Replaced from Companion (SAP)."; toast(`${n} call${n===1?"":"s"} from SAP â your list was replaced.`); return;
   }
   if(d.a && d.src==="companion" && (d.rt==="reroute"||d.rt==="keep")){ applyNewCall(d); return; }
   if(d.a && d.auto && d.src==="companion"){ applySync(d); $("savedNote").textContent="Added from Companion (new dispatch)."; return; }   // auto-import a new dispatch, no prompt
@@ -2553,7 +2623,7 @@ function offerSync(d, packed, fromPaste){
   $("recvNo").onclick=()=>$("recvDlg").classList.remove("show");
   $("recvYes").onclick=()=>{ $("recvDlg").classList.remove("show"); applySync(d); };
   $("recvCopy").onclick=()=>{
-    const t=SYNC_TAG+packed, done=()=>{ $("recvHint").innerHTML="<b>Copied.</b> Now open <b>Route "+EDITION_CODE+"</b> from your home screen and tap <b>📋 Paste transfer</b>."; };
+    const t=SYNC_TAG+packed, done=()=>{ $("recvHint").innerHTML="<b>Copied.</b> Now open <b>Route "+EDITION_CODE+"</b> from your home screen and tap <b>ð Paste transfer</b>."; };
     if(navigator.clipboard) navigator.clipboard.writeText(t).then(done,()=>fallbackCopy(t,done)); else fallbackCopy(t,done);
   };
 }
@@ -2596,7 +2666,7 @@ async function receiveSync(){
   offerSync(d,packed,false);
 }
 // Direct SAP desktop import: a macro (SAP GUI Scripting) opens this planner with #sap=<base64url rows> and the whole
-// call list is replaced from it — the same rows the "Paste from SAP" box accepts. No deflate, so a macro can build it.
+// call list is replaced from it â the same rows the "Paste from SAP" box accepts. No deflate, so a macro can build it.
 function receiveSap(){
   const m=/^#sap=(.+)$/i.exec(location.hash);
   if(!m) return false;
@@ -2608,7 +2678,7 @@ function receiveSap(){
   if(!n){ toast("No calls in that SAP import."); return true; }
   $("callsInput").value=text; $("loadBtn").click(); render();
   $("savedNote").textContent="Replaced from SAP (desktop import).";
-  toast(`${n} call${n===1?"":"s"} from SAP — your list was replaced.`);
+  toast(`${n} call${n===1?"":"s"} from SAP â your list was replaced.`);
   return true;
 }
 let installPrompt=null;
@@ -2645,10 +2715,10 @@ function setupBookmark(){
 function showInstallHelp(){
   const ua=navigator.userAgent; let html;
   if(/iPhone|iPad|iPod/.test(ua)) html = /CriOS|EdgiOS|FxiOS/.test(ua)
-    ? `<ol><li>Tap the <b>Share</b> button (□↑) in the address bar.</li><li>Choose <b>Add to Home Screen</b>, then tap <b>Add</b>.</li></ol><p class="hint">If you don't see it, open this page in <b>Safari</b> and do the same.</p>`
-    : `<ol><li>Tap the <b>Share</b> button (□↑) at the bottom of Safari.</li><li>Scroll down and tap <b>Add to Home Screen</b>.</li><li>Tap <b>Add</b>. The <b>Route ${EDITION_CODE}</b> icon appears on your home screen.</li></ol>`;
-  else if(/Android/.test(ua)) html=`<ol><li>Tap the <b>⋮</b> menu in the top-right corner.</li><li>Tap <b>Install app</b> or <b>Add to Home screen</b>.</li><li>Tap <b>Install</b>. The <b>Route ${EDITION_CODE}</b> icon appears on your home screen.</li></ol>`;
-  else html=`<ol><li>In Edge or Chrome, click the <b>Install</b> icon at the right end of the address bar (a screen with a ↓ or a +).</li><li>Click <b>Install</b>. Route Planner opens in its own window and appears in your Start menu or taskbar.</li></ol><p class="hint">No icon? Open the browser's <b>⋯</b> menu and look for <b>Apps → Install this site as an app</b> (Edge) or <b>Cast, save, and share → Install page as app</b> (Chrome).</p>`;
+    ? `<ol><li>Tap the <b>Share</b> button (â¡â) in the address bar.</li><li>Choose <b>Add to Home Screen</b>, then tap <b>Add</b>.</li></ol><p class="hint">If you don't see it, open this page in <b>Safari</b> and do the same.</p>`
+    : `<ol><li>Tap the <b>Share</b> button (â¡â) at the bottom of Safari.</li><li>Scroll down and tap <b>Add to Home Screen</b>.</li><li>Tap <b>Add</b>. The <b>Route ${EDITION_CODE}</b> icon appears on your home screen.</li></ol>`;
+  else if(/Android/.test(ua)) html=`<ol><li>Tap the <b>â®</b> menu in the top-right corner.</li><li>Tap <b>Install app</b> or <b>Add to Home screen</b>.</li><li>Tap <b>Install</b>. The <b>Route ${EDITION_CODE}</b> icon appears on your home screen.</li></ol>`;
+  else html=`<ol><li>In Edge or Chrome, click the <b>Install</b> icon at the right end of the address bar (a screen with a â or a +).</li><li>Click <b>Install</b>. Route Planner opens in its own window and appears in your Start menu or taskbar.</li></ol><p class="hint">No icon? Open the browser's <b>â¯</b> menu and look for <b>Apps â Install this site as an app</b> (Edge) or <b>Cast, save, and share â Install page as app</b> (Chrome).</p>`;
   $("bmkTitle").textContent="Install Route Planner";
   $("bmkBody").innerHTML=html+`<p class="hint">It works like an app and opens without signal once installed. Your calls stay on this device.</p>`; $("bmkMsg").textContent="";
   $("bmk").classList.add("show"); $("bmkClose").focus();
@@ -2657,9 +2727,9 @@ function showBookmarkHelp(){
   $("bmkTitle").textContent="Bookmark this planner";
   const ua=navigator.userAgent, mac=/Macintosh|Mac OS X/.test(ua)&&!/iPhone|iPad/.test(ua);
   let html;
-  if(/iPhone|iPad|iPod/.test(ua)) html=`<ol><li>Tap the <b>Share</b> button <span aria-hidden="true">(□↑)</span> at the bottom of Safari.</li><li>Choose <b>Add to Home Screen</b> for an app icon, or <b>Add Bookmark</b>.</li><li>Tap <b>Add</b>.</li></ol>`;
-  else if(/Android/.test(ua)) html=`<ol><li>Tap the <b>⋮</b> menu in the top-right corner of the browser.</li><li>Tap <b>☆</b> to bookmark, or <b>Add to Home screen</b> for an app icon.</li></ol>`;
-  else html=`<p>Press <span class="key">${mac?"⌘":"Ctrl"}</span> + <span class="key">D</span>, then select <b>Done</b>.</p><p class="hint">Tip: in the bookmark window, choose <b>Favorites bar</b> or <b>Bookmarks bar</b> so it's always one click away.</p>`;
+  if(/iPhone|iPad|iPod/.test(ua)) html=`<ol><li>Tap the <b>Share</b> button <span aria-hidden="true">(â¡â)</span> at the bottom of Safari.</li><li>Choose <b>Add to Home Screen</b> for an app icon, or <b>Add Bookmark</b>.</li><li>Tap <b>Add</b>.</li></ol>`;
+  else if(/Android/.test(ua)) html=`<ol><li>Tap the <b>â®</b> menu in the top-right corner of the browser.</li><li>Tap <b>â</b> to bookmark, or <b>Add to Home screen</b> for an app icon.</li></ol>`;
+  else html=`<p>Press <span class="key">${mac?"â":"Ctrl"}</span> + <span class="key">D</span>, then select <b>Done</b>.</p><p class="hint">Tip: in the bookmark window, choose <b>Favorites bar</b> or <b>Bookmarks bar</b> so it's always one click away.</p>`;
   $("bmkBody").innerHTML=html; $("bmkMsg").textContent="";
   $("bmk").classList.add("show"); $("bmkClose").focus();
 }
@@ -2681,7 +2751,7 @@ function liveUpdates(){
         bar.innerHTML=`<span><b>Version ${esc(v)} is ready.</b> You have ${APP_VERSION}.</span><button type="button" id="updGo">Update now</button><span>Your calls and settings stay.</span>`;
         bar.classList.add("show"); $("updGo").onclick=()=>go(v); return;
       }
-      bar.innerHTML=`<span><b>Updating to version ${esc(v)}…</b> Your calls and settings stay.</span>`; bar.classList.add("show");
+      bar.innerHTML=`<span><b>Updating to version ${esc(v)}â¦</b> Your calls and settings stay.</span>`; bar.classList.add("show");
       setTimeout(()=>{ if(!busy()) go(v); else check(); },3000);
     }catch(e){}
   };
@@ -2691,7 +2761,7 @@ function liveUpdates(){
 
 async function checkUpdate(manual){
   const m=$("updMsg"), bar=$("updBar");
-  if(manual) m.textContent="Checking…";
+  if(manual) m.textContent="Checkingâ¦";
   try{
     const r=await fetch(SITE_URL+"version.json?t="+Date.now(),{cache:"no-store"}); if(!r.ok) throw 0;
     const v=(await r.json()).version;
@@ -2724,7 +2794,7 @@ function layoutSummaries(){
   const loaded=S.calls.length>0 && !S.impOpen;
   $("impSum").hidden=!loaded; $("impBox").hidden=loaded; $("sapHelp").hidden=loaded;
   if(loaded && !$("importMsg").classList.contains("err")) $("importMsg").textContent="";
-  if(loaded){ const t=store.get("loadedAt",null); $("impSumText").textContent=`${S.calls.length} call${S.calls.length===1?"":"s"} loaded`+(t?` · ${new Date(t).toLocaleString([], {weekday:"short",hour:"numeric",minute:"2-digit"})}`:""); }
+  if(loaded){ const t=store.get("loadedAt",null); $("impSumText").textContent=`${S.calls.length} call${S.calls.length===1?"":"s"} loaded`+(t?` Â· ${new Date(t).toLocaleString([], {weekday:"short",hour:"numeric",minute:"2-digit"})}`:""); }
   // Filters: one-line summary of what's narrowing the list.
   const parts=[];
   if(S.pastTiers.size||customRange()) parts.push("past due: "+(customRange()?"custom range":TIERS.filter(x=>S.pastTiers.has(x.k)).map(x=>x.label).join(", ")));
@@ -2733,10 +2803,10 @@ function layoutSummaries(){
   if(offG.length) parts.push("groups: "+[...S.fGroups].sort().join(", ")); if(offP.length) parts.push("some priorities"); if(offS.length) parts.push("status: "+[...S.fStatus].join(", "));
   if(S.fDue) parts.push("due by "+S.fDue); if(S.showDone) parts.push("showing completed");
   const vis=visibleCalls().length;
-  $("filterSum").textContent = parts.length ? `Showing ${vis} of ${S.calls.length} · ${parts.join(" · ")}` : (S.calls.length?`Showing all ${S.calls.length} calls · tap to filter`:"Tap to filter");
+  $("filterSum").textContent = parts.length ? `Showing ${vis} of ${S.calls.length} Â· ${parts.join(" Â· ")}` : (S.calls.length?`Showing all ${S.calls.length} calls Â· tap to filter`:"Tap to filter");
   // Route options: one-line summary.
   const ss=$("startSel"), ms=$("modeSel");
-  $("routeSum").textContent=`From: ${ss.options[ss.selectedIndex]?ss.options[ss.selectedIndex].text.replace("…",""):"first stop"} · ${ms.options[ms.selectedIndex].text}${$("roundTrip").checked?" · return to start":""}`;
+  $("routeSum").textContent=`From: ${ss.options[ss.selectedIndex]?ss.options[ss.selectedIndex].text.replace("â¦",""):"first stop"} Â· ${ms.options[ms.selectedIndex].text}${$("roundTrip").checked?" Â· return to start":""}`;
 }
 
 // ---------- init ----------
@@ -2748,7 +2818,7 @@ window.addEventListener("hashchange",()=>{ if(/^#sap=/.test(location.hash)) rece
 $("replanBtn").onclick=replanHere; $("dvReplan").onclick=replanHere;
 $("eodBtn").onclick=openEOD; $("eodClose").onclick=()=>$("eodDlg").classList.remove("show");
 $("eodCopy").onclick=()=>copyText($("eodText").value,"Summary copied.");
-$("eodMail").onclick=()=>outlookCompose(`End of day – ${new Date().toLocaleDateString()}`,$("eodText").value);
+$("eodMail").onclick=()=>outlookCompose(`End of day â ${new Date().toLocaleDateString()}`,$("eodText").value);
 $("eodDlg").onclick=e=>{ if(e.target.id==="eodDlg") $("eodDlg").classList.remove("show"); };
 window.__sapImport = receiveSap();
 if(IS_ONLINE && !window.__sapImport) receiveSync();
@@ -2787,12 +2857,12 @@ $("wnTour").onclick=()=>{ hideWn(); startTour(); };
 $("wnBtn").onclick=()=>showWhatsNew(null,false);
 $("tourBtn").onclick=()=>startTour();
 const TOUR=[
-  ["#menuBtn","☰ Menu","Install app, Bookmark, Download offline copy, Settings, and Feedback all live here. Send to phone, when turned on, has its own button next to the menu."],
+  ["#menuBtn","â° Menu","Install app, Bookmark, Download offline copy, Settings, and Feedback all live here. Send to phone, when turned on, has its own button next to the menu."],
   ["#importCard","Load your calls","Paste your SAP IW49N export (or dispatch texts) and select Load calls. After loading, this shrinks to one line. Select Paste new export to load a fresh list."],
   ["#filterBar","Filters","Tap to filter by days past due, due dates, groups, priority, and status. The line next to Filters shows what's hidden."],
   ["#storeList","Store cards","Each card is one store. Check the box to mark a call done, tap the order number to open it in Edge, tap the store name for address and phone, and uncheck Route to leave a store out."],
   [".panel.route","Your route","Open the route in Google Maps. Route options sets where you start and how stops are ordered. Copy route for team shares it."],
-  ["#menuBtn","Turn on extras","Day view, Send to phone, Hand off, and more are off to keep things simple. Turn them on in ☰ Menu → Settings. You can replay this tour from ☰ Menu → Quick tour."]
+  ["#menuBtn","Turn on extras","Day view, Send to phone, Hand off, and more are off to keep things simple. Turn them on in â° Menu â Settings. You can replay this tour from â° Menu â Quick tour."]
 ];
 let tourI=0, tourSteps=[];
 function startTour(){
