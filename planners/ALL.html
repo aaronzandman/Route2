@@ -656,10 +656,12 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
       <div id="impBox"><h2>Import calls</h2>
     <textarea id="callsInput" placeholder="Paste service call rows from SAP, or paste dispatch text messages"></textarea>
     <div class="row">
-      <button class="primary" id="pasteSapBtn">📋 Paste from SAP</button>
+      <button class="primary" id="sapMobileBtn">📲 Open SAP &amp; import</button>
+      <button id="pasteSapBtn">📋 Paste from SAP</button>
       <button id="loadBtn">Load calls</button>
       <button id="clearBtn">Clear</button>
     </div>
+    <div class="row" id="sapReturnRow" hidden><button class="primary" id="sapReturnBtn">📥 Import the calls I copied in SAP</button></div>
       </div>
     <div class="msg" id="importMsg"></div>
     <div class="chg" id="chgBox" hidden></div>
@@ -819,12 +821,13 @@ const ERRLOG=[];
   window.addEventListener("unhandledrejection",e=>add("Promise: "+((e.reason&&e.reason.message)||e.reason)));
 })();
 // ---------- version ----------
-const APP_VERSION = "4.35";
+const APP_VERSION = "4.36";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const GC_CODE = "";   // GoatCounter site code for anonymous usage counts (blank = nothing is sent)
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["4.36", "📲 Open SAP & import: one tap opens the SAP mobile launchpad (your ZFIELDTECH active calls, in Edge if that’s your setting). Copy your calls there, switch back, and they import automatically — or tap “Import the calls I copied.” Everything stays on your device."],
   ["4.35", "SAP time check: travel time (ActType ITLABT) is split out from each store’s total, so the per-store on-site hours line up with what Companion tracks at the store; travel is shown on its own row."],
   ["4.34", "Fix: garbled symbols (≈, the middot, date badges and the drag handle) from a text-encoding bug in 4.33."],
   ["4.33", "Route options: choose where you Finish (back to start or a store) and which store is First, for a tighter route. The stop list is your visit order — drag the ⠿ handle (works on phones) or use the arrows to reorder, then just go down the list."],
@@ -2432,6 +2435,9 @@ const ORDER_HREF = n => {
   return IS_IOS ? "microsoft-edge-" + u : "microsoft-edge:" + u;
 };
 const orderTarget = () => useEdgeLinks() ? "" : ' target="_blank" rel="noopener"';
+// SAP Fiori launchpad — the ZFIELDTECH active-calls monitor (same launchpad + Edge rules as order links).
+const MONITOR_URL = "https://flpassociateapps.publix.com/sap/bc/ui2/flp#ZFIELDTECH-monitor";
+const MONITOR_HREF = () => { const u = MONITOR_URL; if(!useEdgeLinks()) return u; return IS_IOS ? "microsoft-edge-" + u : "microsoft-edge:" + u; };
 
 // ---------- parsing ----------
 const cleanNum = s => String(s||"").trim().replace(/^P/i,"").replace(/^0+(?=\d)/,"");
@@ -3193,17 +3199,42 @@ $("loadBtn").onclick=()=>{
 };
 $("clearBtn").onclick=()=>{ $("callsInput").value=""; S.calls=[]; store.set("callsText",""); $("importMsg").textContent=""; render(); };
 // One-click import from SAP: copy your active calls in SAP (Ctrl+C), then this reads the clipboard and loads them.
-$("pasteSapBtn").onclick=async()=>{
+// Read the clipboard and load it through the normal SAP parser. [loud] shows messages on failure
+// (used for a direct button tap); a silent call is used for the automatic attempt when you switch back.
+async function importFromClipboard(loud){
   const m=$("importMsg");
   try{
     const t=await navigator.clipboard.readText();
-    if(!t||!t.trim()){ m.className="msg err"; m.textContent="Clipboard is empty — in SAP, select your calls and copy (Ctrl+C) first, then tap Paste from SAP."; return; }
+    if(!t||!t.trim()){ if(loud){ m.className="msg err"; m.textContent="Clipboard is empty — in SAP, select your calls and copy (Ctrl+C) first, then tap the import button."; } return false; }
     $("callsInput").value=t; $("loadBtn").click();
+    disarmSap();
+    return true;
   }catch(e){
-    m.className="msg err"; m.textContent="Couldn't read the clipboard. Click in the box above, paste with Ctrl+V, then select Load calls. (Your browser may ask to allow clipboard access.)";
-    try{ $("callsInput").focus(); }catch(_){}
+    if(loud){
+      m.className="msg err"; m.textContent="Couldn't read the clipboard. Click in the box above, paste with Ctrl+V, then select Load calls. (Your browser may ask to allow clipboard access.)";
+      try{ $("callsInput").focus(); }catch(_){}
+    }
+    return false;
   }
+}
+$("pasteSapBtn").onclick=()=>importFromClipboard(true);
+
+// "Open SAP & import": open the Fiori monitor (your active calls) and arm an import for when you return.
+function armSap(){ try{ sessionStorage.setItem("sapPending", String(Date.now())); }catch(_){}; $("sapReturnRow").hidden=false; }
+function disarmSap(){ try{ sessionStorage.removeItem("sapPending"); }catch(_){}; const r=$("sapReturnRow"); if(r) r.hidden=true; }
+function sapArmed(){ try{ const t=+sessionStorage.getItem("sapPending"); return t && (Date.now()-t) < 15*60*1000; }catch(_){ return false; } }
+$("sapMobileBtn").onclick=()=>{
+  armSap();
+  const m=$("importMsg"); m.className="msg"; m.textContent="Opening SAP… select your active calls and copy them, then switch back here — your list imports automatically (or tap “Import the calls I copied”). Everything stays on this device.";
+  const href=MONITOR_HREF();
+  if(useEdgeLinks()) location.href=href; else window.open(href,"_blank","noopener");
 };
+$("sapReturnBtn").onclick=()=>importFromClipboard(true);
+// When you come back to the planner after copying in SAP, try to import automatically.
+async function onSapReturn(){ if(!sapArmed()) return; await importFromClipboard(false); }
+document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") onSapReturn(); });
+window.addEventListener("focus",onSapReturn);
+if(sapArmed()) $("sapReturnRow").hidden=false;
 function pastUI(){
   const counts={}; S.calls.filter(c=>!isDone(c)).forEach(c=>{const t=tierOf(c); counts[t]=(counts[t]||0)+1;});
   const host=$("pastQuick"), r=customRange();
