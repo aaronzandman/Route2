@@ -408,6 +408,7 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
       <button class="hbtn" id="wnBtn" type="button">✨ What's new</button>
       <button class="hbtn" id="tourBtn" type="button">🧭 Quick tour</button>
       <button class="hbtn" id="tcBtn" type="button">🕑 SAP time check</button>
+      <button class="hbtn" id="sapDiagBtn" type="button">🔎 SAP import check</button>
       <button class="hbtn" id="setBtn" type="button">⚙ Settings</button>
       <button class="hbtn" id="fbBtn" type="button">💬 Feedback</button>
     </div>
@@ -494,6 +495,22 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
       </div>
     </div>
     <div class="row" style="justify-content:flex-end;margin-top:8px"><button id="tcClose">Close</button></div>
+  </div>
+</div>
+<div class="bmk" id="sapDiagDlg" role="dialog" aria-modal="true" aria-labelledby="sapDiagTitle">
+  <div class="box" style="max-width:680px;max-height:92vh;overflow:auto">
+    <h3 id="sapDiagTitle">SAP import check</h3>
+    <p class="hint" style="margin:0 0 8px">This opens SAP the same way as the import button, but it does <b>not</b> try to understand your calls — it just drops the copied text into the box below, exactly as SAP gave it. Copy your calls in SAP, come back, tap <b>Read what I copied</b>, then <b>Copy all</b> and paste it to Claude so the columns can be matched up. Nothing is uploaded.</p>
+    <div class="row">
+      <button class="primary" type="button" id="sapDiagOpen">📲 Open SAP</button>
+      <button type="button" id="sapDiagRead">📥 Read what I copied</button>
+    </div>
+    <div class="msg" id="sapDiagInfo" style="margin-top:8px"></div>
+    <textarea id="sapDiagText" spellcheck="false" style="width:100%;min-height:200px;margin-top:8px;font:12px/1.4 ui-monospace,Consolas,monospace;white-space:pre;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:8px;background:var(--soft);color:var(--ink)" placeholder="The raw text you copied from SAP will appear here — or paste it here with Ctrl+V / long-press → Paste."></textarea>
+    <div class="row" style="justify-content:space-between">
+      <button type="button" id="sapDiagCopy">📋 Copy all</button>
+      <button class="primary" type="button" id="sapDiagClose">Close</button>
+    </div>
   </div>
 </div>
 <div class="bmk" id="setDlg" role="dialog" aria-modal="true" aria-labelledby="setTitle">
@@ -821,12 +838,13 @@ const ERRLOG=[];
   window.addEventListener("unhandledrejection",e=>add("Promise: "+((e.reason&&e.reason.message)||e.reason)));
 })();
 // ---------- version ----------
-const APP_VERSION = "4.36";
+const APP_VERSION = "4.37";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const GC_CODE = "";   // GoatCounter site code for anonymous usage counts (blank = nothing is sent)
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["4.37", "🔎 SAP import check (☰ Menu): opens SAP like the import button but just drops the copied text into a box, raw and unparsed, with a quick note of how many columns it sees. Copy it out and send it to Claude so the SAP mobile layout can be matched to the planner's columns."],
   ["4.36", "📲 Open SAP & import: one tap opens the SAP mobile launchpad (your ZFIELDTECH active calls, in Edge if that’s your setting). Copy your calls there, switch back, and they import automatically — or tap “Import the calls I copied.” Everything stays on your device."],
   ["4.35", "SAP time check: travel time (ActType ITLABT) is split out from each store’s total, so the per-store on-site hours line up with what Companion tracks at the store; travel is shown on its own row."],
   ["4.34", "Fix: garbled symbols (≈, the middot, date badges and the drag handle) from a text-encoding bug in 4.33."],
@@ -3230,8 +3248,50 @@ $("sapMobileBtn").onclick=()=>{
   if(useEdgeLinks()) location.href=href; else window.open(href,"_blank","noopener");
 };
 $("sapReturnBtn").onclick=()=>importFromClipboard(true);
-// When you come back to the planner after copying in SAP, try to import automatically.
-async function onSapReturn(){ if(!sapArmed()) return; await importFromClipboard(false); }
+
+// ---- SAP import check (diagnostic): drop the copied text in a box, raw, so the columns can be matched ----
+function analyzeSap(t){
+  const lines=t.replace(/\r/g,"").split("\n").filter(s=>s.trim().length);
+  if(!lines.length) return "Empty — nothing was copied.";
+  const first=lines[0];
+  const tabs=(first.match(/\t/g)||[]).length;
+  const delim = tabs ? "tab" : /\s{2,}/.test(first) ? "runs of spaces" : first.includes(",") ? "comma" : "single space / unclear";
+  const cols = tabs ? first.split("\t").length
+             : /\s{2,}/.test(first) ? first.split(/\s{2,}/).length
+             : first.includes(",") ? first.split(",").length
+             : first.split(/\s+/).length;
+  return `${lines.length} line(s) copied. Looks ${delim}-separated → about ${cols} columns in the first line.`;
+}
+async function readSapDiag(){
+  const info=$("sapDiagInfo");
+  try{
+    const t=await navigator.clipboard.readText();
+    if(!t||!t.trim()){ info.className="msg err"; info.textContent="Clipboard is empty — copy your calls in SAP first."; return; }
+    $("sapDiagText").value=t; info.className="msg"; info.textContent=analyzeSap(t);
+    try{ sessionStorage.removeItem("sapDiagPending"); }catch(_){}
+  }catch(e){
+    info.className="msg err"; info.textContent="Couldn't read the clipboard automatically — tap in the box below and paste (Ctrl+V, or long-press → Paste).";
+    try{ $("sapDiagText").focus(); }catch(_){}
+  }
+}
+function sapDiagArmed(){ try{ const t=+sessionStorage.getItem("sapDiagPending"); return t && (Date.now()-t) < 15*60*1000; }catch(_){ return false; } }
+$("sapDiagBtn").onclick=()=>{ $("menu").hidden=true; $("sapDiagInfo").textContent=""; $("sapDiagDlg").classList.add("show"); };
+$("sapDiagClose").onclick=()=>$("sapDiagDlg").classList.remove("show");
+$("sapDiagDlg").onclick=e=>{ if(e.target.id==="sapDiagDlg") $("sapDiagDlg").classList.remove("show"); };
+$("sapDiagOpen").onclick=()=>{ try{ sessionStorage.setItem("sapDiagPending",String(Date.now())); }catch(_){}; const href=MONITOR_HREF(); if(useEdgeLinks()) location.href=href; else window.open(href,"_blank","noopener"); };
+$("sapDiagRead").onclick=readSapDiag;
+$("sapDiagCopy").onclick=async()=>{
+  const t=$("sapDiagText").value||"";
+  if(!t.trim()){ toast("Nothing to copy yet."); return; }
+  try{ await navigator.clipboard.writeText(t); toast("Copied — paste it to Claude."); }
+  catch(e){ try{ $("sapDiagText").select(); document.execCommand("copy"); toast("Copied."); }catch(_){ toast("Select the text in the box and copy it manually."); } }
+};
+
+// When you come back to the planner after copying in SAP, try to import (or fill the diagnostic box) automatically.
+async function onSapReturn(){
+  if(sapDiagArmed() && $("sapDiagDlg").classList.contains("show")){ await readSapDiag(); return; }
+  if(!sapArmed()) return; await importFromClipboard(false);
+}
 document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") onSapReturn(); });
 window.addEventListener("focus",onSapReturn);
 if(sapArmed()) $("sapReturnRow").hidden=false;
