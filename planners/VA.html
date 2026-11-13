@@ -838,12 +838,13 @@ const ERRLOG=[];
   window.addEventListener("unhandledrejection",e=>add("Promise: "+((e.reason&&e.reason.message)||e.reason)));
 })();
 // ---------- version ----------
-const APP_VERSION = "4.37";
+const APP_VERSION = "4.38";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const GC_CODE = "";   // GoatCounter site code for anonymous usage counts (blank = nothing is sent)
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["4.38", "SAP mobile import fixed: the ZFIELDTECH monitor copies your orders as a vertical list (Work Order:, Customer:, Finish Date:, …), and the planner now reads that layout directly — store, due date, priority, status and work center all land in the right place; overhead/time-tracking orders with no store are skipped. Open SAP & import now opens SAP in a window the planner controls and closes it for you once the import finishes."],
   ["4.37", "🔎 SAP import check (☰ Menu): opens SAP like the import button but just drops the copied text into a box, raw and unparsed, with a quick note of how many columns it sees. Copy it out and send it to Claude so the SAP mobile layout can be matched to the planner's columns."],
   ["4.36", "📲 Open SAP & import: one tap opens the SAP mobile launchpad (your ZFIELDTECH active calls, in Edge if that’s your setting). Copy your calls there, switch back, and they import automatically — or tap “Import the calls I copied.” Everything stays on your device."],
   ["4.35", "SAP time check: travel time (ActType ITLABT) is split out from each store’s total, so the per-store on-site hours line up with what Companion tracks at the store; travel is shown on its own row."],
@@ -1143,6 +1144,41 @@ function parseCalls(text){
   });
   if(badDates) warnings.push(`${badDates} call${badDates>1?"s have":" has"} a due date the planner can't read. Column 3 should be "Basic fin. date" (like 9/20/2026).`);
   return {calls, errors, warnings};
+}
+
+// ---------- SAP mobile (Fiori ZFIELDTECH monitor) ----------
+// The SAP mobile app copies each work order as a vertical label/value list, not the IW49N grid:
+//   <description> / Work Order: / 801636897 / Team: / … / Finish Date: / 11/11/2026 07:34 /
+//   Priority: / 3 - Standard / Customer: / P1694 - Name / Work Center: / CLT_20E - Charlotte NC
+// Convert each card into one standard tab-separated row so the normal importer handles it.
+const FIORI_RX=/work order:/i;
+function fioriToRows(text){
+  const lines=text.replace(/\r/g,"").split("\n").map(s=>s.trim()).filter(Boolean);
+  const LAB={"work order:":"order","team:":"team","activity type:":"activ","status:":"status","finish date:":"fin","priority:":"prio","customer:":"cust","work center:":"wc"};
+  const recs=[];
+  for(let k=0;k<lines.length;k++){
+    if(lines[k].toLowerCase()!=="work order:") continue;
+    const rec={desc:(lines[k-1]||"").trim()};
+    let j=k;
+    while(j<lines.length){
+      const lab=LAB[lines[j].toLowerCase()];
+      if(lab){ rec[lab]=(lines[j+1]||"").trim(); j+=2; continue; }
+      if(j>k) break;            // a non-label line after the card started = the next card's title
+      j++;
+    }
+    recs.push(rec); k=j-1;
+  }
+  const rows=[];
+  for(const r of recs){
+    const cust=(r.cust||"").match(/\d{3,5}/); if(!cust) continue;   // no store (e.g. overhead/time-tracking) → skip
+    const [d,t]=(r.fin||"").split(/\s+/);
+    const wc=(r.wc||"").split(/\s+[-–—]\s+/)[0].trim();
+    const st=/dispatch/i.test(r.status||"")?"DISP":/wait/i.test(r.status||"")?"WAIT":(r.status||"").trim();
+    // COLS order: Order Type, MaintActivType, Basic fin. date, Earliest finish, Priority, Customer,
+    //             Personnel, Activity, Serial, Order, Description, Oper.WorkCenter, User status, Material, Location
+    rows.push(["ZSM4","",d||"",t||"",(r.prio||"").trim(),"P"+cust[0],"","","",(r.order||"").trim(),(r.desc||"").trim(),wc,st,"",""].join("\t"));
+  }
+  return rows;
 }
 
 // ---------- helpers ----------
@@ -1760,12 +1796,17 @@ function loadSettings(){
 // ---------- events ----------
 $("loadBtn").onclick=()=>{
   // Dispatch texts (no tab-separated rows) are ADDED to the current list instead of replacing it.
-  const raw=$("callsInput").value;
+  let raw=$("callsInput").value;
   // A pasted handoff / transfer message works here too, whatever features are turned on.
   if(S.initDone && raw.includes(SYNC_TAG)){
     readTransfer(raw).then(r=>{ $("callsInput").value=store.get("callsText",""); offerSync(r.d,r.packed,true); })
       .catch(()=>{ const m0=$("importMsg"); m0.className="msg err"; m0.textContent="That transfer couldn't be read. Copy the whole message again and paste it here."; });
     return;
+  }
+  // SAP mobile (Fiori ZFIELDTECH monitor) copies a vertical label/value list → convert to standard rows (a full-queue snapshot, so it replaces like an IW49N export).
+  if(FIORI_RX.test(raw) && !raw.includes("\t")){
+    const rows=fioriToRows(raw);
+    if(rows.length){ raw=rows.join("\n"); $("callsInput").value=raw; }
   }
   if(S.initDone && !raw.includes("\t")){
     const rows=parseDispatch(raw);
@@ -1815,7 +1856,7 @@ async function importFromClipboard(loud){
     const t=await navigator.clipboard.readText();
     if(!t||!t.trim()){ if(loud){ m.className="msg err"; m.textContent="Clipboard is empty — in SAP, select your calls and copy (Ctrl+C) first, then tap the import button."; } return false; }
     $("callsInput").value=t; $("loadBtn").click();
-    disarmSap();
+    disarmSap(); closeSapWin();
     return true;
   }catch(e){
     if(loud){
@@ -1828,14 +1869,17 @@ async function importFromClipboard(loud){
 $("pasteSapBtn").onclick=()=>importFromClipboard(true);
 
 // "Open SAP & import": open the Fiori monitor (your active calls) and arm an import for when you return.
+let sapWin=null;
+function closeSapWin(){ try{ if(sapWin && !sapWin.closed) sapWin.close(); }catch(_){}; sapWin=null; }
 function armSap(){ try{ sessionStorage.setItem("sapPending", String(Date.now())); }catch(_){}; $("sapReturnRow").hidden=false; }
 function disarmSap(){ try{ sessionStorage.removeItem("sapPending"); }catch(_){}; const r=$("sapReturnRow"); if(r) r.hidden=true; }
 function sapArmed(){ try{ const t=+sessionStorage.getItem("sapPending"); return t && (Date.now()-t) < 15*60*1000; }catch(_){ return false; } }
 $("sapMobileBtn").onclick=()=>{
   armSap();
-  const m=$("importMsg"); m.className="msg"; m.textContent="Opening SAP… select your active calls and copy them, then switch back here — your list imports automatically (or tap “Import the calls I copied”). Everything stays on this device.";
-  const href=MONITOR_HREF();
-  if(useEdgeLinks()) location.href=href; else window.open(href,"_blank","noopener");
+  const m=$("importMsg"); m.className="msg"; m.textContent="Opening SAP in a window… select your active calls and copy them, then switch back here — your list imports automatically and the SAP window closes. (The copy step has to be done in SAP.)";
+  // Open SAP in a window this page controls, so it can be closed automatically once the import is done.
+  try{ sapWin=window.open(MONITOR_URL,"sapImport"); }catch(_){ sapWin=null; }
+  if(!sapWin){ const href=MONITOR_HREF(); if(useEdgeLinks()) location.href=href; else window.open(href,"_blank","noopener"); }   // popup blocked → fall back
 };
 $("sapReturnBtn").onclick=()=>importFromClipboard(true);
 
