@@ -838,12 +838,13 @@ const ERRLOG=[];
   window.addEventListener("unhandledrejection",e=>add("Promise: "+((e.reason&&e.reason.message)||e.reason)));
 })();
 // ---------- version ----------
-const APP_VERSION = "4.38";
+const APP_VERSION = "4.39";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const GC_CODE = "";   // GoatCounter site code for anonymous usage counts (blank = nothing is sent)
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["4.39", "SAP time check: travel time now counts inside each store's total (the ticket you drove to), instead of a separate travel line — so the barcode Companion scans matches how Companion totals a day. Overhead still shows on its own."],
   ["4.38", "SAP mobile import fixed: the ZFIELDTECH monitor copies your orders as a vertical list (Work Order:, Customer:, Finish Date:, …), and the planner now reads that layout directly — store, due date, priority, status and work center all land in the right place; overhead/time-tracking orders with no store are skipped. Open SAP & import now opens SAP in a window the planner controls and closes it for you once the import finishes."],
   ["4.37", "🔎 SAP import check (☰ Menu): opens SAP like the import button but just drops the copied text into a box, raw and unparsed, with a quick note of how many columns it sees. Copy it out and send it to Claude so the SAP mobile layout can be matched to the planner's columns."],
   ["4.36", "📲 Open SAP & import: one tap opens the SAP mobile launchpad (your ZFIELDTECH active calls, in Edge if that’s your setting). Copy your calls there, switch back, and they import automatically — or tap “Import the calls I copied.” Everything stays on your device."],
@@ -4041,32 +4042,32 @@ function parseIW47(text){
 function iw47Agg(rows){
   const dates=[...new Set(rows.map(r=>r.ymd))].sort(), sd={}, ov={}, tv={};
   rows.forEach(r=>{
-    if(!r.store){ ov[r.ymd]=(ov[r.ymd]||0)+r.hrs; return; }   // overhead (no store)
-    if(r.travel){ tv[r.ymd]=(tv[r.ymd]||0)+r.hrs; return; }   // travel — kept out of the store total
-    const k=r.store+"|"+r.ymd; sd[k]=(sd[k]||0)+r.hrs;        // on-site work at the store
+    if(!r.store){ ov[r.ymd]=(ov[r.ymd]||0)+r.hrs; return; }   // overhead / general travel with no store
+    if(r.travel) tv[r.ymd]=(tv[r.ymd]||0)+r.hrs;             // keep a travel tally (for the summary line only)
+    const k=r.store+"|"+r.ymd; sd[k]=(sd[k]||0)+r.hrs;        // store total INCLUDES its travel (ITLABT) + on-site work
   });
   return {dates, sd, ov, tv};
 }
 const ymdNice=y=>`${+y.slice(4,6)}/${+y.slice(6,8)}`;
 function renderTc(rows){
   const {dates,sd,ov,tv}=iw47Agg(rows);
-  const stores=[...new Set(rows.filter(r=>r.store&&!r.travel).map(r=>r.store))].sort();
+  const stores=[...new Set(rows.filter(r=>r.store).map(r=>r.store))].sort();
   const total=rows.reduce((a,r)=>a+r.hrs,0), neg=rows.filter(r=>r.hrs<0).length;
   const travTot=dates.reduce((a,d)=>a+(tv[d]||0),0);
-  $("tcSummary").innerHTML=`<b>${rows.length}</b> confirmation line${rows.length===1?"":"s"} · <b>${dates.length}</b> day${dates.length===1?"":"s"} (${ymdNice(dates[0])}–${ymdNice(dates[dates.length-1])}) · logged <b>${total.toFixed(2)} hr</b>`+(travTot?` (incl. ${travTot.toFixed(2)} travel, shown separately)`:"")+(neg?` · ${neg} reversed entr${neg===1?"y":"ies"} netted out`:"");
+  $("tcSummary").innerHTML=`<b>${rows.length}</b> confirmation line${rows.length===1?"":"s"} · <b>${dates.length}</b> day${dates.length===1?"":"s"} (${ymdNice(dates[0])}–${ymdNice(dates[dates.length-1])}) · logged <b>${total.toFixed(2)} hr</b>`+(travTot?` (incl. ${travTot.toFixed(2)} travel, counted inside each store)`:"")+(neg?` · ${neg} reversed entr${neg===1?"y":"ies"} netted out`:"");
   const head=`<tr><th style="text-align:left;position:sticky;left:0;background:var(--panel)">Store</th>${dates.map(d=>`<th style="text-align:right;padding:0 6px">${ymdNice(d)}</th>`).join("")}<th style="text-align:right;padding:0 6px">Total</th></tr>`;
   const cellFmt=v=>v?v.toFixed(2):"·";
   const body=stores.map(st=>{ let rt=0; const cells=dates.map(d=>{ const v=sd[st+"|"+d]||0; rt+=v; return `<td style="text-align:right;padding:0 6px">${cellFmt(v)}</td>`; }).join(""); return `<tr><td style="position:sticky;left:0;background:var(--panel)">#${st}</td>${cells}<td style="text-align:right;padding:0 6px;font-weight:700">${rt.toFixed(2)}</td></tr>`; }).join("");
   const sumRow=(label,map)=>dates.some(d=>map[d])?`<tr><td style="position:sticky;left:0;background:var(--panel);color:var(--muted)">${label}</td>${dates.map(d=>`<td style="text-align:right;padding:0 6px;color:var(--muted)">${cellFmt(map[d]||0)}</td>`).join("")}<td style="text-align:right;padding:0 6px;font-weight:700">${dates.reduce((a,d)=>a+(map[d]||0),0).toFixed(2)}</td></tr>`:"";
-  const totRow=`<tr style="border-top:2px solid var(--line)"><td style="position:sticky;left:0;background:var(--panel);font-weight:700">Total</td>${dates.map(d=>{ let c=(ov[d]||0)+(tv[d]||0); stores.forEach(st=>c+=sd[st+"|"+d]||0); return `<td style="text-align:right;padding:0 6px;font-weight:700">${c.toFixed(2)}</td>`; }).join("")}<td style="text-align:right;padding:0 6px;font-weight:700">${total.toFixed(2)}</td></tr>`;
-  $("tcTable").innerHTML=`<table style="border-collapse:collapse;font-size:13px;white-space:nowrap">${head}${body}${sumRow("Travel",tv)}${sumRow("Overhead",ov)}${totRow}</table>`;
+  const totRow=`<tr style="border-top:2px solid var(--line)"><td style="position:sticky;left:0;background:var(--panel);font-weight:700">Total</td>${dates.map(d=>{ let c=(ov[d]||0); stores.forEach(st=>c+=sd[st+"|"+d]||0); return `<td style="text-align:right;padding:0 6px;font-weight:700">${c.toFixed(2)}</td>`; }).join("")}<td style="text-align:right;padding:0 6px;font-weight:700">${total.toFixed(2)}</td></tr>`;
+  $("tcTable").innerHTML=`<table style="border-collapse:collapse;font-size:13px;white-space:nowrap">${head}${body}${sumRow("Overhead",ov)}${totRow}</table>`;
 }
 function tcPayload(rows){
-  const {dates,sd,ov,tv}=iw47Agg(rows), di=Object.fromEntries(dates.map((d,i)=>[d,i]));
+  const {dates,sd,ov}=iw47Agg(rows), di=Object.fromEntries(dates.map((d,i)=>[d,i]));
+  // Store totals now include each store's travel, so the phone can fold travel into the ticket you drove to.
   const s=Object.keys(sd).map(k=>{ const [st,ymd]=k.split("|"); return [st,di[ymd],Math.round(sd[k]*100)/100]; }).filter(x=>Math.abs(x[2])>0.001);
   const o=Object.keys(ov).map(ymd=>[di[ymd],Math.round(ov[ymd]*100)/100]).filter(x=>Math.abs(x[1])>0.001);
-  const tr=Object.keys(tv).map(ymd=>[di[ymd],Math.round(tv[ymd]*100)/100]).filter(x=>Math.abs(x[1])>0.001);
-  return {v:1,t:"iw47",d:dates,s,o,tr};
+  return {v:1,t:"iw47",d:dates,s,o};
 }
 function showTcCode(){
   const n=tcState.codes.length, i=tcState.i, q=RouteQR.make(tcState.codes[i],"L");
