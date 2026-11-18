@@ -1,0 +1,9 @@
+# Never commit inventory, serial lists or logs
+*.xlsx
+*.xls
+*.xlsm
+bridge/logs/
+data/
+*.zip
+# Allow the bin layout files
+!layout/*.csv
