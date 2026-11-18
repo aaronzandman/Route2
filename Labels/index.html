@@ -85,6 +85,7 @@ td.m{font-family:var(--f-mono);font-size:13px} td.b{font:700 17px var(--f-displa
     <span id="bridge" class="pill">Connecting…</span>
     <span class="spacer"></span>
     <label class="tog"><input type="checkbox" id="auto" checked> Print on scan</label>
+    <button id="btnCal" title="Set the Zebra to 35x20 mm direct-thermal gap labels and calibrate">Calibrate printer</button>
     <button id="btnTest" title="Print the test label (or scan T)">Test label</button>
   </header>
 
@@ -125,6 +126,7 @@ td.m{font-family:var(--f-mono);font-size:13px} td.b{font:700 17px var(--f-displa
 
 <script>
 const BRIDGE = location.port === '9123' ? '' : 'http://127.0.0.1:9123';
+const SETUP_ZPL = '^XA^MNY^MTD^PON^PW280^LL160^LH0,0^PR3^JUS^XZ~JC';
 const TEST_ZPL = "^XA^PW280^LL160^LH0,0^FO12,17^BXN,7,200,18,18^FH_^FD18000376|1^FS^FO146,4^A0N,26,26^FB130,1,0,L,0^FDD-A1-1^FS^FO146,32^A0N,16,16^FB130,1,0,L,0^FDPatch Cable^FS^FO146,72^A0N,14,14^FB130,1,0,L,0^FDCABLES - NETWORK^FS^FO146,90^A0N,12,12^FB130,2,0,L,0^FDCABLE 7FT CAT5E YELLOW PATCH^FS^FO146,128^A0N,22,22^FB130,1,0,L,0^FD18000376^FS^PQ1^XZ";
 const STORE_KEY = 'v175-scan-station-data';
 let TAGS = {}, SERIALS = {}, ALIAS = {}, BYBIN = {}, BINMAP = {}, LOCS = {}, online = null, unknownMtime = null;
@@ -523,6 +525,11 @@ function beep(){
 
 $('scan').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === 'Tab'){ e.preventDefault(); const v = e.target.value; e.target.value = ''; handle(v); } });
 $('btnTest').onclick = () => { printTest(); $('scan').focus(); };
+$('btnCal').onclick = async () => {
+  const ok = await sendPrint(SETUP_ZPL, {kind: 'SETUP', scanned: '', tag: '', serial: '', copies: 1});
+  showNote(ok ? 'Setup sent. The printer feeds a few blank labels while it measures them, then stops on the start of a label. Press Test label next.' : 'Could not reach the printer. Check the bridge window.');
+  $('scan').focus();
+};
 $('btnPick').onclick = () => $('files').click();
 $('files').onchange = e => { onFiles([...e.target.files]); e.target.value = ''; };
 $('btnHide').onclick = () => { $('load').hidden = true; $('scan').focus(); };

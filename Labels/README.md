@@ -29,6 +29,49 @@ you load new ones or click **Forget files on this computer**.
 `.xlsx` and `.csv` both work. Only rows whose storage location / location matches the van box (default `V175`) are used.
 The page tells you which file is which by its columns, so you can pick both at once or drag them onto the page.
 
+## Set up the Zebra GK420d (once)
+
+The GK420d is a **direct thermal** printer: use direct-thermal 35 x 20 mm labels with a gap between them, and no ribbon.
+
+### 1. Load the labels
+1. Open the lid (press the two release tabs on the sides) and slide the roll holders apart.
+2. Put the roll in with labels coming off the **top** of the roll, printed side up, and let the holders close on it.
+3. Pull the labels over the platen roller at the front, under the guides. Slide the guides in until they just touch the label edges.
+4. Close the lid until it clicks. Press **Feed** once: one label should come out and stop.
+
+### 2. Install the driver
+1. Plug the printer into the PC by USB and turn it on.
+2. Download **ZDesigner** from zebra.com (support page for the GK420d > Drivers) and run it. Choose **Install Printer** > the **GK420d (203 dpi)** model > the USB port it found.
+3. Windows now lists a printer called *ZDesigner GK420d*.
+
+### 3. Share it as ZEBRA
+1. Windows Settings > **Bluetooth & devices** > **Printers & scanners** > *ZDesigner GK420d* > **Printer properties**.
+2. **Sharing** tab: tick **Share this printer** and set the share name to `ZEBRA`. Click **OK**.
+3. If Windows asks to turn on file and printer sharing, say yes, for **private** networks only.
+4. Check it: open Command Prompt in the `Labels` folder and run
+   `copy /b v175_TEST_label.zpl \\localhost\ZEBRA`
+   A label should print. If you see *"The network name cannot be found"*, the share name isn't exactly `ZEBRA`.
+
+### 4. Set the label size and calibrate
+Start the bridge (below), open the page, and press **Calibrate printer**. That sends `bridge/zebra_setup.zpl`, which:
+- sets gap-sensing media, direct thermal, 280 x 160 dots (35 x 20 mm), print speed 3 in/s
+- saves those settings in the printer
+- runs a media calibration (`~JC`): a few blank labels feed out, then it stops at the start of a label
+
+Without the page: `copy /b bridge\zebra_setup.zpl \\localhost\ZEBRA`.
+Or by hand: with the printer on, **hold Feed until the light flashes twice**, then let go. Holding until **one** flash prints a configuration report.
+
+Redo the calibration whenever you load a different label roll, or if a blank label comes out between printed ones.
+
+### Troubleshooting
+| Problem | Fix |
+|---|---|
+| Blank label between real ones, or printing runs across the gap | Calibrate (press **Calibrate printer**, or hold Feed for two flashes) |
+| Print is too light or patchy | Wrong label type (needs direct thermal), or raise darkness in ZDesigner: Printing Preferences > Options > Darkness |
+| Text or barcode cut off on one side | The roll guides are too loose. Slide them against the labels and calibrate |
+| Status light red or flashing | Lid not fully closed, or out of labels |
+| Page shows *Printer bridge offline* | Start `bridge\Start-V175-Labels.bat` and keep its window open |
+
 ## Set up printing (once per PC)
 
 1. Share the Zebra GK420d in Windows as `ZEBRA` (so `\\localhost\ZEBRA` works).
@@ -38,7 +81,7 @@ The page tells you which file is which by its columns, so you can pick both at o
    The badge at the top turns green: *Printer ready*.
 
 The bridge only listens on this computer (`127.0.0.1` / `::1`, port 9123). It prints RAW ZPL with
-`copy /b file.zpl \\localhost\ZEBRA`, with no drivers, PDFs or images involved. Every print is logged in `bridge/logs/print_log.csv`.
+`copy /b file.zpl \\localhost\ZEBRA`. The ZPL goes to the printer as-is: the driver only passes it through, and no PDFs or images are involved. Every print is logged in `bridge/logs/print_log.csv`.
 
 ## Before printing a batch
 
