@@ -780,6 +780,7 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
     <label class="hint" for="modeSel" style="display:block;margin-top:10px">Stop order</label>
     <select id="modeSel">
       <option value="optimize">Shortest drive (approx.)</option>
+      <option value="time">Least driving time (approx.)</option>
       <option value="priority">Highest priority first, then shortest</option>
       <option value="pasttier">Most past due first, then shortest</option>
       <option value="start">Oldest call start date first</option>
@@ -838,12 +839,13 @@ const ERRLOG=[];
   window.addEventListener("unhandledrejection",e=>add("Promise: "+((e.reason&&e.reason.message)||e.reason)));
 })();
 // ---------- version ----------
-const APP_VERSION = "4.39";
+const APP_VERSION = "4.40";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const GC_CODE = "";   // GoatCounter site code for anonymous usage counts (blank = nothing is sent)
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["4.40", "New Stop order option: “Least driving time (approx.)”. Alongside shortest distance, the planner can order stops to cut estimated driving time — it weights each leg by road type (short hops = slow streets, long hops = highway) so it favours fast highway runs. Still 100% on your device; it’s an estimate with no live traffic."],
   ["4.39", "SAP time check: travel time now counts inside each store's total (the ticket you drove to), instead of a separate travel line — so the barcode Companion scans matches how Companion totals a day. Overhead still shows on its own."],
   ["4.38", "SAP mobile import fixed: the ZFIELDTECH monitor copies your orders as a vertical list (Work Order:, Customer:, Finish Date:, …), and the planner now reads that layout directly — store, due date, priority, status and work center all land in the right place; overhead/time-tracking orders with no store are skipped. Open SAP & import now opens SAP in a window the planner controls and closes it for you once the import finishes."],
   ["4.37", "🔎 SAP import check (☰ Menu): opens SAP like the import button but just drops the copied text into a box, raw and unparsed, with a quick note of how many columns it sees. Copy it out and send it to Claude so the SAP mobile layout can be matched to the planner's columns."],
@@ -1382,14 +1384,29 @@ function getStart(){
   }
   return {label:"Start: store "+v, addr:fullAddr(v), pt:S.coords[v]||null, num:v};
 }
+// Leg cost functions (both fully local, from straight-line miles — no routing service is contacted).
+// legMiles: shortest crow-flies distance. legTime: an estimated driving time in hours, weighting each
+// leg by a road-speed model (short legs = slow surface streets, long legs = highway) and a road-detour
+// factor, so "least driving time" favours fast highway hops rather than only the shortest distance.
+function legMiles(a,b){ return (a&&b) ? miles(a,b) : 0; }
+function legTime(a,b){
+  if(!a||!b) return 0;
+  const m=miles(a,b), road=m*1.3;                 // ~30% longer by road than straight line
+  const sp = m<2 ? 22 : m<8 ? 32 : m<20 ? 45 : 58; // mph: streets → arterials → highway
+  return road/sp;                                  // hours
+}
 // end = where the route should finish (a point to end nearest), or null for "end anywhere".
-function pathCost(start, seq, end){
+// leg = the per-leg cost to minimise (defaults to distance).
+function seqCost(start, seq, end, leg){
+  leg=leg||legMiles;
   let d=0, prev=start?start.pt:null;
-  for(const s of seq){ if(prev) d+=miles(prev,S.coords[s.num]); prev=S.coords[s.num]; }
-  if(end && end.pt && prev) d+=miles(prev,end.pt);
+  for(const s of seq){ if(prev) d+=leg(prev,S.coords[s.num]); prev=S.coords[s.num]; }
+  if(end && end.pt && prev) d+=leg(prev,end.pt);
   return d;
 }
-function optimize(start, stops, end, firstNum){
+function pathCost(start, seq, end){ return seqCost(start, seq, end, legMiles); }
+function optimize(start, stops, end, firstNum, leg){
+  leg=leg||legMiles;
   if(stops.length<2) return stops.slice();
   let rest=stops.slice(), pinned=null;
   if(firstNum){ const i=rest.findIndex(s=>s.num===firstNum); if(i>=0) pinned=rest.splice(i,1)[0]; }
@@ -1399,18 +1416,18 @@ function optimize(start, stops, end, firstNum){
   else cur = start&&start.pt ? start.pt : null;
   if(!cur && rest.length){ seq.push(rest.shift()); cur=S.coords[seq[seq.length-1].num]; }
   while(rest.length){
-    let bi=0,bd=Infinity; rest.forEach((s,i)=>{const d=miles(cur,S.coords[s.num]); if(d<bd){bd=d;bi=i;}});
+    let bi=0,bd=Infinity; rest.forEach((s,i)=>{const d=leg(cur,S.coords[s.num]); if(d<bd){bd=d;bi=i;}});
     const s=rest.splice(bi,1)[0]; seq.push(s); cur=S.coords[s.num];
   }
   // 2-opt (never move the pinned first stop)
   const lock=pinned?1:0;
-  let improved=true, best=pathCost(start,seq,end), guard=0;
+  let improved=true, best=seqCost(start,seq,end,leg), guard=0;
   while(improved && guard++<200){
     improved=false;
     for(let i=lock;i<seq.length-1;i++) for(let k=i+1;k<seq.length;k++){
       const cand=seq.slice(0,i).concat(seq.slice(i,k+1).reverse(),seq.slice(k+1));
-      const c=pathCost(start,cand,end);
-      if(c<best-0.01){ seq=cand; best=c; improved=true; }
+      const c=seqCost(start,cand,end,leg);
+      if(c<best-0.0001){ seq=cand; best=c; improved=true; }
     }
   }
   return seq;
@@ -1441,7 +1458,8 @@ function orderStops(start, stops, mode, end, firstNum){
     });
     return seq.concat(mode==="pasttier" ? noPt.sort((a,b)=>b.tier-a.tier) : noPt);
   }
-  return optimize(start, withPt, end, firstNum).concat(noPt);
+  // "time" = least estimated driving time; "optimize" = least distance. Both stay fully on-device.
+  return optimize(start, withPt, end, firstNum, mode==="time"?legTime:legMiles).concat(noPt);
 }
 // The finish point, mirroring the start options.
 function getEnd(){
