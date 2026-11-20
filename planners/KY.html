@@ -805,6 +805,7 @@ details.settings summary{cursor:pointer;font:700 18px var(--sign);padding:8px 0}
     <div class="row"><button id="replanBtn" type="button">📍 Re-plan from here</button><button id="eodBtn" type="button">📊 End-of-day summary</button></div>
     <div class="totals" id="totals"></div>
     <button class="mapbtn" id="mapBtn" type="button" style="display:none">🗺 Show route on map</button>
+    <button class="mapbtn" id="sendStopBtn" type="button" style="display:none">📲 Send to Next Stop app</button>
     <div class="links" id="links"></div>
     <ol class="stops" id="stops"></ol>
     <div class="dndhint" id="dndHint" style="display:none">Drag the ⠿ handle (or use ▲▼) to change the order — you go down the list in order.</div>
@@ -841,12 +842,13 @@ const ERRLOG=[];
   window.addEventListener("unhandledrejection",e=>add("Promise: "+((e.reason&&e.reason.message)||e.reason)));
 })();
 // ---------- version ----------
-const APP_VERSION = "4.41";
+const APP_VERSION = "4.42";
 const FEEDBACK_TO = "Aaron.zandman@publix.com";
 const GC_CODE = "";   // GoatCounter site code for anonymous usage counts (blank = nothing is sent)
 const REPO_URL = "https://github.com/AaronZandman/Route2";
 const SITE_URL = "https://aaronzandman.github.io/Route2/";
 const CHANGELOG = [
+  ["4.42", "New “📲 Send to Next Stop app” button on your route: hands the whole stop list (in order, with addresses) to the companion Next Stop Android app, where you tap a stop to start driving to it. Install the Next Stop app to use it."],
   ["4.41", "The “Sort” menu over your store list now has Nearest first (shortest drive) and Least driving time — the same drive ordering as the route, right where you pick how the list is sorted."],
   ["4.40", "New Stop order option: “Least driving time (approx.)”. Alongside shortest distance, the planner can order stops to cut estimated driving time — it weights each leg by road type (short hops = slow streets, long hops = highway) so it favours fast highway runs. Still 100% on your device; it’s an estimate with no live traffic."],
   ["4.39", "SAP time check: travel time now counts inside each store's total (the ticket you drove to), instead of a separate travel line — so the barcode Companion scans matches how Companion totals a day. Overhead still shows on its own."],
@@ -1468,6 +1470,7 @@ function renderRoute(groups){
   if(seq.length && !S._roOpened){ $("routeOpts").open=true; S._roOpened=true; }   // show the visit-order list the first time there are stops
   const desk=isDesk();
   list.classList.toggle("dnd",seq.length>1); $("dndHint").style.display=seq.length>1?"":"none"; $("mapBtn").style.display=desk&&seq.length?"":"none";
+  $("sendStopBtn").style.display=seq.length?"":"none";
   const calls=seq.reduce((n,s)=>n+s.calls.length,0);
   S.routeTotals={stops:seq.length, calls, miles:known?total:null, start, round};
   $("totals").innerHTML = seq.length
@@ -1602,6 +1605,21 @@ function drawMap(fit){
   if(fit&&pts.length) MAP.fitBounds(L.latLngBounds(pts).pad(0.12),{maxZoom:13});
 }
 $("mapBtn").onclick=openMap;
+// Hand the current route order off to the Next Stop app (a nextstop:// deep link carrying the stops).
+function sendToNextStop(){
+  const stops=(S.lastOrder||[]).map(n=>{ const s=S.stores[n]||{}, p=S.coords[n]||[];
+    const name=[s.center,s.city].filter(Boolean).join(" · ")||("Store "+n);
+    return {n, name, addr:fullAddr(n), lat:p[0]??null, lng:p[1]??null}; });
+  if(!stops.length){ return; }
+  const json=JSON.stringify({v:1, t:"route", made:Date.now(), stops});
+  const d=btoa(unescape(encodeURIComponent(json))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+  const url="nextstop://route?d="+d;
+  const m=$("importMsg");
+  try{ location.href=url; }
+  catch(e){ if(m){ m.className="msg err"; m.textContent="Couldn't open the Next Stop app — is it installed?"; } }
+  setTimeout(()=>{ if(m){ m.className="msg"; m.textContent="Sent your route to the Next Stop app. If nothing opened, install the Next Stop app first."; } }, 400);
+}
+$("sendStopBtn").onclick=sendToNextStop;
 if(EDITION.id==="local"){ $("mapGrpWrap").style.display="inline-flex"; $("mapGrp").checked=store.get("mapGroups",true); }
 $("mapGrp").onchange=e=>{ store.set("mapGroups",e.target.checked); drawGroupsOverlay(); };
 $("mapClose").onclick=()=>$("mapDlg").classList.remove("show");
